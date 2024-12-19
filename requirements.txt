@@ -62,6 +62,7 @@ telegraph
 tgcrypto
 unidecode
 wget
-yt-dlp
 youtube-search
 youtube-search-python
+git+https://github.com/KurimuzonAkuma/pyrogram
+git+https://github.com/yt-dlp/yt-dlp
