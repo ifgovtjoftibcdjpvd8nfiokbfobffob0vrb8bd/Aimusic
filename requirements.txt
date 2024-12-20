@@ -42,7 +42,6 @@ pycryptodome
 pydub
 pyfiglet
 pykeyboard
-git+https://github.com/doraemon890/pyrogram
 python-dotenv
 python-telegram-bot
 python-whois
