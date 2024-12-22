@@ -5,10 +5,6 @@ from ANNIEMUSIC import app
 from pyrogram import filters
 from config import BOT_USERNAME
 
-
-
-
-
 @app.on_message(filters.command("search"))
 async def ytsearch(_, message: Message):
     try:

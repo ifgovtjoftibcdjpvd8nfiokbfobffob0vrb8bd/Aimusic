@@ -2,10 +2,8 @@ from pyrogram import Client, filters
 from nekosbest import Client as NekoClient
 from ANNIEMUSIC import app
 
-# Initialize the nekosbest client
 neko_client = NekoClient()
 
-# Define available commands and their responses
 commands = {
     "punch": {"emoji": "💥", "text": "punched"},
     "slap": {"emoji": "😒", "text": "slapped"},
@@ -15,7 +13,6 @@ commands = {
     "highfive": {"emoji": "🙌", "text": "high-fived"},
     "shoot": {"emoji": "🔫", "text": "shot"},
     "dance": {"emoji": "💃", "text": "danced"},
-    "kick": {"emoji": "👟", "text": "kicked"},
     "happy": {"emoji": "😊", "text": "was happy"},
     "baka": {"emoji": "😡", "text": "called you a baka"},
     "pat": {"emoji": "👋", "text": "patted"},
@@ -43,7 +40,6 @@ commands = {
     "lurk": {"emoji": "👤", "text": "lurking"}
 }
 
-# Function to get animation URL
 async def get_animation(animation_type):
     try:
         result = await neko_client.get_image(animation_type)
@@ -52,7 +48,6 @@ async def get_animation(animation_type):
         print(f"Error: {e}")
         return None
 
-# Command handler
 @app.on_message(filters.command(list(commands.keys())) & ~filters.forwarded & ~filters.via_bot)
 async def animation_command(client, message):
     command = message.command[0].lower()

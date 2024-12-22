@@ -33,17 +33,16 @@ async def get_group_status(_, message: Message):
     await message.reply(response_text)
 
 
-# Command handler to get group status
 @app.on_message(filters.command("status") & filters.group)
 def group_status(client, message):
-    chat = message.chat  # Chat where the command was sent
+    chat = message.chat
     status_text = (
         f"Group ID: {chat.id}\n"
         f"Title: {chat.title}\n"
         f"Type: {chat.type}\n"
     )
                   
-    if chat.username:  # Not all groups have a username
+    if chat.username:
         status_text += f"Username: @{chat.username}"
     else:
         status_text += "Username: None"

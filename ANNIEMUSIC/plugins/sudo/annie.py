@@ -7,10 +7,6 @@ from pyrogram.types import *
 from ANNIEMUSIC.utils.jarvis_ban import admin_filter
 
 
-
-
-
-
 Jarvis_text = [
 "hey please don't disturb me.",
 "who are you",    

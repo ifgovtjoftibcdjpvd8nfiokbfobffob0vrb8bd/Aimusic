@@ -6,7 +6,6 @@ from datetime import datetime
 from ANNIEMUSIC import app as app
 import requests
 
-
 @app.on_message(filters.command("write"))
 async def handwrite(_, message: Message):
     if message.reply_to_message:
@@ -24,28 +23,16 @@ sᴜᴄᴇssғᴜʟʟʏ ᴡʀɪᴛᴛᴇɴ ᴛᴇxᴛ 💘
     await m.delete()
     await message.reply_photo(photo=write,caption=caption)
 
-mod_name = "WʀɪᴛᴇTᴏᴏʟ"
-
-help = """
-
- ᴡʀɪᴛᴇs ᴛʜᴇ ɢɪᴠᴇɴ ᴛᴇxᴛ ᴏɴ ᴡʜɪᴛᴇ ᴘᴀɢᴇ ᴡɪᴛʜ ᴀ ᴘᴇɴ 🖊
-
-❍ /write <ᴛᴇxᴛ> *:* ᴡʀɪᴛᴇs ᴛʜᴇ ɢɪᴠᴇɴ ᴛᴇxᴛ.
- """
-
-#----------
 
 @app.on_message(filters.command("day"))
 def date_to_day_command(client: Client, message: Message):
     try:
-        # Extract the date from the command message......
         command_parts = message.text.split(" ", 1)
         if len(command_parts) == 2:
             input_date = command_parts[1].strip()
             date_object = datetime.strptime(input_date, "%Y-%m-%d")
             day_of_week = date_object.strftime("%A")
 
-            # Reply with the day of the week
             message.reply_text(f"The day of the week for {input_date} is {day_of_week}.")
 
         else:

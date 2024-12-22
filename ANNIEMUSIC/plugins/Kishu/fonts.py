@@ -192,11 +192,3 @@ async def style(c, m):
         await m.message.edit_text(new_text, reply_markup=m.message.reply_markup)
     except:
         pass
-
-
-__help__ = """
-
- ❍ /fonts <text> *:* ᴄᴏɴᴠᴇʀᴛs sɪᴍᴩʟᴇ ᴛᴇxᴛ ᴛᴏ ʙᴇᴀᴜᴛɪғᴜʟ ᴛᴇxᴛ ʙʏ ᴄʜᴀɴɢɪɴɢ ɪᴛ's ғᴏɴᴛ.
- """
-
-__mod_name__ = "Fᴏɴᴛ"

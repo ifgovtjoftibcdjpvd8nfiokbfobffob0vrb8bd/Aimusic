@@ -6,7 +6,6 @@ from pyrogram import filters
 # Load environment variables from .env file
 load_dotenv()
 
-# Telegram API credentials - Get these from the Telegram API website
 API_ID = int(getenv("API_ID"))
 API_HASH = getenv("API_HASH")
 BOT_TOKEN = getenv("BOT_TOKEN")
@@ -20,7 +19,7 @@ EVALOP = list(map(int, getenv("EVALOP", "6797202080").split()))
 MONGO_DB_URI = getenv("MONGO_DB_URI", None)
 LOGGER_ID = int(getenv("LOGGER_ID", -1002014167331))
 DURATION_LIMIT_MIN = int(getenv("DURATION_LIMIT", 17000))
-# External APIs - Get these from their respective providers
+
 GPT_API = getenv("GPT_API")
 DEEP_API = getenv("DEEP_API")
 OWNER_ID = int(getenv("OWNER_ID", 7044783841))

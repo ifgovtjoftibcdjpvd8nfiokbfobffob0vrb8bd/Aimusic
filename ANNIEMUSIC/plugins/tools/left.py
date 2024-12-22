@@ -1,11 +1,15 @@
+
 from ANNIEMUSIC import app
 from pyrogram import Client, filters
 from pyrogram.errors import RPCError
 from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton
-from os import environ
+from os import remove
+import os
 from typing import Union, Optional
 from PIL import Image, ImageDraw, ImageFont
 import asyncio
+import time
+from collections import deque
 
 # --------------------------------------------------------------------------------- #
 
@@ -46,7 +50,7 @@ async def get_userinfo_img(
         fill=(255, 255, 255),
     )
 
-    path = f"./userinfo_img_{user_id}.png"
+    path = f"./userinfo_img_{user_id}_{int(time.time())}.png"
     bg.save(path)
     return path
 
@@ -57,11 +61,36 @@ font_path = "ANNIEMUSIC/assets/hiroko.ttf"
 
 # --------------------------------------------------------------------------------- #
 
-# -------------
+leave_events = {}
+
+async def handle_leave_event(chat_id):
+    now = time.time()
+    if chat_id not in leave_events:
+        leave_events[chat_id] = {
+            'timestamps': deque(),
+            'notifications_disabled_until': 0,
+            'lock': asyncio.Lock()
+        }
+    data = leave_events[chat_id]
+
+    async with data['lock']:
+        while data['timestamps'] and now - data['timestamps'][0] > 5:
+            data['timestamps'].popleft()
+        data['timestamps'].append(now)
+        if now < data['notifications_disabled_until']:
+            return False
+        else:
+            if len(data['timestamps']) >= 10:
+                data['notifications_disabled_until'] = now + 15 * 60
+                data['timestamps'].clear()
+                return False
+            else:
+                return True
+
+# --------------------------------------------------------------------------------- #
 
 @app.on_chat_member_updated(filters.group, group=20)
 async def member_has_left(client: app, member: ChatMemberUpdated):
-
     if (
         not member.new_chat_member
         and member.old_chat_member.status not in {
@@ -73,32 +102,35 @@ async def member_has_left(client: app, member: ChatMemberUpdated):
     else:
         return
 
+    should_notify = await handle_leave_event(member.chat.id)
+    if not should_notify:
+        return
+
     user = (
         member.old_chat_member.user
         if member.old_chat_member
         else member.from_user
     )
 
-    # Check if the user has a profile photo
     if user.photo and user.photo.big_file_id:
+        photo = None
+        welcome_photo = None
         try:
-            # Add the photo path, caption, and button details
             photo = await app.download_media(user.photo.big_file_id)
 
+            # Create the user info image
             welcome_photo = await get_userinfo_img(
                 bg_path=bg_path,
                 font_path=font_path,
                 user_id=user.id,
                 profile_path=photo,
             )
-        
-            caption = f"**#New_Member_Left**\n\n**๏** {user.mention} **ʜᴀs ʟᴇғᴛ ᴛʜɪs ɢʀᴏᴜᴘ**\n**๏ sᴇᴇ ʏᴏᴜ sᴏᴏɴ ᴀɢᴀɪɴ..!**"
-            button_text = "๏ ᴠɪᴇᴡ ᴜsᴇʀ ๏"
 
-            # Generate a deep link to open the user's profile
+            caption = f"**#New_Member_Left**\n\n**๏** {user.mention} **has left this group**\n**๏ See you soon again..!**"
+            button_text = "๏ View User ๏"
+
             deep_link = f"tg://openmessage?user_id={user.id}"
 
-            # Send the message with the photo, caption, and button
             message = await client.send_photo(
                 chat_id=member.chat.id,
                 photo=welcome_photo,
@@ -108,18 +140,21 @@ async def member_has_left(client: app, member: ChatMemberUpdated):
                 ])
             )
 
-            # Schedule a task to delete the message after 30 seconds
             async def delete_message():
-                await asyncio.sleep(20)
+                await asyncio.sleep(10)
                 await message.delete()
+                try:
+                    if photo and os.path.exists(photo):
+                        remove(photo)
+                    if welcome_photo and os.path.exists(welcome_photo):
+                        remove(welcome_photo)
+                except Exception as e:
+                    print(f"Error deleting files: {e}")
 
-            # Run the task
             asyncio.create_task(delete_message())
-            
+
         except RPCError as e:
             print(e)
             return
     else:
-        # Handle the case where the user has no profile photo
         print(f"User {user.id} has no profile photo.")
-        

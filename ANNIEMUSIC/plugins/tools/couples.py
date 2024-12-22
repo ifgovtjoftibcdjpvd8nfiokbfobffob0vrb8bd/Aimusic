@@ -7,7 +7,6 @@ from pyrogram import *
 from pyrogram.types import *
 from pyrogram.enums import *
 
-#BOT FILE NAME
 from ANNIEMUSIC import app as app
 from ANNIEMUSIC.mongo.couples_db import _get_image, get_couple
 
@@ -37,10 +36,9 @@ async def ctest(_, message):
     if message.chat.type == ChatType.PRIVATE:
         return await message.reply_text("This command only works in groups.")
     try:
-     #  is_selected = await get_couple(cid, today)
-     #  if not is_selected:
+
          msg = await message.reply_text("🦋")
-         #GET LIST OF USERS
+
          list_of_users = []
 
          async for i in app.get_chat_members(message.chat.id, limit=50):
@@ -109,26 +107,7 @@ async def ctest(_, message):
          for x in a:
            img = "https://graph.org/" + x
            couple = {"c1_id": c1_id, "c2_id": c2_id}
-          # await save_couple(cid, today, couple, img)
-    
-         
-      # elif is_selected:
-      #   msg = await message.reply_text("𝐆ᴇᴛᴛɪɴɢ 𝐓ᴏᴅᴀʏs 𝐂ᴏᴜᴘʟᴇs 𝐈ᴍᴀɢᴇ...")
-      #   b = await _get_image(cid)
-       #  c1_id = int(is_selected["c1_id"])
-       #  c2_id = int(is_selected["c2_id"])
-       #  c1_name = (await app.get_users(c1_id)).first_name
-        # c2_name = (await app.get_users(c2_id)).first_name
-         
-      #   TXT = f"""
-#**𝐓ᴏᴅᴀʏ's 𝐒ᴇʟᴇᴄᴛᴇᴅ 𝐂ᴏᴜᴘʟᴇs 🎉 :
-#➖➖➖➖➖➖➖➖➖➖➖➖
-#[{c1_name}](tg://openmessage?user_id={c1_id}) + [{c2_name}](tg://openmessage?user_id={c2_id}) = ❣️
-#➖➖➖➖➖➖➖➖➖➖➖➖
-#𝐍ᴇxᴛ 𝐂ᴏᴜᴘʟᴇs 𝐖ɪʟʟ 𝐁ᴇ 𝐒ᴇʟᴇᴄᴛᴇᴅ 𝐎ɴ {tomorrow} !!**
-#"""
- #        await message.reply_photo(b, caption=TXT)
-        # await msg.delete()
+
     except Exception as e:
         print(str(e))
     try:
@@ -137,9 +116,4 @@ async def ctest(_, message):
       os.remove(f"test_{cid}.png")
     except Exception:
        pass
-         
-
-__mod__ = "COUPLES"
-__help__ = """
-**» /couples** - Get Todays Couples Of The Group In Interactive View
-"""
+        
