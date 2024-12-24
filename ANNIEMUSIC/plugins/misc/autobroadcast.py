@@ -35,18 +35,17 @@ async def send_message_to_chats():
 
         for chat_info in chats:
             chat_id = chat_info.get('chat_id')
-            if isinstance(chat_id, int):  # Check if chat_id is an integer
+            if isinstance(chat_id, int):
                 try:
                     await app.send_video(chat_id, video=BD_VID, caption=MESSAGE, reply_markup=BUTTON)
-                    await asyncio.sleep(3)  # Sleep for 1 second between sending messages
+                    await asyncio.sleep(3)
                 except Exception as e:
-                    pass  # Do nothing if an error occurs while sending message
+                    pass
     except Exception as e:
-        pass  # Do nothing if an error occurs while fetching served chats
+        pass
 async def continuous_broadcast():
     while True:
         await send_message_to_chats()
-        await asyncio.sleep(180000)  # Sleep (180000 seconds) between next broadcast
+        await asyncio.sleep(180000)
 
-# Start the continuous broadcast loop
 asyncio.create_task(continuous_broadcast())
