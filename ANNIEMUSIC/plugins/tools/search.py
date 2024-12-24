@@ -1,197 +1,92 @@
-from traceback import format_exc
-from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
-from search_engine_parser.core.engines.google import Search as GoogleSearch
-from search_engine_parser.core.engines.stackoverflow import \
-    Search as StackSearch
-from search_engine_parser.core.exceptions import NoResultsFound, NoResultsOrTrafficError
+import aiohttp
+from bs4 import BeautifulSoup
+import urllib.parse
+import asyncio
+from pyrogram import Client, filters
+from pyrogram.enums import ParseMode
 from ANNIEMUSIC import app
-from pyrogram import filters
 
+TIMEOUT_SECONDS = 30
 
+async def google_dork(dork_query, num_results):
+    query = urllib.parse.quote_plus(dork_query)
+    start = 0
+    results = []
+    total_results = "N/A"
 
+    async with aiohttp.ClientSession() as session:
+        while len(results) < num_results:
+            url = f"https://www.google.com/search?q={query}&start={start}"
+            headers = {
+                "User-Agent": (
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                    "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+                )
+            }
 
-gsearch = GoogleSearch()
-stsearch = StackSearch()
+            try:
+                async with session.get(url, headers=headers, timeout=TIMEOUT_SECONDS) as response:
+                    if response.status == 200:
+                        text = await response.text()
+                        soup = BeautifulSoup(text, "html.parser")
 
+                        if start == 0:
+                            total_results_text = soup.find('div', id='result-stats')
+                            if total_results_text:
+                                total_results = total_results_text.get_text()
 
+                        for g in soup.find_all('div', class_='g'):
+                            anchors = g.find_all('a')
+                            if anchors:
+                                link = anchors[0]['href']
+                                if link not in results:
+                                    results.append(link)
+                                    if len(results) >= num_results:
+                                        break
+            except asyncio.TimeoutError:
+                break
 
-def ikb(rows=None, back=False, todo="start_back"):
-    """
-    rows = pass the rows
-    back - if want to make back button
-    todo - callback data of back button
-    """
-    if rows is None:
-        rows = []
-    lines = []
-    try:
-        for row in rows:
-            line = []
-            for button in row:
-                btn_text = button.split(".")[1].capitalize()
-                button = btn(btn_text, button)  
-                line.append(button)
-            lines.append(line)
-    except AttributeError:
-        for row in rows:
-            line = []
-            for button in row:
-                button = btn(*button)  
-                line.append(button)
-            lines.append(line)
-    except TypeError:
-        # make a code to handel that error
-        line = []
-        for button in rows:
-            button = btn(*button)  # InlineKeyboardButton
-            line.append(button)
-        lines.append(line)
-    if back: 
-        back_btn = [(btn("ʙᴀᴄᴋ", todo))]
-        lines.append(back_btn)
-    return InlineKeyboardMarkup(inline_keyboard=lines)
+            start += 10
 
+    return results, total_results
 
-def btn(text, value, type="callback_data"):
-    return InlineKeyboardButton(text, **{type: value})
-
-
-
-
-
-
-@app.on_message(filters.command('google'))
-async def search_(app: app, msg: Message):
-    split = msg.text.split(None, 1)
-    if len(split) == 1:
-        return await msg.reply_text("**ɢɪᴠᴇ ǫᴜᴇʀʏ ᴛᴏ sᴇᴀʀᴄʜ**")
-    to_del = await msg.reply_text("**sᴇᴀʀᴄʜɪɴɢ ᴏɴ ɢᴏᴏɢʟᴇ...**")
-    query = split[1]
-    try:
-        result = await gsearch.async_search(query)
-        keyboard = ikb(
-            [
-                [
-                    (
-                        f"{result[0]['titles']}",
-                        f"{result[0]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[1]['titles']}",
-                        f"{result[1]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[2]['titles']}",
-                        f"{result[2]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[3]['titles']}",
-                        f"{result[3]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[4]['titles']}",
-                        f"{result[4]['links']}",
-                        "url",
-                    ),
-                ],
-            ]
+@app.on_message(filters.command(["dork", "stack", "search"]))
+async def dork(client, message):
+    command_parts = message.text.split(maxsplit=1)
+    if len(command_parts) < 2:
+        await message.reply_text(
+            "🚫 Please provide a query after the command.\n\nUsage: `/dork your_query_here`"
         )
-
-        txt = f"**ʜᴇʀᴇ ᴀʀᴇ ᴛʜᴇ ʀᴇsᴜʟᴛs ᴏғ ʀǫᴜᴇsᴛᴇᴅ : {query.title()}**"
-        await to_del.delete()
-        await msg.reply_text(txt, reply_markup=keyboard)
-        return
-    except NoResultsFound:
-        await to_del.delete()
-        await msg.reply_text("**ɴᴏ ʀᴇsᴜʟᴛ ғᴏᴜɴᴅ ᴄᴏʀʀᴇsᴘᴏɴᴅɪɴɢ ᴛᴏ ʏᴏᴜʀ ǫᴜᴇʀʏ**")
-        return
-    except NoResultsOrTrafficError:
-        await to_del.delete()
-        await msg.reply_text("****ɴᴏ ʀᴇsᴜʟᴛ ғᴏᴜɴᴅ ᴅᴜᴇ ᴛᴏ ᴛᴏᴏ ᴍᴀɴʏ ᴛʀᴀғғɪᴄ**")
-        return
-    except Exception as e:
-        await to_del.delete()
-        await msg.reply_text(f"**sᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ ᴡʀᴏɴɢ :\nʀᴇᴘᴏʀᴛ ᴀᴛ ɪᴛ** @JARVIS_V2")
-        print(f"error : {e}")
         return
 
+    dork_query = command_parts[1].strip()
+    num_results = 15
 
+    processing_msg = await message.reply_text("**Processing your request...**")
 
-@app.on_message(filters.command('stack'))
-async def stack_search_(app: app, msg: Message):
-    split = msg.text.split(None, 1)
-    if len(split) == 1:
-        return await msg.reply_text("**ɢɪᴠᴇ ǫᴜᴇʀʏ ᴛᴏ sᴇᴀʀᴄʜ**")
-    to_del = await msg.reply_text("**sᴇᴀʀᴄʜɪɴɢ ᴏɴ ɢᴏᴏɢʟᴇ...**")
-    query = split[1]
     try:
-        result = await stsearch.async_search(query)
-        keyboard = ikb(
-            [
-                [
-                    (
-                        f"{result[0]['titles']}",
-                        f"{result[0]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[1]['titles']}",
-                        f"{result[1]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[2]['titles']}",
-                        f"{result[2]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[3]['titles']}",
-                        f"{result[3]['links']}",
-                        "url",
-                    ),
-                ],
-                [
-                    (
-                        f"{result[4]['titles']}",
-                        f"{result[4]['links']}",
-                        "url",
-                    ),
-                ],
-            ]
-        )
+        start_time = asyncio.get_event_loop().time()
+        results, total_results = await asyncio.wait_for(google_dork(dork_query, num_results), timeout=TIMEOUT_SECONDS)
+        end_time = asyncio.get_event_loop().time()
 
-        txt = f"**ʜᴇʀᴇ ᴀʀᴇ ᴛʜᴇ ʀᴇsᴜʟᴛs ᴏғ ʀǫᴜᴇsᴛᴇᴅ : {query.title()}**"
-        await to_del.delete()
-        await msg.reply_text(txt, reply_markup=keyboard)
-        return
-    except NoResultsFound:
-        await to_del.delete()
-        await msg.reply_text("**ɴᴏ ʀᴇsᴜʟᴛ ғᴏᴜɴᴅ ᴄᴏʀʀᴇsᴘᴏɴᴅɪɴɢ ᴛᴏ ʏᴏᴜʀ ǫᴜᴇʀʏ**")
-        return
-    except NoResultsOrTrafficError:
-        await to_del.delete()
-        await msg.reply_text("****ɴᴏ ʀᴇsᴜʟᴛ ғᴏᴜɴᴅ ᴅᴜᴇ ᴛᴏ ᴛᴏᴏ ᴍᴀɴʏ ᴛʀᴀғғɪᴄ**")
-        return
+        if results:
+            results_text = "\n".join([f"{i + 1}. {url}" for i, url in enumerate(results)])
+            time_taken = end_time - start_time
+
+            caption = (
+                f"𝗚𝗼𝗼𝗴𝗹𝗲 𝗗𝗼𝗿𝗸 𝗥𝗲𝘀𝘂𝗹𝘁𝘀  🔍\n"
+                f"𝗤𝘂𝗲𝗿𝘆: {dork_query}\n\n"
+                f"{results_text}"
+            )
+
+            await processing_msg.delete()
+            await message.reply_text(
+                caption,
+                parse_mode=ParseMode.MARKDOWN,
+            )
+        else:
+            await processing_msg.edit_text("No results found.")
+    except asyncio.TimeoutError:
+        await processing_msg.edit_text("Sorry, the server took too long to respond. Please try again later.")
     except Exception as e:
-        await to_del.delete()
-        await msg.reply_text(f"**sᴏᴍᴇᴛʜɪɴɢ ᴡᴇɴᴛ ᴡʀᴏɴɢ :\nʀᴇᴘᴏʀᴛ ᴀᴛ ɪᴛ** @JARVIS_V2")
-        print(f"error : {e}")
-        return
+        await processing_msg.edit_text(f"An error occurred: {str(e)}")

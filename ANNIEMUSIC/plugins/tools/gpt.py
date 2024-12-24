@@ -55,7 +55,7 @@ async def chat_gpt(app, message):
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
 
-@app.on_message(filters.command(["iri"], prefixes=["s", "S"]))
+@app.on_message(filters.command(["ssis"], prefixes=["a", "A"]))
 async def chat_annie(app, message):
     try:
         await app.send_chat_action(message.chat.id, ChatAction.TYPING)

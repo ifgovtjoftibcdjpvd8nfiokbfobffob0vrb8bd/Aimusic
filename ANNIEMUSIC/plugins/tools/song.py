@@ -1,33 +1,25 @@
 import os
-import future
 import asyncio
-import requests
-import wget
-import time
-import yt_dlp
-from urllib.parse import urlparse
-from youtube_search import YoutubeSearch
-from yt_dlp import YoutubeDL
-from ANNIEMUSIC import app, YouTube
-from pyrogram import filters
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from youtubesearchpython import VideosSearch
-from youtubesearchpython import SearchVideos
 import re
 from pykeyboard import InlineKeyboard
+from pyrogram import Client, filters
 from pyrogram.enums import ChatAction
 from pyrogram.types import (InlineKeyboardButton,
                             InlineKeyboardMarkup, InputMediaAudio,
                             InputMediaVideo, Message)
+import yt_dlp
+from yt_dlp import YoutubeDL
 
+from ANNIEMUSIC import app, YouTube
 from config import (BANNED_USERS, SONG_DOWNLOAD_DURATION,
                     SONG_DOWNLOAD_DURATION_LIMIT)
 from ANNIEMUSIC.utils.decorators.language import language, languageCB
 from ANNIEMUSIC.utils.formatters import convert_bytes
 from ANNIEMUSIC.utils.inline.song import song_markup
 
-# Command
+
+cookies_file = "ANNIEMUSIC/assets/cookies.txt"
+
 SONG_COMMAND = ["song"]
 
 
@@ -50,8 +42,6 @@ async def song_commad_group(client, message: Message, _):
     )
     await message.reply_text(_["song_1"], reply_markup=upl)
 
-
-# Song Module
 
 
 @app.on_message(
@@ -193,7 +183,7 @@ async def song_helper_cb(client, CallbackQuery, _):
             print(e)
             return await CallbackQuery.edit_message_text(_["song_7"])
         keyboard = InlineKeyboard()
-        # AVC Formats Only [ Music Bot]
+        
         done = [160, 133, 134, 135, 136, 137, 298, 299, 264, 304, 266]
         for x in formats_available:
             check = x["format"]
@@ -224,8 +214,6 @@ async def song_helper_cb(client, CallbackQuery, _):
         )
 
 
-# Downloading Songs Here
-
 
 @app.on_callback_query(
     filters.regex(pattern=r"song_download") & ~BANNED_USERS
@@ -241,7 +229,8 @@ async def song_download_cb(client, CallbackQuery, _):
     stype, format_id, vidid = callback_request.split("|")
     mystic = await CallbackQuery.edit_message_text(_["song_8"])
     yturl = f"https://www.youtube.com/watch?v={vidid}"
-    with yt_dlp.YoutubeDL({"quiet": True}) as ytdl:
+
+    with yt_dlp.YoutubeDL({"quiet": True, "cookiefile": cookies_file}) as ytdl:
         x = ytdl.extract_info(yturl, download=False)
     title = (x["title"]).title()
     title = re.sub("\W+", " ", title)
@@ -310,5 +299,3 @@ async def song_download_cb(client, CallbackQuery, _):
             print(e)
             return await mystic.edit_text(_["song_10"])
         os.remove(filename)
-
-

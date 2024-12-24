@@ -3,13 +3,16 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from ANNIEMUSIC import app
 from httpx import AsyncClient, Timeout
+
 # -----------------------------------------------------------------
 fetch = AsyncClient(
     http2=True,
     verify=False,
     headers={
         "Accept-Language": "id-ID",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edge/107.0.1418.42",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
+                       AppleWebKit/537.36 (KHTML, like Gecko) \
+                       Chrome/107.0.0.0 Safari/537.36 Edge/107.0.1418.42",
     },
     timeout=Timeout(20),
 )
@@ -44,7 +47,6 @@ async def get_message_sender_name(ctx: Message):
                 if ctx.forward_from.last_name
                 else ctx.forward_from.first_name
             )
-# ---------------------------------------------------------------------------------------------------
         elif ctx.forward_from_chat:
             return ctx.forward_from_chat.title
         else:
@@ -231,6 +233,7 @@ async def pyrogram_to_quotly(messages, is_reply):
         raise QuotlyException(r.json())
 # ------------------------------------------------------------------------------------------
 
+# Helper function to check if an argument is an integer
 def isArgInt(txt) -> list:
     count = txt
     try:
@@ -240,50 +243,52 @@ def isArgInt(txt) -> list:
         return [False, 0]
 
 # ---------------------------------------------------------------------------------------------------
-@app.on_message(filters.command(["q", "r"]) & filters.reply)
+@app.on_message(filters.command("q") & filters.reply)
 async def msg_quotly_cmd(self: app, ctx: Message):
+    args = ctx.text.split()[1:]
+
     is_reply = False
-    if ctx.command[0].endswith("r"):
-        is_reply = True
-    if len(ctx.text.split()) > 1:
-        check_arg = isArgInt(ctx.command[1])
-        if check_arg[0]:
-            if check_arg[1] < 2 or check_arg[1] > 10:
-                return await ctx.reply_msg("Invalid range", del_in=6)
-            try:
-                messages = [
-                    i
-                    for i in await self.get_messages(
-                        chat_id=ctx.chat.id,
-                        message_ids=range(
-                            ctx.reply_to_message.id,
-                            ctx.reply_to_message.id + (check_arg[1] + 5),
-                        ),
-                        replies=-1,
-                    )
-                    if not i.empty and not i.media
-                ]
-            except Exception:
-                return await ctx.reply_text("🤷🏻‍♂️")
-            try:
-                make_quotly = await pyrogram_to_quotly(messages, is_reply=is_reply)
-                bio_sticker = BytesIO(make_quotly)
-                bio_sticker.name = "misskatyquote_sticker.webp"
-                return await ctx.reply_sticker(bio_sticker)
-            except Exception:
-                return await ctx.reply_msg("🤷🏻‍♂️")
+    count = 1
+
+    for arg in args:
+        if arg.lower() == 'r':
+            is_reply = True
+        else:
+            check_arg = isArgInt(arg)
+            if check_arg[0]:
+                count = check_arg[1]
+            else:
+                continue  # Ignore invalid arguments
+
+    if count < 1 or count > 10:
+        return await ctx.reply_text("Invalid range", delete_after=6)
+    
+    # Send processing message
+    processing_msg = await ctx.reply_text("❄️")
     try:
-        messages_one = await self.get_messages(
-            chat_id=ctx.chat.id, message_ids=ctx.reply_to_message.id, replies=-1
-        )
-        messages = [messages_one]
+        if count == 1:
+            messages = [ctx.reply_to_message]
+        else:
+            message_ids = range(ctx.reply_to_message.id, ctx.reply_to_message.id + count)
+            messages = [
+                i
+                for i in await self.get_messages(
+                    chat_id=ctx.chat.id,
+                    message_ids=message_ids,
+                    replies=-1,
+                )
+                if not i.empty and not i.media
+            ]
     except Exception:
-        return await ctx.reply_msg("🤷🏻‍♂️")
+        await processing_msg.delete()
+        return await ctx.reply_text("🤷🏻‍♂️")
     try:
         make_quotly = await pyrogram_to_quotly(messages, is_reply=is_reply)
         bio_sticker = BytesIO(make_quotly)
         bio_sticker.name = "misskatyquote_sticker.webp"
-        return await ctx.reply_sticker(bio_sticker)
+        await ctx.reply_sticker(bio_sticker)
     except Exception as e:
-        return await ctx.reply_msg(f"ERROR: {e}")
+        await ctx.reply_text(f"ERROR: {e}")
+    finally:
+        await processing_msg.delete()
 # ---------------------------------------------------------------------------------

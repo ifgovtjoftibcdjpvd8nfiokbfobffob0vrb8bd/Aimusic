@@ -1,16 +1,14 @@
-import base64
-import httpx
+
 import os
-from pyrogram import filters
-from config import BOT_USERNAME
-from ANNIEMUSIC import app
-from pyrogram import filters
 import pyrogram
+from pyrogram import filters
+from asyncio import gather
 from uuid import uuid4
-from pyrogram.types import InlineKeyboardButton,InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from ANNIEMUSIC import app
+from config import BOT_USERNAME
+from ANNIEMUSIC.utils.errors import capture_err
 
-
-######### sticker id
 
 @app.on_message(filters.command("st"))
 def generate_sticker(client, message):
@@ -22,9 +20,6 @@ def generate_sticker(client, message):
             message.reply_text(f"Error: {e}")
     else:
         message.reply_text("Please provide a sticker ID after /st command.")
-
-
-#---------
 
 @app.on_message(filters.command("packkang"))
 async def _packkang(app :app,message):  
@@ -80,7 +75,6 @@ async def _packkang(app :app,message):
         await message.reply(str(e))
 
 
-###### sticker id =
 @app.on_message(filters.command(["stickerid","stid"]))
 async def sticker_id(app: app, msg):
     if not msg.reply_to_message:
@@ -95,4 +89,27 @@ async def sticker_id(app: app, msg):
 """)
 
 
-#####
+
+@app.on_message(filters.command("get_sticker"))
+@capture_err
+async def sticker_image(_, message: Message):
+    r = message.reply_to_message
+
+    if not r:
+        return await message.reply("Reply to a sticker.")
+
+    if not r.sticker:
+        return await message.reply("Reply to a sticker.")
+
+    m = await message.reply("Sending..")
+    f = await r.download(f"{r.sticker.file_unique_id}.png")
+
+    await gather(
+        *[
+            message.reply_photo(f),
+            message.reply_document(f),
+        ]
+    )
+
+    await m.delete()
+    os.remove(f)
