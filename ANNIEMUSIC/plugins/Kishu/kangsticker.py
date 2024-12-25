@@ -1,3 +1,4 @@
+
 import imghdr
 import math
 import os
@@ -19,7 +20,8 @@ from pyrogram.file_id import FileId
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from ANNIEMUSIC import app
-from config import BOT_USERNAME
+
+BOT_USERNAME = "AnnieMusicRobot"
 
 MAX_STICKERS = (
     120
