@@ -1,4 +1,3 @@
-
 import os
 import pyrogram
 from pyrogram import filters
@@ -7,7 +6,6 @@ from uuid import uuid4
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from ANNIEMUSIC import app
 from config import BOT_USERNAME
-from ANNIEMUSIC.utils.errors import capture_err
 
 
 @app.on_message(filters.command("st"))
@@ -87,29 +85,3 @@ async def sticker_id(app: app, msg):
 **⊚ sᴛɪᴄᴋᴇʀ ɪᴅ **: `{st_in.file_id}`\n
 **⊚ sᴛɪᴄᴋᴇʀ ᴜɴɪǫᴜᴇ ɪᴅ **: `{st_in.file_unique_id}`
 """)
-
-
-
-@app.on_message(filters.command("get_sticker"))
-@capture_err
-async def sticker_image(_, message: Message):
-    r = message.reply_to_message
-
-    if not r:
-        return await message.reply("Reply to a sticker.")
-
-    if not r.sticker:
-        return await message.reply("Reply to a sticker.")
-
-    m = await message.reply("Sending..")
-    f = await r.download(f"{r.sticker.file_unique_id}.png")
-
-    await gather(
-        *[
-            message.reply_photo(f),
-            message.reply_document(f),
-        ]
-    )
-
-    await m.delete()
-    os.remove(f)
