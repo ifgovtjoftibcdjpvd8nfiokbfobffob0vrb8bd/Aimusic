@@ -1,176 +1,220 @@
 from pyrogram import Client
-
 import config
-
 from ..logging import LOGGER
 
 assistants = []
 assistantids = []
 
 
-class Userbot(Client):
+class Userbot:
     def __init__(self):
-        self.one = Client(
-            name="Annie1",
-            api_id=config.API_ID,
-            api_hash=config.API_HASH,
-            session_string=str(config.STRING1),
-            no_updates=True,
+        self.one = (
+            Client(
+                name="Annie1",
+                api_id=config.API_ID,
+                api_hash=config.API_HASH,
+                session_string=str(config.STRING1),
+                no_updates=True,
+            )
+            if config.STRING1
+            else None
         )
-        self.two = Client(
-            name="Annie2",
-            api_id=config.API_ID,
-            api_hash=config.API_HASH,
-            session_string=str(config.STRING2),
-            no_updates=True,
+        self.two = (
+            Client(
+                name="Annie2",
+                api_id=config.API_ID,
+                api_hash=config.API_HASH,
+                session_string=str(config.STRING2),
+                no_updates=True,
+            )
+            if config.STRING2
+            else None
         )
-        self.three = Client(
-            name="Annie3",
-            api_id=config.API_ID,
-            api_hash=config.API_HASH,
-            session_string=str(config.STRING3),
-            no_updates=True,
+        self.three = (
+            Client(
+                name="Annie3",
+                api_id=config.API_ID,
+                api_hash=config.API_HASH,
+                session_string=str(config.STRING3),
+                no_updates=True,
+            )
+            if config.STRING3
+            else None
         )
-        self.four = Client(
-            name="Annie4",
-            api_id=config.API_ID,
-            api_hash=config.API_HASH,
-            session_string=str(config.STRING4),
-            no_updates=True,
+        self.four = (
+            Client(
+                name="Annie4",
+                api_id=config.API_ID,
+                api_hash=config.API_HASH,
+                session_string=str(config.STRING4),
+                no_updates=True,
+            )
+            if config.STRING4
+            else None
         )
-        self.five = Client(
-            name="Annie5",
-            api_id=config.API_ID,
-            api_hash=config.API_HASH,
-            session_string=str(config.STRING5),
-            no_updates=True,
+        self.five = (
+            Client(
+                name="Annie5",
+                api_id=config.API_ID,
+                api_hash=config.API_HASH,
+                session_string=str(config.STRING5),
+                no_updates=True,
+            )
+            if config.STRING5
+            else None
         )
 
     async def start(self):
-        LOGGER(__name__).info(f"Annie's Assistant starting...")
-        if config.STRING1:
+        LOGGER(__name__).info("Annie's Assistant starting...")
+        if self.one:
             await self.one.start()
             try:
                 await self.one.join_chat("Dora_hub")
-              
                 await self.one.join_chat("loggchk")
-            except:
-                pass
+                await self.one.join_chat("FlashXSupport")
+                await self.one.join_chat("FlashXNetwork")
+                await self.one.join_chat("JARVIS_V_SUPPORT")
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 1 failed to join chats: {e}")
             assistants.append(1)
             try:
-                await self.one.send_message(config.LOGGER_ID, "Annie's Assistant Start.........")
-                                         
-            except:
+                await self.one.send_message(config.LOGGER_ID, "Annie's Assistant 1 Started")
+            except Exception as e:
                 LOGGER(__name__).error(
-                    "Assistant Account 1 has failed to access the log Group. Make sure that you have added your assistant to your log group and promoted as admin!"
+                    f"Assistant Account 1 failed to access the log group: {e}"
                 )
                 exit()
-            self.one.id = self.one.me.id
-            self.one.name = self.one.me.mention
-            self.one.username = self.one.me.username
+            me = await self.one.get_me()
+            self.one.id = me.id
+            self.one.name = me.mention
+            self.one.username = me.username
             assistantids.append(self.one.id)
-            LOGGER(__name__).info(f"Assistant Started as {self.one.name}")
+            LOGGER(__name__).info(f"Assistant 1 started as {self.one.name}")
 
-        if config.STRING2:
+        if self.two:
             await self.two.start()
             try:
                 await self.two.join_chat("Dora_hub")
-                
-                await self.one.join_chat("loggchk")
-            except:
-                pass
+                await self.two.join_chat("loggchk")
+                await self.two.join_chat("FlashXSupport")
+                await self.two.join_chat("FlashXNetwork")
+                await self.two.join_chat("JARVIS_V_SUPPORT")
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 2 failed to join chats: {e}")
             assistants.append(2)
             try:
-                await self.two.send_message(config.LOGGER_ID, "Annie's Assistant Started")
-            except:
+                await self.two.send_message(config.LOGGER_ID, "Annie's Assistant 2 Started")
+            except Exception as e:
                 LOGGER(__name__).error(
-                    "Assistant Account 2 has failed to access the log Group. Make sure that you have added your assistant to your log group and promoted as admin!"
+                    f"Assistant Account 2 failed to access the log group: {e}"
                 )
                 exit()
-            self.two.id = self.two.me.id
-            self.two.name = self.two.me.mention
-            self.two.username = self.two.me.username
+            me = await self.two.get_me()
+            self.two.id = me.id
+            self.two.name = me.mention
+            self.two.username = me.username
             assistantids.append(self.two.id)
-            LOGGER(__name__).info(f"Assistant Two Started as {self.two.name}")
+            LOGGER(__name__).info(f"Assistant 2 started as {self.two.name}")
 
-        if config.STRING3:
+        if self.three:
             await self.three.start()
             try:
                 await self.three.join_chat("Dora_hub")
-                
-                await self.one.join_chat("loggchk")
-            except:
-                pass
+                await self.three.join_chat("loggchk")
+                await self.three.join_chat("FlashXSupport")
+                await self.three.join_chat("FlashXNetwork")
+                await self.three.join_chat("JARVIS_V_SUPPORT")
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 3 failed to join chats: {e}")
             assistants.append(3)
             try:
-                await self.three.send_message(config.LOGGER_ID, "Annie's Assistant Started")
-            except:
+                await self.three.send_message(config.LOGGER_ID, "Annie's Assistant 3 Started")
+            except Exception as e:
                 LOGGER(__name__).error(
-                    "Assistant Account 3 has failed to access the log Group. Make sure that you have added your assistant to your log group and promoted as admin! "
+                    f"Assistant Account 3 failed to access the log group: {e}"
                 )
                 exit()
-            self.three.id = self.three.me.id
-            self.three.name = self.three.me.mention
-            self.three.username = self.three.me.username
+            me = await self.three.get_me()
+            self.three.id = me.id
+            self.three.name = me.mention
+            self.three.username = me.username
             assistantids.append(self.three.id)
-            LOGGER(__name__).info(f"Assistant Three Started as {self.three.name}")
+            LOGGER(__name__).info(f"Assistant 3 started as {self.three.name}")
 
-        if config.STRING4:
+        if self.four:
             await self.four.start()
             try:
                 await self.four.join_chat("Dora_hub")
-                
-                await self.one.join_chat("loggchk")
-            except:
-                pass
+                await self.four.join_chat("loggchk")
+                await self.four.join_chat("FlashXSupport")
+                await self.four.join_chat("FlashXNetwork")
+                await self.four.join_chat("JARVIS_V_SUPPORT")
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 4 failed to join chats: {e}")
             assistants.append(4)
             try:
-                await self.four.send_message(config.LOGGER_ID, "Annie's Assistant Started")
-            except:
+                await self.four.send_message(config.LOGGER_ID, "Annie's Assistant 4 Started")
+            except Exception as e:
                 LOGGER(__name__).error(
-                    "Assistant Account 4 has failed to access the log Group. Make sure that you have added your assistant to your log group and promoted as admin! "
+                    f"Assistant Account 4 failed to access the log group: {e}"
                 )
                 exit()
-            self.four.id = self.four.me.id
-            self.four.name = self.four.me.mention
-            self.four.username = self.four.me.username
+            me = await self.four.get_me()
+            self.four.id = me.id
+            self.four.name = me.mention
+            self.four.username = me.username
             assistantids.append(self.four.id)
-            LOGGER(__name__).info(f"Assistant Four Started as {self.four.name}")
+            LOGGER(__name__).info(f"Assistant 4 started as {self.four.name}")
 
-        if config.STRING5:
+        if self.five:
             await self.five.start()
             try:
                 await self.five.join_chat("Dora_hub")
-                
-                await self.one.join_chat("loggchk")
-            except:
-                pass
+                await self.five.join_chat("loggchk")
+                await self.five.join_chat("FlashXSupport")
+                await self.five.join_chat("FlashXNetwork")
+                await self.five.join_chat("JARVIS_V_SUPPORT")
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 5 failed to join chats: {e}")
             assistants.append(5)
             try:
-                await self.five.send_message(config.LOGGER_ID, "Annie's Assistant Started")
-            except:
+                await self.five.send_message(config.LOGGER_ID, "Annie's Assistant 5 Started")
+            except Exception as e:
                 LOGGER(__name__).error(
-                    "Assistant Account 5 has failed to access the log Group. Make sure that you have added your assistant to your log group and promoted as admin! "
+                    f"Assistant Account 5 failed to access the log group: {e}"
                 )
                 exit()
-            self.five.id = self.five.me.id
-            self.five.name = self.five.me.mention
-            self.five.username = self.five.me.username
+            me = await self.five.get_me()
+            self.five.id = me.id
+            self.five.name = me.mention
+            self.five.username = me.username
             assistantids.append(self.five.id)
-            LOGGER(__name__).info(f"Assistant Five Started as {self.five.name}")
+            LOGGER(__name__).info(f"Assistant 5 started as {self.five.name}")
 
     async def stop(self):
-        LOGGER(__name__).info(f"Annie's Stopping Assistants...")
-        try:
-            if config.STRING1:
+        LOGGER(__name__).info("Annie's assistants stopping...")
+        if self.one:
+            try:
                 await self.one.stop()
-            if config.STRING2:
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 1 failed to stop: {e}")
+        if self.two:
+            try:
                 await self.two.stop()
-            if config.STRING3:
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 2 failed to stop: {e}")
+        if self.three:
+            try:
                 await self.three.stop()
-            if config.STRING4:
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 3 failed to stop: {e}")
+        if self.four:
+            try:
                 await self.four.stop()
-            if config.STRING5:
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 4 failed to stop: {e}")
+        if self.five:
+            try:
                 await self.five.stop()
-        except:
-            pass
+            except Exception as e:
+                LOGGER(__name__).warning(f"Assistant 5 failed to stop: {e}")

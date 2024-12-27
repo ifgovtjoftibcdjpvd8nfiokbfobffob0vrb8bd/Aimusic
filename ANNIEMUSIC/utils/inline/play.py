@@ -7,7 +7,7 @@ from ANNIEMUSIC import app
 
 LAST_UPDATE_TIME = {}
 
-def track_markup(_, user_id, channel, fplay):
+def track_markup(_, videoid, user_id, channel, fplay):
     buttons = [
         [
             InlineKeyboardButton(
@@ -22,17 +22,17 @@ def track_markup(_, user_id, channel, fplay):
         [
             InlineKeyboardButton(
                 text="ʀᴇᴘʟᴀʏ ↺",
-                callback_data=f"ADMIN Replay|{chat_id}"
+                callback_data=f"ADMIN Replay|{user_id}"
             ),
             InlineKeyboardButton(
                 text="▢ sᴛᴏᴘ",
-                callback_data=f"ADMIN Stop|{chat_id}"
+                callback_data=f"ADMIN Stop|{user_id}"
             ),
         ],
         [
             InlineKeyboardButton(
                 text="๏ ᴍᴏʀᴇ ๏",
-                callback_data=f"PanelMarkup None|{chat_id}",
+                callback_data=f"PanelMarkup None|{user_id}",
             ),
         ],
     ]
@@ -157,7 +157,7 @@ def telegram_markup_timer(_, chat_id, played, dur):
     ]
     return buttons
 
-def stream_markup(_, chat_id):
+def stream_markup(_, chat_id, videoid):
     buttons = [
         [
             InlineKeyboardButton(
@@ -260,7 +260,6 @@ def slider_markup(_, videoid, user_id, query, query_type, channel, fplay):
     ]
     return buttons
 
-# Telegram Markup
 
 def telegram_markup(_, chat_id):
     buttons = [
@@ -277,7 +276,6 @@ def telegram_markup(_, chat_id):
     ]
     return buttons
 
-# Queue Markup
 
 def queue_markup(_, videoid, chat_id):
     buttons = [
@@ -346,81 +344,7 @@ def panel_markup_1(_, videoid, chat_id):
             InlineKeyboardButton(
                 text="๏ ʜᴏᴍᴇ ๏",
                 callback_data=f"MainMarkup {videoid}|{chat_id}",
-            ),
-            InlineKeyboardButton(
-                text="๏ ɴᴇxᴛ ๏",
-                callback_data=f"Pages Forw|0|{videoid}|{chat_id}",
-            ),
-        ],
-    ]
-    return buttons
-
-def panel_markup_2(_, videoid, chat_id):
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text="🕒 0.5x",
-                callback_data=f"SpeedUP {chat_id}|0.5",
-            ),
-            InlineKeyboardButton(
-                text="🕓 0.75x",
-                callback_data=f"SpeedUP {chat_id}|0.75",
-            ),
-            InlineKeyboardButton(
-                text="🕤 1.0x",
-                callback_data=f"SpeedUP {chat_id}|1.0",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="🕤 1.5x",
-                callback_data=f"SpeedUP {chat_id}|1.5",
-            ),
-            InlineKeyboardButton(
-                text="🕛 2.0x",
-                callback_data=f"SpeedUP {chat_id}|2.0",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="๏ ʙᴀᴄᴋ ๏",
-                callback_data=f"Pages Back|1|{videoid}|{chat_id}",
-            ),
-        ],
-    ]
-    return buttons
-
-def panel_markup_3(_, videoid, chat_id):
-    buttons = [
-        [
-            InlineKeyboardButton(
-                text="🕒 0.5x",
-                callback_data=f"SpeedUP {chat_id}|0.5",
-            ),
-            InlineKeyboardButton(
-                text="🕓 0.75x",
-                callback_data=f"SpeedUP {chat_id}|0.75",
-            ),
-            InlineKeyboardButton(
-                text="🕤 1.0x",
-                callback_data=f"SpeedUP {chat_id}|1.0",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="🕤 1.5x",
-                callback_data=f"SpeedUP {chat_id}|1.5",
-            ),
-            InlineKeyboardButton(
-                text="🕛 2.0x",
-                callback_data=f"SpeedUP {chat_id}|2.0",
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="ʙᴀᴄᴋ",
-                callback_data=f"Pages Back|2|{videoid}|{chat_id}",
-            ),
-        ],
+            )   
+        ]
     ]
     return buttons

@@ -1,20 +1,14 @@
 import asyncio
 import random
-from pyrogram.enums import ChatMemberStatus
-from pyrogram.errors import (
-    ChatAdminRequired,
-    InviteRequestSent,
-    UserAlreadyParticipant,
-    UserNotParticipant,
-)
-from ANNIEMUSIC.utils.database import get_assistant
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+
 from ANNIEMUSIC import YouTube, app
 from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.misc import SUDOERS, db
 from ANNIEMUSIC.utils.database import (
     get_active_chats,
+    get_assistant,
     get_lang,
     get_upvote_count,
     is_active_chat,
@@ -30,12 +24,12 @@ from ANNIEMUSIC.utils.database import (
 from ANNIEMUSIC.utils.decorators.language import languageCB
 from ANNIEMUSIC.utils.formatters import seconds_to_min
 from ANNIEMUSIC.utils.inline import close_markup, stream_markup, stream_markup_timer
-from ANNIEMUSIC.utils.inline.play import panel_markup_1, panel_markup_2, panel_markup_3
+from ANNIEMUSIC.utils.inline.play import panel_markup_1
 from ANNIEMUSIC.utils.stream.autoclear import auto_clean
 from ANNIEMUSIC.utils.thumbnails import get_thumb
 from config import BANNED_USERS, SOUNCLOUD_IMG_URL, STREAM_IMG_URL, TELEGRAM_AUDIO_URL, TELEGRAM_VIDEO_URL, adminlist, confirmer, votemode
 from strings import get_string
-from config import lyrical
+import config
 
 wrong = {}
 
@@ -47,35 +41,34 @@ async def markup_panel(client, CallbackQuery: CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
     callback_request = callback_data.split(None, 1)[1]
     videoid, chat_id = callback_request.split("|")
-    chat_id = CallbackQuery.message.chat.id
     buttons = panel_markup_1(_, videoid, chat_id)
     try:
         await CallbackQuery.edit_message_reply_markup(
             reply_markup=InlineKeyboardMarkup(buttons)
         )
-    except:
+    except Exception as e:
+        print(f"Error in markup_panel: {e}")
         return
-    
+
 @app.on_callback_query(filters.regex("MainMarkup") & ~BANNED_USERS)
 @languageCB
-async def del_back_playlist(client, CallbackQuery, _):
+async def main_markup_handler(client, CallbackQuery, _):
     await CallbackQuery.answer()
     callback_data = CallbackQuery.data.strip()
     callback_request = callback_data.split(None, 1)[1]
     videoid, chat_id = callback_request.split("|")
-    buttons = stream_markup(_, chat_id)
-    chat_id = CallbackQuery.message.chat.id
+    buttons = stream_markup(_, chat_id, videoid)
     try:
         await CallbackQuery.edit_message_reply_markup(
             reply_markup=InlineKeyboardMarkup(buttons)
         )
-    except:
+    except Exception as e:
+        print(f"Error in main_markup_handler: {e}")
         return
-
 
 @app.on_callback_query(filters.regex("Pages") & ~BANNED_USERS)
 @languageCB
-async def del_back_playlist(client, CallbackQuery, _):
+async def pages_handler(client, CallbackQuery, _):
     await CallbackQuery.answer()
     callback_data = CallbackQuery.data.strip()
     callback_request = callback_data.split(None, 1)[1]
@@ -83,24 +76,15 @@ async def del_back_playlist(client, CallbackQuery, _):
     chat_id = int(chat)
     pages = int(pages)
     if state == "Forw":
-        if pages == 0:
-            buttons = panel_markup_2(_, videoid, chat_id)
-        if pages == 2:
-            buttons = panel_markup_1(_, videoid, chat_id)
-        if pages == 1:
-            buttons = panel_markup_3(_, videoid, chat_id)
-    if state == "Back":
-        if pages == 2:
-            buttons = panel_markup_2(_, videoid, chat_id)
-        if pages == 1:
-            buttons = panel_markup_1(_, videoid, chat_id)
-        if pages == 0:
-            buttons = panel_markup_3(_, videoid, chat_id)
+        buttons = panel_markup_1(_, videoid, chat_id)
+    else:
+        buttons = stream_markup(_, chat_id, videoid)
     try:
         await CallbackQuery.edit_message_reply_markup(
             reply_markup=InlineKeyboardMarkup(buttons)
         )
-    except:
+    except Exception as e:
+        print(f"Error in pages_handler: {e}")
         return
 
 
@@ -218,14 +202,8 @@ async def del_back_playlist(client, CallbackQuery, _):
         await CallbackQuery.answer()
         await music_off(chat_id)
         await JARVIS.pause_stream(chat_id)
-        buttons = [
-        [
-            InlineKeyboardButton(text="ʀᴇsᴜᴍᴇ", callback_data=f"ADMIN Resume|{chat_id}"),
-            InlineKeyboardButton(text="ʀᴇᴘʟᴀʏ", callback_data=f"ADMIN Replay|{chat_id}"),
-        ],
-        ]
         await CallbackQuery.message.reply_text(
-            _["admin_2"].format(mention), reply_markup=InlineKeyboardMarkup(buttons)
+            _["admin_2"].format(mention)
         )
     elif command == "Resume":
         if await is_music_playing(chat_id):
@@ -233,26 +211,8 @@ async def del_back_playlist(client, CallbackQuery, _):
         await CallbackQuery.answer()
         await music_on(chat_id)
         await JARVIS.resume_stream(chat_id)
-        buttons_resume = [
-        [
-            
-            InlineKeyboardButton(
-                text="sᴋɪᴘ", callback_data=f"ADMIN Skip|{chat_id}"
-            ),
-            InlineKeyboardButton(
-                text="sᴛᴏᴘ", callback_data=f"ADMIN Stop|{chat_id}"
-            ),
-        ],
-        [
-            InlineKeyboardButton(
-                text="ᴘᴀᴜsᴇ",
-                callback_data=f"ADMIN Pause|{chat_id}",
-            ),
-        ]
-    ]
-    
         await CallbackQuery.message.reply_text(
-            _["admin_4"].format(mention), reply_markup=InlineKeyboardMarkup(buttons_resume)
+            _["admin_4"].format(mention)
         )
     elif command == "Stop" or command == "End":
         await CallbackQuery.answer()

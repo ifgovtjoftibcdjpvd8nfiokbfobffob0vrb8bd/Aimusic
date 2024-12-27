@@ -1,10 +1,8 @@
 import random
 import string
-import asyncio
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InputMediaPhoto, Message
 from pytgcalls.exceptions import NoActiveGroupCall
-from ANNIEMUSIC.utils.database import get_assistant
 import config
 from ANNIEMUSIC import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
 from ANNIEMUSIC.core.call import JARVIS
@@ -19,14 +17,6 @@ from ANNIEMUSIC.utils.inline import (
     playlist_markup,
     slider_markup,
     track_markup,
-)
-from ANNIEMUSIC.utils.database import (
-    add_served_chat,
-    add_served_user,
-    blacklisted_chats,
-    get_lang,
-    is_banned_user,
-    is_on_off,
 )
 from ANNIEMUSIC.utils.logger import play_logs
 from ANNIEMUSIC.utils.stream.stream import stream
@@ -183,11 +173,9 @@ async def play_commnd(
                     details["duration_min"],
                 )
             elif "youtube.com/@" in url:
-            # Check if the URL is a YouTube channel link or user link
                 try:
                     video_urls = fetch_channel_videos(url)
                     for video_url in video_urls:
-                        # Add each video URL to the queue for playback
                         details, track_id = await YouTube.track(video_url)
                         streamtype = "playlist"
                         img = details["thumb"]
@@ -196,8 +184,8 @@ async def play_commnd(
 
                     await mystic.edit_text("All videos from the channel have been added to the queue.")
                 except Exception as e:
-                    print(e)  # Handle or log the error appropriately
-                    await mystic.edit_text(_["play_3"])  # Error message for the user
+                    print(e) 
+                    await mystic.edit_text(_["play_3"])
             else:
                 try:
                     details, track_id = await YouTube.track(url)

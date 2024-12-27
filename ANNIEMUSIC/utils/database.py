@@ -22,7 +22,7 @@ skipdb = mongodb.skipmode
 sudoersdb = mongodb.sudoers
 usersdb = mongodb.tgusersdb
 
-# Shifting to memory [mongo sucks often]
+
 active = []
 activevideo = []
 assistantdict = {}
@@ -312,7 +312,6 @@ async def music_on(chat_id: int):
 async def music_off(chat_id: int):
     pause[chat_id] = False
 
-# Muted
 async def is_muted(chat_id: int) -> bool:
     mode = mute.get(chat_id)
     if not mode:
@@ -326,7 +325,6 @@ async def mute_on(chat_id: int):
 
 async def mute_off(chat_id: int):
     mute[chat_id] = False
-
 
 async def get_active_chats() -> list:
     return active
