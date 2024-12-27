@@ -57,7 +57,7 @@ async def main_markup_handler(client, CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
     callback_request = callback_data.split(None, 1)[1]
     videoid, chat_id = callback_request.split("|")
-    buttons = stream_markup(_, chat_id, videoid)
+    buttons = stream_markup(_, chat_id)
     try:
         await CallbackQuery.edit_message_reply_markup(
             reply_markup=InlineKeyboardMarkup(buttons)
@@ -78,7 +78,7 @@ async def pages_handler(client, CallbackQuery, _):
     if state == "Forw":
         buttons = panel_markup_1(_, videoid, chat_id)
     else:
-        buttons = stream_markup(_, chat_id, videoid)
+        buttons = stream_markup(_, chat_id)
     try:
         await CallbackQuery.edit_message_reply_markup(
             reply_markup=InlineKeyboardMarkup(buttons)
