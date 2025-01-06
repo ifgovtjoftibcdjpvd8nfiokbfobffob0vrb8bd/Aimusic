@@ -527,10 +527,12 @@ class Call(PyTgCalls):
         @self.three.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
         @self.four.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
         @self.five.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
+
         async def participants_change_handler(client, update: Update):
-            if not isinstance(
-                update.action,
-                (GroupCallParticipant.Action.JOINED, GroupCallParticipant.Action.LEFT)
+            participant = update.participant
+            if participant.action not in (
+                GroupCallParticipant.Action.JOINED,
+                GroupCallParticipant.Action.LEFT
             ):
                 return
             chat_id = update.chat_id
@@ -547,7 +549,7 @@ class Call(PyTgCalls):
                     return
                 autoend[chat_id] = {}
             else:
-                if isinstance(update.action, GroupCallParticipant.Action.JOINED):
+                if participant.action == GroupCallParticipant.Action.JOINED:
                     final = users + 1
                 else:
                     final = users - 1
