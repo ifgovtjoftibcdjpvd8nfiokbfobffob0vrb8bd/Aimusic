@@ -247,28 +247,50 @@ class Call(PyTgCalls):
                 autoend[chat_id] = datetime.now() + timedelta(minutes=AUTO_END_TIME)
 
     async def play(self, client, chat_id):
-        check = db.get(chat_id)
-        popped = None
-        loop = await get_loop(chat_id)
-        try:
-            if loop == 0:
-                popped = check.pop(0)
-            else:
-                loop -= 1
-                await set_loop(chat_id, loop)
-            await auto_clean(popped)
-            if not check:
+            check = db.get(chat_id)
+            if not check or len(check) == 0:
+                LOGGER(__name__).info(f"No songs in queue for chat_id {chat_id}")
                 await _clear_(chat_id)
-                return await client.leave_call(chat_id)
-        except (IndexError, KeyError) as e:
-            LOGGER(__name__).error(f"Error in play method: {e}")
-            try:
-                await _clear_(chat_id)
-                return await client.leave_call(chat_id)
-            except Exception as e:
-                LOGGER(__name__).error(f"Error while leaving call in play method: {e}")
+                try:
+                    await client.leave_call(chat_id)
+                except Exception as e:
+                    if 'not in a call' in str(e):
+                        LOGGER(__name__).info(f"Bot is not in a call in chat_id {chat_id}")
+                    else:
+                        LOGGER(__name__).error(f"Error while leaving call in play method: {e}")
                 return
-        else:
+
+            loop = await get_loop(chat_id)
+            try:
+                if loop == 0:
+                    popped = check.pop(0)
+                    await auto_clean(popped)
+                else:
+                    loop -= 1
+                    await set_loop(chat_id, loop)
+
+                if not check or len(check) == 0:
+                    await _clear_(chat_id)
+                    try:
+                        await client.leave_call(chat_id)
+                    except Exception as e:
+                        if 'not in a call' in str(e):
+                            LOGGER(__name__).info(f"Bot is not in a call in chat_id {chat_id}")
+                        else:
+                            LOGGER(__name__).error(f"Error while leaving call in play method: {e}")
+                    return
+            except Exception as e:
+                LOGGER(__name__).error(f"Error in play method: {e}")
+                await _clear_(chat_id)
+                try:
+                    await client.leave_call(chat_id)
+                except Exception as e:
+                    if 'not in a call' in str(e):
+                        LOGGER(__name__).info(f"Bot is not in a call in chat_id {chat_id}")
+                    else:
+                        LOGGER(__name__).error(f"Error while leaving call in play method: {e}")
+                return
+
             queued = check[0]["file"]
             language = await get_lang(chat_id)
             _ = get_string(language)
