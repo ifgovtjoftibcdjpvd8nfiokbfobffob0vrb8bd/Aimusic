@@ -62,5 +62,5 @@ unidecode
 wget
 youtube-search
 youtube-search-python
-git+https://github.com/KurimuzonAkuma/pyrogram.git
+kurigram
 git+https://github.com/yt-dlp/yt-dlp.git
