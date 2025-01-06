@@ -11,7 +11,6 @@ from ANNIEMUSIC.mongo.nightmodedb import nightdb,nightmode_on,nightmode_off,get_
 CLOSE_CHAT = ChatPermissions(
     can_send_messages=False,
     can_send_media_messages = False,
-    can_send_other_messages = False,
     can_send_polls = False,
     can_change_info = False,
     can_add_web_page_previews = False,
@@ -22,7 +21,6 @@ CLOSE_CHAT = ChatPermissions(
 OPEN_CHAT = ChatPermissions(
     can_send_messages=True,
     can_send_media_messages = True,
-    can_send_other_messages = True,
     can_send_polls = True,
     can_change_info = True,
     can_add_web_page_previews = True,
@@ -73,7 +71,7 @@ async def start_nightmode() :
             await app.send_photo(
                 add_chat,
                 photo="https://telegra.ph//file/06649d4d0bbf4285238ee.jpg",
-                caption= f"**ᴍᴀʏ ᴛʜᴇ ᴀɴɢᴇʟs ғʀᴏᴍ ʜᴇᴀᴠᴇɴ ʙʀɪɴɢ ᴛʜᴇ sᴡᴇᴇᴛᴇsᴛ ᴏғ ᴀʟʟ ᴅʀᴇᴀᴍs ғᴏʀ ʏᴏᴜ. ᴍᴀʏ ʏᴏᴜ ʜᴀᴠᴇ ʟᴏɴɢ ᴀɴᴅ ʙʟɪssғᴜʟ sʟᴇᴇᴘ ғᴜʟʟ ᴏғ ʜᴀᴘᴘʏ ᴅʀᴇᴀᴍs.\n\nɢʀᴏᴜᴘ ɪs ᴄʟᴏsɪɴɢ ɢᴏᴏᴅ ɴɪɢʜᴛ ᴇᴠᴇʀʏᴏɴᴇ  !**")
+                caption= f"**ᴍᴀʏ ᴛʜᴇ ᴀɴɢᴇʟs ғʀᴏᴍ ʜᴇᴀᴠᴇɴ ʙʀɪɴɢ ᴛʜᴇ sᴡᴇᴇᴛᴇsᴛ ᴏғ ᴀʟʟ ᴅʀᴇᴀᴍs ғᴏʀ ʏᴏᴜ. ᴍᴀʏ ʏᴏᴜ ʜᴀᴠᴇ ʟᴏɴɢ ᴀɴᴅ ʙʟɪssғᴜʟ sʟᴇᴇᴘ ғᴜʟʟ ᴏғ ʜᴀᴘᴘʏ ᴅʀᴇᴀᴍs.\n\nɢʀᴏᴜᴘ ɪs ᴄʟᴏsɪɴɢ ɢᴏᴏᴅ ɴɪɢʜᴛ ᴇᴠᴇʀʏᴏɴᴇ  !**")
             
             await app.set_chat_permissions(add_chat,CLOSE_CHAT)
 
@@ -106,6 +104,3 @@ async def close_nightmode():
 scheduler = AsyncIOScheduler(timezone="Asia/Kolkata")
 scheduler.add_job(close_nightmode, trigger="cron", hour=6, minute=1)
 scheduler.start()
-
-
-
