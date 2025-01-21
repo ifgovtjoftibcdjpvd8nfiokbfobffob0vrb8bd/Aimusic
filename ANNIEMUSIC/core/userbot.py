@@ -51,9 +51,9 @@ class Userbot(Client):
         if config.STRING1:
             await self.one.start()
             try:
-                await self.one.join_chat("Dora_hub")
+                await self.one.join_chat("TSERIESSUPPORTCHAT")
               
-                await self.one.join_chat("loggchk")
+                await self.one.join_chat("TSERIESSUPPORTCHAT")
             except:
                 pass
             assistants.append(1)
