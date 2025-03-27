@@ -196,7 +196,7 @@ class Call(PyTgCalls):
             config.LOGGER_ID,
             MediaStream(link),
         )
-        await asyncio.sleep(0.2)
+        await asyncio.sleep(8)
         await assistant.leave_call(config.LOGGER_ID)
 
     async def join_call(
