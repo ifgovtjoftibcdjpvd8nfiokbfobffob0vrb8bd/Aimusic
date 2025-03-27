@@ -7,7 +7,7 @@ from PIL import Image
 import tempfile
 from ANNIEMUSIC import app
 
-BOT_USERNAME = "AnnieMusicRobot"
+BOT_USERNAME = "AnnieTheRobot"
 
 
 def stylize_text(text):
