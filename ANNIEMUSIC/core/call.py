@@ -1,26 +1,24 @@
 import asyncio
-import os
 from datetime import datetime, timedelta
 from typing import Union
 
 from pyrogram.errors import FloodWait
-
 from pyrogram import Client
 from pyrogram.types import InlineKeyboardMarkup
 
 from ntgcalls import TelegramServerError
 from pytgcalls import PyTgCalls, filters
-from pytgcalls.exceptions import AlreadyJoinedError, NoActiveGroupCall
+from pytgcalls.exceptions import NoActiveGroupCall
 from pytgcalls.types import (
     MediaStream,
     AudioQuality,
     VideoQuality,
     Update,
-    StreamVideoEnded,
-    StreamAudioEnded,
+    StreamEnded,
     ChatUpdate,
     GroupCallParticipant,
 )
+
 
 import config
 from ANNIEMUSIC import LOGGER, YouTube, app
@@ -48,9 +46,13 @@ counter = {}
 AUTO_END_TIME = 1
 
 async def _clear_(chat_id):
+    popped = db.pop(chat_id, None)
+    if popped:
+        await auto_clean(popped)
     db[chat_id] = []
     await remove_active_video_chat(chat_id)
     await remove_active_chat(chat_id)
+    await set_loop(chat_id, 0)
 
 
 class Call(PyTgCalls):
@@ -108,19 +110,19 @@ class Call(PyTgCalls):
 
     async def pause_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
-        await assistant.pause_stream(chat_id)
+        await assistant.pause(chat_id)
 
     async def resume_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
-        await assistant.resume_stream(chat_id)
+        await assistant.resume(chat_id)
 
     async def mute_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
-        await assistant.mute_stream(chat_id)
+        await assistant.mute(chat_id)
 
     async def unmute_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
-        await assistant.unmute_stream(chat_id)
+        await assistant.unmute(chat_id)
 
     async def stop_stream(self, chat_id: int):
         assistant = await group_assistant(self, chat_id)
@@ -227,8 +229,6 @@ class Call(PyTgCalls):
             )
         except NoActiveGroupCall:
             raise AssistantErr(_["call_8"])
-        except AlreadyJoinedError:
-            raise AssistantErr(_["call_9"])
         except TelegramServerError:
             raise AssistantErr(_["call_10"])
         except Exception as e:
@@ -535,21 +535,21 @@ class Call(PyTgCalls):
         async def stream_services_handler(_, update):
             await self.stop_stream(update.chat_id)
 
-        @self.one.on_update(filters.stream_end)
-        @self.two.on_update(filters.stream_end)
-        @self.three.on_update(filters.stream_end)
-        @self.four.on_update(filters.stream_end)
-        @self.five.on_update(filters.stream_end)
-        async def stream_end_handler(client, update: Update):
-            if isinstance(update, (StreamVideoEnded, StreamAudioEnded)):
-                await self.play(client, update.chat_id)
+        @self.one.on_update(filters.stream_end())
+        @self.two.on_update(filters.stream_end())
+        @self.three.on_update(filters.stream_end())
+        @self.four.on_update(filters.stream_end())
+        @self.five.on_update(filters.stream_end())
+        async def stream_end_handler1(client, update: StreamEnded):
+            if not update.stream_type == StreamEnded.Type.AUDIO:
+                return
+            await self.play(client, update.chat_id)
 
         @self.one.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
         @self.two.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
         @self.three.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
         @self.four.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
         @self.five.on_update(filters.call_participant(GroupCallParticipant.Action.UPDATED))
-
         async def participants_change_handler(client, update: Update):
             participant = update.participant
             if participant.action not in (
@@ -562,8 +562,7 @@ class Call(PyTgCalls):
             if users is None:
                 try:
                     got = len(await client.get_participants(chat_id))
-                except Exception as e:
-                    LOGGER(__name__).error(f"Error getting participants: {e}")
+                except Exception:
                     return
                 counter[chat_id] = got
                 if got == 1:
@@ -571,10 +570,7 @@ class Call(PyTgCalls):
                     return
                 autoend[chat_id] = {}
             else:
-                if participant.action == GroupCallParticipant.Action.JOINED:
-                    final = users + 1
-                else:
-                    final = users - 1
+                final = users + 1 if participant.action == GroupCallParticipant.Action.JOINED else users - 1
                 counter[chat_id] = final
                 if final == 1:
                     autoend[chat_id] = datetime.now() + timedelta(minutes=AUTO_END_TIME)
