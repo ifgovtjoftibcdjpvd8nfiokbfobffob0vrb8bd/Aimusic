@@ -69,11 +69,11 @@ class Userbot:
         if self.one:
             await self.one.start()
             try:
-                await self.one.join_chat("Dora_hub")
-                await self.one.join_chat("loggchk")
-                await self.one.join_chat("FlashXSupport")
-                await self.one.join_chat("FlashXNetwork")
-                await self.one.join_chat("JARVIS_V_SUPPORT")
+                await self.one.join_chat("CertifiedDiscussion")
+                await self.one.join_chat("CertifiedCoders")
+                await self.one.join_chat("CertifiedCodes")
+                await self.one.join_chat("CertifiedDevs")
+                await self.one.join_chat("CertifiedNetwork")
             except Exception as e:
                 LOGGER(__name__).warning(f"Assistant 1 failed to join chats: {e}")
             assistants.append(1)
@@ -94,11 +94,11 @@ class Userbot:
         if self.two:
             await self.two.start()
             try:
-                await self.two.join_chat("Dora_hub")
-                await self.two.join_chat("loggchk")
-                await self.two.join_chat("FlashXSupport")
-                await self.two.join_chat("FlashXNetwork")
-                await self.two.join_chat("JARVIS_V_SUPPORT")
+                await self.two.join_chat("CertifiedDiscussion")
+                await self.two.join_chat("CertifiedCoders")
+                await self.two.join_chat("CertifiedCodes")
+                await self.two.join_chat("CertifiedDevs")
+                await self.two.join_chat("CertifiedNetwork")
             except Exception as e:
                 LOGGER(__name__).warning(f"Assistant 2 failed to join chats: {e}")
             assistants.append(2)
@@ -119,11 +119,11 @@ class Userbot:
         if self.three:
             await self.three.start()
             try:
-                await self.three.join_chat("Dora_hub")
-                await self.three.join_chat("loggchk")
-                await self.three.join_chat("FlashXSupport")
-                await self.three.join_chat("FlashXNetwork")
-                await self.three.join_chat("JARVIS_V_SUPPORT")
+                await self.three.join_chat("CertifiedDiscussion")
+                await self.three.join_chat("CertifiedCoders")
+                await self.three.join_chat("CertifiedCodes")
+                await self.three.join_chat("CertifiedDevs")
+                await self.three.join_chat("CertifiedNetwork")
             except Exception as e:
                 LOGGER(__name__).warning(f"Assistant 3 failed to join chats: {e}")
             assistants.append(3)
@@ -144,11 +144,11 @@ class Userbot:
         if self.four:
             await self.four.start()
             try:
-                await self.four.join_chat("Dora_hub")
-                await self.four.join_chat("loggchk")
-                await self.four.join_chat("FlashXSupport")
-                await self.four.join_chat("FlashXNetwork")
-                await self.four.join_chat("JARVIS_V_SUPPORT")
+                await self.four.join_chat("CertifiedDiscussion")
+                await self.four.join_chat("CertifiedCoders")
+                await self.four.join_chat("CertifiedCodes")
+                await self.four.join_chat("CertifiedDevs")
+                await self.four.join_chat("CertifiedNetwork")
             except Exception as e:
                 LOGGER(__name__).warning(f"Assistant 4 failed to join chats: {e}")
             assistants.append(4)
@@ -169,11 +169,11 @@ class Userbot:
         if self.five:
             await self.five.start()
             try:
-                await self.five.join_chat("Dora_hub")
-                await self.five.join_chat("loggchk")
-                await self.five.join_chat("FlashXSupport")
-                await self.five.join_chat("FlashXNetwork")
-                await self.five.join_chat("JARVIS_V_SUPPORT")
+                await self.five.join_chat("CertifiedDiscussion")
+                await self.five.join_chat("CertifiedCoders")
+                await self.five.join_chat("CertifiedCodes")
+                await self.five.join_chat("CertifiedDevs")
+                await self.five.join_chat("CertifiedNetwork")
             except Exception as e:
                 LOGGER(__name__).warning(f"Assistant 5 failed to join chats: {e}")
             assistants.append(5)
