@@ -14,3 +14,6 @@ name = "isort"
 
 [[transformers]]
 name = "ruff"
+
+[[analyzers]]
+name = "shell"
