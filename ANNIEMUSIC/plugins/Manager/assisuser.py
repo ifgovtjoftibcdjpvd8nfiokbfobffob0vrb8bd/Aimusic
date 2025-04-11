@@ -1,11 +1,14 @@
 import asyncio
+
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.types import ChatJoinRequest
+
 from ANNIEMUSIC import app
 from ANNIEMUSIC.misc import SUDOERS
 from ANNIEMUSIC.utils.database import get_assistant
 from ANNIEMUSIC.utils.jarvis_ban import admin_filter
+
 
 async def join_userbot(app, chat_id, chat_username=None):
     userbot = await get_assistant(chat_id)
@@ -40,7 +43,10 @@ async def approve_join_request(client, chat_join_request: ChatJoinRequest):
     userbot = await get_assistant(chat_join_request.chat.id)
     if chat_join_request.from_user.id == userbot.id:
         await client.approve_chat_join_request(chat_join_request.chat.id, userbot.id)
-        await client.send_message(chat_join_request.chat.id, "**✅ Assistant has been approved and joined the chat.**")
+        await client.send_message(
+            chat_join_request.chat.id,
+            "**✅ Assistant has been approved and joined the chat.**",
+        )
 
 
 @app.on_message(

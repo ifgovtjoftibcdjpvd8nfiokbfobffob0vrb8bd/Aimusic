@@ -1,6 +1,8 @@
-from pyrogram import Client, filters
 import requests
-from ANNIEMUSIC import app 
+from pyrogram import Client, filters
+
+from ANNIEMUSIC import app
+
 
 # Define a command handler for the /meme command
 @app.on_message(filters.command("meme"))
@@ -21,10 +23,7 @@ def meme_command(client, message):
         caption = f"{title}\n\nRequest by {message.from_user.mention}\nBot username: @{app.get_me().username}"
 
         # Send the meme image to the user with the modified caption
-        message.reply_photo(
-            photo=meme_url,
-            caption=caption
-        )
+        message.reply_photo(photo=meme_url, caption=caption)
 
     except Exception as e:
         print(f"Error fetching meme: {e}")

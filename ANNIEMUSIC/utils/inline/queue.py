@@ -1,7 +1,9 @@
 from typing import Union
+
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.formatters import time_to_seconds
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def queue_markup(

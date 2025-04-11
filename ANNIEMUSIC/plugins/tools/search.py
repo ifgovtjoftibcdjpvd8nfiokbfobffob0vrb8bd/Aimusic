@@ -1,12 +1,15 @@
+import asyncio
+import urllib.parse
+
 import aiohttp
 from bs4 import BeautifulSoup
-import urllib.parse
-import asyncio
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
+
 from ANNIEMUSIC import app
 
 TIMEOUT_SECONDS = 30
+
 
 async def google_dork(dork_query, num_results):
     query = urllib.parse.quote_plus(dork_query)
@@ -25,20 +28,22 @@ async def google_dork(dork_query, num_results):
             }
 
             try:
-                async with session.get(url, headers=headers, timeout=TIMEOUT_SECONDS) as response:
+                async with session.get(
+                    url, headers=headers, timeout=TIMEOUT_SECONDS
+                ) as response:
                     if response.status == 200:
                         text = await response.text()
                         soup = BeautifulSoup(text, "html.parser")
 
                         if start == 0:
-                            total_results_text = soup.find('div', id='result-stats')
+                            total_results_text = soup.find("div", id="result-stats")
                             if total_results_text:
                                 total_results = total_results_text.get_text()
 
-                        for g in soup.find_all('div', class_='g'):
-                            anchors = g.find_all('a')
+                        for g in soup.find_all("div", class_="g"):
+                            anchors = g.find_all("a")
                             if anchors:
-                                link = anchors[0]['href']
+                                link = anchors[0]["href"]
                                 if link not in results:
                                     results.append(link)
                                     if len(results) >= num_results:
@@ -49,6 +54,7 @@ async def google_dork(dork_query, num_results):
             start += 10
 
     return results, total_results
+
 
 @app.on_message(filters.command(["dork", "stack", "search"]))
 async def dork(client, message):
@@ -66,11 +72,15 @@ async def dork(client, message):
 
     try:
         start_time = asyncio.get_event_loop().time()
-        results, total_results = await asyncio.wait_for(google_dork(dork_query, num_results), timeout=TIMEOUT_SECONDS)
+        results, total_results = await asyncio.wait_for(
+            google_dork(dork_query, num_results), timeout=TIMEOUT_SECONDS
+        )
         end_time = asyncio.get_event_loop().time()
 
         if results:
-            results_text = "\n".join([f"{i + 1}. {url}" for i, url in enumerate(results)])
+            results_text = "\n".join(
+                [f"{i + 1}. {url}" for i, url in enumerate(results)]
+            )
             time_taken = end_time - start_time
 
             caption = (
@@ -87,6 +97,8 @@ async def dork(client, message):
         else:
             await processing_msg.edit_text("No results found.")
     except asyncio.TimeoutError:
-        await processing_msg.edit_text("Sorry, the server took too long to respond. Please try again later.")
+        await processing_msg.edit_text(
+            "Sorry, the server took too long to respond. Please try again later."
+        )
     except Exception as e:
         await processing_msg.edit_text(f"An error occurred: {str(e)}")

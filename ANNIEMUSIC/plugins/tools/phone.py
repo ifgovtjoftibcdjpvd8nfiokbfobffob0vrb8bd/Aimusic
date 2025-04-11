@@ -1,28 +1,36 @@
-from pyrogram import Client, filters
 import requests
+from pyrogram import Client, filters
+
 from ANNIEMUSIC import app
 
 API_KEY = "f66950368a61ebad3cba9b5924b4532d"
 API_URL = "http://apilayer.net/api/validate"
 
+
 def send_message(message, text):
     message.reply_text(text)
+
 
 @app.on_message(filters.command("phone"))
 def check_phone(client, message):
     if len(message.command) < 2:
-        send_message(message, "Please provide a phone number to check. Usage: /phone <number>")
+        send_message(
+            message, "Please provide a phone number to check. Usage: /phone <number>"
+        )
         return
 
     number = message.command[1]
 
     try:
-        response = requests.get(API_URL, params={
-            "access_key": API_KEY,
-            "number": number,
-            "country_code": "",
-            "format": 1
-        })
+        response = requests.get(
+            API_URL,
+            params={
+                "access_key": API_KEY,
+                "number": number,
+                "country_code": "",
+                "format": 1,
+            },
+        )
         response.raise_for_status()
         data = response.json()
 

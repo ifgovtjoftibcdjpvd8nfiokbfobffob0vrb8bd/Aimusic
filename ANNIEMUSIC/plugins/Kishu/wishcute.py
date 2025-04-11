@@ -1,36 +1,41 @@
+import random
+
+import requests
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-import random
-import requests
-from ANNIEMUSIC import app 
+
+from ANNIEMUSIC import app
 
 SUPPORT_CHAT = "CertifiedDiscussion"
+
 
 @app.on_message(filters.command("wish"))
 async def wish(_, m):
     if len(m.command) < 2:
         await m.reply("ᴀᴅᴅ ᴡɪꜱʜ ʙᴀʙʏ🥀!")
-        return 
+        return
 
     api = requests.get("https://nekos.best/api/v2/happy").json()
-    url = api["results"][0]['url']
+    url = api["results"][0]["url"]
     text = m.text.split(None, 1)[1]
     wish_count = random.randint(1, 100)
     wish = f"✨ ʜᴇʏ! {m.from_user.first_name}! "
     wish += f"✨ ʏᴏᴜʀ ᴡɪꜱʜ: {text} "
     wish += f"✨ ᴘᴏꜱꜱɪʙʟᴇ ᴛᴏ: {wish_count}%"
-    
+
     await app.send_animation(
         chat_id=m.chat.id,
         animation=url,
         caption=wish,
         reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/{SUPPORT_CHAT}")]])
+            [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/{SUPPORT_CHAT}")]]
+        ),
     )
-            
-    
+
+
 BUTTON = [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/{SUPPORT_CHAT}")]]
 CUTIE = "https://telegra.ph/file/528d0563175669e123a75.mp4"
+
 
 @app.on_message(filters.command("cute"))
 async def cute(_, message):
@@ -50,5 +55,7 @@ async def cute(_, message):
         document=CUTIE,
         caption=CUTE,
         reply_markup=InlineKeyboardMarkup(BUTTON),
-        reply_to_message_id=message.reply_to_message.message_id if message.reply_to_message else None,
+        reply_to_message_id=(
+            message.reply_to_message.message_id if message.reply_to_message else None
+        ),
     )

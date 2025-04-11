@@ -1,6 +1,8 @@
-from pyrogram import Client, filters
 import requests
+from pyrogram import Client, filters
+
 from ANNIEMUSIC import app
+
 
 def get_pypi_info(package_name):
     try:
@@ -10,6 +12,7 @@ def get_pypi_info(package_name):
     except Exception as e:
         print(f"Error fetching PyPI information: {e}")
         return None
+
 
 @app.on_message(filters.command("pypi"))
 async def pypi_info_command(client, message):

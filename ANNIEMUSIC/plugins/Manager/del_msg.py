@@ -1,36 +1,54 @@
-import logging
 import asyncio
+import logging
+
 from pyrogram import Client, filters, idle
-from pyrogram.types import (
-    InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery,
-    Message, ChatPrivileges, ChatInviteLink
-)
-from pyrogram.enums import ChatMemberStatus, ChatMembersFilter
+from pyrogram.enums import ChatMembersFilter, ChatMemberStatus
 from pyrogram.errors import (
-    UserNotParticipant, ChatAdminRequired, FloodWait, PeerIdInvalid,
-    InviteHashExpired, InviteHashInvalid, UserAlreadyParticipant, ChatAdminInviteRequired
+    ChatAdminInviteRequired,
+    ChatAdminRequired,
+    FloodWait,
+    InviteHashExpired,
+    InviteHashInvalid,
+    PeerIdInvalid,
+    UserAlreadyParticipant,
+    UserNotParticipant,
 )
-from ANNIEMUSIC.utils.database import get_assistant
+from pyrogram.types import (
+    CallbackQuery,
+    ChatInviteLink,
+    ChatPrivileges,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
+
 from ANNIEMUSIC import app
 from ANNIEMUSIC.misc import SUDOERS
+from ANNIEMUSIC.utils.database import get_assistant
 
 
 def get_keyboard(command):
-    return InlineKeyboardMarkup([
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton("Yes", callback_data=f"{command}_yes"),
-            InlineKeyboardButton("No", callback_data=f"{command}_no")
+            [
+                InlineKeyboardButton("Yes", callback_data=f"{command}_yes"),
+                InlineKeyboardButton("No", callback_data=f"{command}_no"),
+            ]
         ]
-    ])
+    )
+
 
 async def get_group_owner(client, chat_id):
     try:
-        async for member in client.get_chat_members(chat_id, filter=ChatMembersFilter.ADMINISTRATORS):
+        async for member in client.get_chat_members(
+            chat_id, filter=ChatMembersFilter.ADMINISTRATORS
+        ):
             if member.status == ChatMemberStatus.OWNER:
                 return member.user
     except Exception as e:
         logging.error(f"Error getting group owner: {e}")
         return None
+
 
 async def is_owner_or_sudoer(client, chat_id, user_id):
     owner_user = await get_group_owner(client, chat_id)
@@ -41,6 +59,7 @@ async def is_owner_or_sudoer(client, chat_id, user_id):
         return True, owner_user
     else:
         return False, owner_user
+
 
 async def get_bot_member(client, chat_id):
     try:
@@ -53,18 +72,27 @@ async def get_bot_member(client, chat_id):
 
 @app.on_message(filters.command("deleteall", prefixes=["/", "!", "."]) & filters.group)
 async def deleteall(client: Client, message: Message):
-    logging.info(f"/deleteall command received from {message.from_user.id} in chat {message.chat.id}")
+    logging.info(
+        f"/deleteall command received from {message.from_user.id} in chat {message.chat.id}"
+    )
 
     chat_id = message.chat.id
     user_id = message.from_user.id
 
-    resp = await message.reply_text(f"Hey {message.from_user.mention}, 'deleteall' checking...")
+    resp = await message.reply_text(
+        f"Hey {message.from_user.mention}, 'deleteall' checking..."
+    )
 
     bot_member = await get_bot_member(client, chat_id)
     if not bot_member:
         await resp.edit("I couldn't find myself in the group.")
         return
-    if bot_member.status != ChatMemberStatus.ADMINISTRATOR or not bot_member.privileges.can_delete_messages or not bot_member.privileges.can_invite_users or not bot_member.privileges.can_promote_members:
+    if (
+        bot_member.status != ChatMemberStatus.ADMINISTRATOR
+        or not bot_member.privileges.can_delete_messages
+        or not bot_member.privileges.can_invite_users
+        or not bot_member.privileges.can_promote_members
+    ):
         await resp.edit(
             "I don't have enough permissions to perform delete all messages!\n"
             "Mass Action requires the bot to be an admin with 'Delete messages', 'Invite users', and 'Add new admins' permissions."
@@ -75,8 +103,9 @@ async def deleteall(client: Client, message: Message):
 
     await message.reply(
         f"{message.from_user.mention}, are you sure you want to delete all group messages?",
-        reply_markup=get_keyboard("deleteall")
+        reply_markup=get_keyboard("deleteall"),
     )
+
 
 @app.on_callback_query(filters.regex(r"^deleteall_(yes|no)$"))
 async def handle_deleteall_callback(client: Client, callback_query: CallbackQuery):
@@ -85,7 +114,9 @@ async def handle_deleteall_callback(client: Client, callback_query: CallbackQuer
 
     is_owner, owner_user = await is_owner_or_sudoer(client, chat_id, user_id)
     if not is_owner:
-        await callback_query.answer("Only the group owner can confirm this action.", show_alert=True)
+        await callback_query.answer(
+            "Only the group owner can confirm this action.", show_alert=True
+        )
         return
 
     if callback_query.data == "deleteall_yes":
@@ -104,9 +135,14 @@ async def handle_deleteall_callback(client: Client, callback_query: CallbackQuer
                     await client.unban_chat_member(chat_id, ass_id)
                     assistant_in_chat = False
                 except Exception as e:
-                    await callback_query.message.reply(f"Failed to unban assistant: {e}")
+                    await callback_query.message.reply(
+                        f"Failed to unban assistant: {e}"
+                    )
                     return
-            elif assistant_status in [ChatMemberStatus.RESTRICTED, ChatMemberStatus.LEFT]:
+            elif assistant_status in [
+                ChatMemberStatus.RESTRICTED,
+                ChatMemberStatus.LEFT,
+            ]:
                 assistant_in_chat = False
             else:
                 assistant_in_chat = True
@@ -118,16 +154,22 @@ async def handle_deleteall_callback(client: Client, callback_query: CallbackQuer
         if not assistant_in_chat:
             logging.info("Assistant not in group. Generating invite link.")
             try:
-                invite_link: ChatInviteLink = await client.create_chat_invite_link(chat_id, member_limit=1)
+                invite_link: ChatInviteLink = await client.create_chat_invite_link(
+                    chat_id, member_limit=1
+                )
 
                 await assistant.join_chat(invite_link.invite_link)
                 logging.info("Assistant joined the group via invite link.")
                 await asyncio.sleep(2)
             except ChatAdminRequired:
-                await callback_query.message.reply("Failed to create invite link. Bot lacks sufficient permissions.")
+                await callback_query.message.reply(
+                    "Failed to create invite link. Bot lacks sufficient permissions."
+                )
                 return
             except InviteHashInvalid:
-                await callback_query.message.reply("Failed to create a valid invite link.")
+                await callback_query.message.reply(
+                    "Failed to create a valid invite link."
+                )
                 return
             except Exception as e:
                 await callback_query.message.reply(f"Failed to invite assistant: {e}")
@@ -136,18 +178,20 @@ async def handle_deleteall_callback(client: Client, callback_query: CallbackQuer
         try:
             await client.get_users(ass_id)
         except PeerIdInvalid:
-            logging.info("Bot does not know the assistant yet. Making assistant send a message...")
+            logging.info(
+                "Bot does not know the assistant yet. Making assistant send a message..."
+            )
             await assistant.send_message(chat_id, "Assistant here to help!")
             await asyncio.sleep(1)
             await client.get_users(ass_id)
 
         try:
-            privileges = ChatPrivileges(
-                can_delete_messages=True
-            )
+            privileges = ChatPrivileges(can_delete_messages=True)
             await client.promote_chat_member(chat_id, ass_id, privileges=privileges)
         except ChatAdminRequired:
-            await callback_query.message.reply("Failed to promote assistant. Bot lacks sufficient permissions.")
+            await callback_query.message.reply(
+                "Failed to promote assistant. Bot lacks sufficient permissions."
+            )
             return
         except Exception as e:
             await callback_query.message.reply(f"Failed to promote assistant: {e}")

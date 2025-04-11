@@ -1,6 +1,6 @@
-from pyrogram.types import Message
 from pyrogram import filters
-from pyrogram.enums import ChatType, ChatMemberStatus
+from pyrogram.enums import ChatMemberStatus, ChatType
+from pyrogram.types import Message
 
 
 async def admin_check(message: Message) -> bool:
@@ -23,17 +23,18 @@ async def admin_check(message: Message) -> bool:
     check_status = await client.get_chat_member(chat_id=chat_id, user_id=user_id)
     if check_status.status not in [
         ChatMemberStatus.OWNER,
-        ChatMemberStatus.ADMINISTRATOR
+        ChatMemberStatus.ADMINISTRATOR,
     ]:
         return False
     else:
         return True
 
 
-#-------------------------------+ADMIN+FILTER+------------------------------#
+# -------------------------------+ADMIN+FILTER+------------------------------#
 
 
 USE_AS_BOT = True
+
 
 def f_sudo_filter(filt, client, message):
     return bool(
@@ -53,8 +54,8 @@ sudo_filter = filters.create(func=f_sudo_filter, name="SudoFilter")
 def onw_filter(filt, client, message):
     if USE_AS_BOT:
         return bool(
-            True
-            and  # message.from_user.id in SUDO_USERS
+            True  # message.from_user.id in SUDO_USERS
+            and
             # t, lt, fl 2013
             not message.edit_date
         )
@@ -74,8 +75,7 @@ f_onw_fliter = filters.create(func=onw_filter, name="OnwFilter")
 async def admin_filter_f(filt, client, message):
     return (
         # t, lt, fl 2013
-        not message.edit_date
-        and await admin_check(message)
+        not message.edit_date and await admin_check(message)
     )
 
 

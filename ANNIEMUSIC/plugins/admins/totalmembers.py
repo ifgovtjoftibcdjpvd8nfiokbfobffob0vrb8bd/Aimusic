@@ -1,23 +1,22 @@
-from ANNIEMUSIC.utils.jarvis_ban import admin_filter
-import os
 import csv
+import os
+
 from pyrogram import Client, filters
+
 from ANNIEMUSIC import app
+from ANNIEMUSIC.utils.jarvis_ban import admin_filter
+
 
 @app.on_message(filters.command("user") & admin_filter)
 def user_command(client, message):
-    
     chat_members = app.get_chat_members(message.chat.id)
 
-    
     members_list = []
     for member in chat_members:
-        members_list.append({
-            "username": member.user.username,
-            "userid": member.user.id
-        })
+        members_list.append(
+            {"username": member.user.username, "userid": member.user.id}
+        )
 
-    
     with open("members.txt", "w", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=["username", "userid"])
         writer.writeheader()

@@ -1,5 +1,7 @@
 from pyrogram import Client
+
 import config
+
 from ..logging import LOGGER
 
 assistants = []
@@ -78,7 +80,9 @@ class Userbot:
                 LOGGER(__name__).warning(f"Assistant 1 failed to join chats: {e}")
             assistants.append(1)
             try:
-                await self.one.send_message(config.LOGGER_ID, "Annie's Assistant 1 Started")
+                await self.one.send_message(
+                    config.LOGGER_ID, "Annie's Assistant 1 Started"
+                )
             except Exception as e:
                 LOGGER(__name__).error(
                     f"Assistant Account 1 failed to access the log group: {e}"
@@ -103,7 +107,9 @@ class Userbot:
                 LOGGER(__name__).warning(f"Assistant 2 failed to join chats: {e}")
             assistants.append(2)
             try:
-                await self.two.send_message(config.LOGGER_ID, "Annie's Assistant 2 Started")
+                await self.two.send_message(
+                    config.LOGGER_ID, "Annie's Assistant 2 Started"
+                )
             except Exception as e:
                 LOGGER(__name__).error(
                     f"Assistant Account 2 failed to access the log group: {e}"
@@ -128,7 +134,9 @@ class Userbot:
                 LOGGER(__name__).warning(f"Assistant 3 failed to join chats: {e}")
             assistants.append(3)
             try:
-                await self.three.send_message(config.LOGGER_ID, "Annie's Assistant 3 Started")
+                await self.three.send_message(
+                    config.LOGGER_ID, "Annie's Assistant 3 Started"
+                )
             except Exception as e:
                 LOGGER(__name__).error(
                     f"Assistant Account 3 failed to access the log group: {e}"
@@ -153,7 +161,9 @@ class Userbot:
                 LOGGER(__name__).warning(f"Assistant 4 failed to join chats: {e}")
             assistants.append(4)
             try:
-                await self.four.send_message(config.LOGGER_ID, "Annie's Assistant 4 Started")
+                await self.four.send_message(
+                    config.LOGGER_ID, "Annie's Assistant 4 Started"
+                )
             except Exception as e:
                 LOGGER(__name__).error(
                     f"Assistant Account 4 failed to access the log group: {e}"
@@ -178,7 +188,9 @@ class Userbot:
                 LOGGER(__name__).warning(f"Assistant 5 failed to join chats: {e}")
             assistants.append(5)
             try:
-                await self.five.send_message(config.LOGGER_ID, "Annie's Assistant 5 Started")
+                await self.five.send_message(
+                    config.LOGGER_ID, "Annie's Assistant 5 Started"
+                )
             except Exception as e:
                 LOGGER(__name__).error(
                     f"Assistant Account 5 failed to access the log group: {e}"

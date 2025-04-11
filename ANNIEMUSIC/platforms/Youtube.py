@@ -11,6 +11,7 @@ from youtubesearchpython.__future__ import VideosSearch
 from ANNIEMUSIC.utils.database import is_on_off
 from ANNIEMUSIC.utils.formatters import time_to_seconds
 
+
 async def shell_cmd(cmd):
     proc = await asyncio.create_subprocess_shell(
         cmd,
@@ -27,6 +28,7 @@ async def shell_cmd(cmd):
 
 
 cookies_file = "ANNIEMUSIC/assets/cookies.txt"
+
 
 class YouTubeAPI:
     def __init__(self):
@@ -122,7 +124,8 @@ class YouTubeAPI:
             link = link.split("&")[0]
         proc = await asyncio.create_subprocess_exec(
             "yt-dlp",
-            "--cookies", cookies_file,
+            "--cookies",
+            cookies_file,
             "-g",
             "-f",
             "best[height<=?720][width<=?1280]",
@@ -333,7 +336,8 @@ class YouTubeAPI:
             else:
                 proc = await asyncio.create_subprocess_exec(
                     "yt-dlp",
-                    "--cookies", cookies_file,
+                    "--cookies",
+                    cookies_file,
                     "-g",
                     "-f",
                     "best[height<=?720][width<=?1280]",

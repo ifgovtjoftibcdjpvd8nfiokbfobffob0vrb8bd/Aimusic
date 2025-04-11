@@ -1,14 +1,18 @@
-
-from pyrogram import Client, filters
-import git
-import shutil
 import os
+import shutil
+
+import git
+from pyrogram import Client, filters
+
 from ANNIEMUSIC import app
+
 
 @app.on_message(filters.command(["downloadrepo"]))
 def download_repo(_, message):
     if len(message.command) != 2:
-        message.reply_text("Please provide the GitHub repository URL after the command. Example: /downloadrepo <Repo URL>")
+        message.reply_text(
+            "Please provide the GitHub repository URL after the command. Example: /downloadrepo <Repo URL>"
+        )
         return
 
     repo_url = message.command[1]
@@ -21,13 +25,14 @@ def download_repo(_, message):
     else:
         message.reply_text("Unable to download the specified GitHub repository.")
 
+
 def download_and_zip_repo(repo_url):
     repo_name = repo_url.split("/")[-1].replace(".git", "")
     repo_path = f"{repo_name}"
-    
+
     try:
         git.Repo.clone_from(repo_url, repo_path)
-        shutil.make_archive(repo_path, 'zip', repo_path)
+        shutil.make_archive(repo_path, "zip", repo_path)
         return f"{repo_path}.zip"
     except git.exc.GitCommandError as e:
         print(f"Git error: {e}")

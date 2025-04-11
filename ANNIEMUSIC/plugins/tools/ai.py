@@ -2,43 +2,42 @@ import base64
 import mimetypes
 import os
 
+from lexica import AsyncClient, Messages, languageModels
 from pyrogram import Client, filters
-from pyrogram.types import Message
 from pyrogram.enums import ChatAction
-
-from lexica import AsyncClient, languageModels, Messages
+from pyrogram.types import Message
 
 from ANNIEMUSIC import app
 
 
 def get_prompt(message: Message):
-    prompt = message.text.split(' ', 1)
+    prompt = message.text.split(" ", 1)
     if len(prompt) < 2:
         return None
     return prompt[1]
 
 
 def extract_content(response) -> str:
-    if 'content' in response:
-        content = response['content']
+    if "content" in response:
+        content = response["content"]
         if isinstance(content, str):
             return content
         elif isinstance(content, list):
             texts = []
             for item in content:
-                if isinstance(item, dict) and 'text' in item:
-                    texts.append(item['text'])
-            return '\n'.join(texts)
+                if isinstance(item, dict) and "text" in item:
+                    texts.append(item["text"])
+            return "\n".join(texts)
         elif isinstance(content, dict):
-            if 'parts' in content and isinstance(content['parts'], list):
-                parts = content['parts']
+            if "parts" in content and isinstance(content["parts"], list):
+                parts = content["parts"]
                 texts = []
                 for part in parts:
-                    if 'text' in part:
-                        texts.append(part['text'])
-                return '\n'.join(texts)
-            elif 'text' in content:
-                return content['text']
+                    if "text" in part:
+                        texts.append(part["text"])
+                return "\n".join(texts)
+            elif "text" in content:
+                return content["text"]
     return None
 
 
@@ -55,11 +54,10 @@ async def bard_handler(client: Client, message: Message):
     await client.send_chat_action(message.chat.id, ChatAction.TYPING)
     lexica_client = AsyncClient()
     try:
-        response = await lexica_client.ChatCompletion(
-            prompt, languageModels.bard)
+        response = await lexica_client.ChatCompletion(prompt, languageModels.bard)
         content = extract_content(response)
         if content:
-            formatted_response = format_response('Bard', content)
+            formatted_response = format_response("Bard", content)
             await message.reply_text(formatted_response)
         else:
             await message.reply_text("No content received from the API.")
@@ -79,11 +77,10 @@ async def gemini_handler(client: Client, message: Message):
     lexica_client = AsyncClient()
     try:
         messages = [Messages(content=prompt, role="user")]
-        response = await lexica_client.ChatCompletion(
-            messages, languageModels.gemini)
+        response = await lexica_client.ChatCompletion(messages, languageModels.gemini)
         content = extract_content(response)
         if content:
-            formatted_response = format_response('Gemini', content)
+            formatted_response = format_response("Gemini", content)
             await message.reply_text(formatted_response)
         else:
             await message.reply_text("No content received from the API.")
@@ -103,11 +100,10 @@ async def gpt_handler(client: Client, message: Message):
     lexica_client = AsyncClient()
     try:
         messages = [Messages(content=prompt, role="user")]
-        response = await lexica_client.ChatCompletion(
-            messages, languageModels.gpt)
+        response = await lexica_client.ChatCompletion(messages, languageModels.gpt)
         content = extract_content(response)
         if content:
-            formatted_response = format_response('GPT', content)
+            formatted_response = format_response("GPT", content)
             await message.reply_text(formatted_response)
         else:
             await message.reply_text("No content received from the API.")
@@ -127,11 +123,10 @@ async def llama_handler(client: Client, message: Message):
     lexica_client = AsyncClient()
     try:
         messages = [Messages(content=prompt, role="user")]
-        response = await lexica_client.ChatCompletion(
-            messages, languageModels.llama)
+        response = await lexica_client.ChatCompletion(messages, languageModels.llama)
         content = extract_content(response)
         if content:
-            formatted_response = format_response('LLaMA', content)
+            formatted_response = format_response("LLaMA", content)
             await message.reply_text(formatted_response)
         else:
             await message.reply_text("No content received from the API.")
@@ -151,11 +146,10 @@ async def mistral_handler(client: Client, message: Message):
     lexica_client = AsyncClient()
     try:
         messages = [Messages(content=prompt, role="user")]
-        response = await lexica_client.ChatCompletion(
-            messages, languageModels.mistral)
+        response = await lexica_client.ChatCompletion(messages, languageModels.mistral)
         content = extract_content(response)
         if content:
-            formatted_response = format_response('Mistral', content)
+            formatted_response = format_response("Mistral", content)
             await message.reply_text(formatted_response)
         else:
             await message.reply_text("No content received from the API.")
@@ -173,7 +167,9 @@ async def geminivision_handler(client: Client, message: Message):
             await message.reply_text("Please provide a prompt after the command.")
             return
         await client.send_chat_action(message.chat.id, ChatAction.TYPING)
-        status_message = await message.reply_text("Processing your image, please wait...")
+        status_message = await message.reply_text(
+            "Processing your image, please wait..."
+        )
         photo = message.reply_to_message.photo
 
         file_path = await client.download_media(photo.file_id)
@@ -181,18 +177,17 @@ async def geminivision_handler(client: Client, message: Message):
         try:
             image_info = []
             with open(file_path, "rb") as image_file:
-                data = base64.b64encode(
-                    image_file.read()).decode("utf-8")
+                data = base64.b64encode(image_file.read()).decode("utf-8")
                 mime_type, _ = mimetypes.guess_type(file_path)
-                image_info.append(
-                    {"data": data, "mime_type": mime_type})
+                image_info.append({"data": data, "mime_type": mime_type})
 
             response = await lexica_client.ChatCompletion(
-                prompt, languageModels.geminiVision, images=image_info)
+                prompt, languageModels.geminiVision, images=image_info
+            )
 
             content = extract_content(response)
             if content:
-                formatted_response = format_response('Gemini Vision', content)
+                formatted_response = format_response("Gemini Vision", content)
                 await message.reply_text(formatted_response)
             else:
                 await message.reply_text("No content received from the API.")
@@ -215,7 +210,9 @@ async def upscale_handler(client: Client, message: Message):
         photo = message.reply_to_message.photo
 
         await client.send_chat_action(message.chat.id, ChatAction.TYPING)
-        status_message = await message.reply_text("Upscaling your image, please wait...")
+        status_message = await message.reply_text(
+            "Upscaling your image, please wait..."
+        )
         file_path = await client.download_media(photo.file_id)
         lexica_client = AsyncClient()
         try:
@@ -224,7 +221,7 @@ async def upscale_handler(client: Client, message: Message):
 
             upscaled_image_bytes = await lexica_client.upscale(image_bytes)
             upscaled_image_path = "upscaled.png"
-            with open(upscaled_image_path, 'wb') as f:
+            with open(upscaled_image_path, "wb") as f:
                 f.write(upscaled_image_bytes)
 
             await client.send_chat_action(message.chat.id, ChatAction.UPLOAD_PHOTO)

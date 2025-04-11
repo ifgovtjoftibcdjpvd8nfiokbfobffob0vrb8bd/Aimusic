@@ -1,23 +1,29 @@
 import os
+
+import speech_recognition as sr
+from pydub import AudioSegment
 from pyrogram import Client, filters
 from pyrogram.types import Message
-from pydub import AudioSegment
-import speech_recognition as sr
+
 from ANNIEMUSIC import app
+
 # --------------------------------------
+
 
 def convert_video_to_text(video_path):
     audio = AudioSegment.from_file(video_path)
     audio.export("audio.wav", format="wav")
-# -----------------------------------------
+    # -----------------------------------------
     recognizer = sr.Recognizer()
     with sr.AudioFile("audio.wav") as source:
         audio_data = recognizer.record(source)
-# --------------------------------------------
+    # --------------------------------------------
     text = recognizer.recognize_google(audio_data)
     return text
 
+
 # ----------------------------------------------
+
 
 @app.on_message(filters.command("vtxt") & filters.reply)
 def convert_video_to_text_cmd(_, message: Message):
@@ -30,13 +36,12 @@ def convert_video_to_text_cmd(_, message: Message):
     # --------------------------
     with open("file.txt", "w", encoding="utf-8") as file:
         file.write(text_result)
-     # ---------------------------   
+    # ---------------------------
     message.reply_document("file.txt")
-    
-    
-    
+
     # -------------------------------------
-    
+
+
 @app.on_message(filters.command("remove", prefixes="/") & filters.reply)
 def remove_media(client, message: Message):
     # Fetching the replied message
@@ -63,9 +68,14 @@ def remove_media(client, message: Message):
                 os.remove(file_path)
                 os.remove("output.mp4")
             else:
-                app.send_message(message.chat.id, "Invalid command. Please use either /remove audio or /remove video.")
+                app.send_message(
+                    message.chat.id,
+                    "Invalid command. Please use either /remove audio or /remove video.",
+                )
         else:
-            app.send_message(message.chat.id, "Please specify whether to remove audio or video using /remove audio or /remove video.")
+            app.send_message(
+                message.chat.id,
+                "Please specify whether to remove audio or video using /remove audio or /remove video.",
+            )
     else:
         app.send_message(message.chat.id, "The replied message is not a video.")
-        

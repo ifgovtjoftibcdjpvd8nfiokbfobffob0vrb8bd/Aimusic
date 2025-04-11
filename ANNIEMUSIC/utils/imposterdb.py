@@ -1,13 +1,14 @@
 from typing import Dict, List, Union
-from config import MONGO_DB_URI
+
 from motor.motor_asyncio import AsyncIOMotorClient as MongoCli
 
+from config import MONGO_DB_URI
 
 mongo = MongoCli(MONGO_DB_URI).Rankings
 
 impdb = mongo.imposter
 
- 
+
 async def usr_data(user_id: int) -> bool:
     user = await impdb.find_one({"user_id": user_id})
     return bool(user)
@@ -30,6 +31,7 @@ async def add_userdata(user_id: int, username, first_name, last_name):
         },
         upsert=True,
     )
+
 
 async def check_imposter(chat_id: int) -> bool:
     chat = await impdb.find_one({"chat_id_toggle": chat_id})

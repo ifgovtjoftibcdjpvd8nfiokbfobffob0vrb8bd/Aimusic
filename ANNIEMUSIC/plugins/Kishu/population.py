@@ -1,17 +1,21 @@
+import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message
-import requests
+
 from ANNIEMUSIC import app
+
 
 @app.on_message(filters.command("population"))
 def country_command_handler(client: Client, message: Message):
     if len(message.text.split()) < 2:
-        return message.reply_text("Please provide a valid country code. Example: /population US")
+        return message.reply_text(
+            "Please provide a valid country code. Example: /population US"
+        )
 
     country_code = message.text.split(maxsplit=1)[1].strip()
 
     api_url = f"https://restcountries.com/v3.1/alpha/{country_code}"
-    
+
     try:
         response = requests.get(api_url)
         response.raise_for_status()

@@ -1,8 +1,9 @@
-import aiohttp
 from io import BytesIO
-from ANNIEMUSIC import app
+
+import aiohttp
 from pyrogram import filters
 
+from ANNIEMUSIC import app
 
 
 async def make_carbon(code):
@@ -12,7 +13,6 @@ async def make_carbon(code):
             image = BytesIO(await resp.read())
     image.name = "carbon.png"
     return image
-
 
 
 @app.on_message(filters.command("carbon"))
@@ -29,5 +29,3 @@ async def _carbon(client, message):
     await message.reply_photo(carbon)
     await text.delete()
     carbon.close()
-
-

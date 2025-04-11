@@ -1,18 +1,19 @@
 import os
 import random
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
-from pyrogram import filters, Client, enums
-from pyrogram.types import Message
-from typing import Union, Optional
-from ANNIEMUSIC import app
+from typing import Optional, Union
 
+from PIL import Image, ImageDraw, ImageFont
+from pyrogram import Client, enums, filters
+from pyrogram.types import Message
+
+from ANNIEMUSIC import app
 
 anniephoto = [
     "https://telegra.ph/file/07fd9e0e34bc84356f30d.jpg",
     "https://telegra.ph/file/3c4de59511e179018f902.jpg",
     "https://telegra.ph/file/07fd9e0e34bc84356f30d.jpg",
-    "https://telegra.ph/file/3c4de59511e179018f902.jpg"
+    "https://telegra.ph/file/3c4de59511e179018f902.jpg",
 ]
 
 
@@ -61,7 +62,7 @@ async def get_userinfo_img(
     bg_path: str,
     font_path: str,
     user_id: Union[int, str],
-    profile_path: Optional[str] = None
+    profile_path: Optional[str] = None,
 ):
     bg = Image.open(bg_path).convert("RGBA")
 
@@ -87,6 +88,7 @@ async def get_userinfo_img(
     path = f"./userinfo_img_{user_id}.png"
     bg.save(path)
     return path
+
 
 @app.on_message(filters.command(["info", "userinfo"], prefixes=["/", "!", "."]))
 async def userinfo(client: Client, message: Message):
@@ -141,9 +143,9 @@ async def userinfo(client: Client, message: Message):
                     mention,
                     status,
                     dc_id,
-                    bio
+                    bio,
                 ),
-                reply_to_message_id=message.id
+                reply_to_message_id=message.id,
             )
             try:
                 os.remove(profile_photo_path)
@@ -163,9 +165,9 @@ async def userinfo(client: Client, message: Message):
                     mention,
                     status,
                     dc_id,
-                    bio
+                    bio,
                 ),
-                reply_to_message_id=message.id
+                reply_to_message_id=message.id,
             )
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
