@@ -1,13 +1,19 @@
+import asyncio
 import os
 import random
-import asyncio
-from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageChops
-from pyrogram import Client, filters, enums
-from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton, Message
-from typing import Union, Optional
-from logging import getLogger
 from datetime import datetime, timedelta, timezone
+from logging import getLogger
+from pathlib import Path
+from typing import Optional, Union
+
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageFont
+from pyrogram import Client, enums, filters
+from pyrogram.types import (
+    ChatMemberUpdated,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.jarvis_ban import admin_filter
@@ -54,10 +60,13 @@ class WelDatabase:
             return True
         return False
 
+
 wlcm = WelDatabase()
+
 
 class temp:
     MELCOW = {}
+
 
 def circle(pfp, size=(500, 500)):
     pfp = pfp.resize(size, Image.LANCZOS).convert("RGBA")
@@ -74,9 +83,9 @@ def welcomepic(pic_path, user, chatname, user_id, uname):
     pfp = Image.open(pic_path).convert("RGBA")
     pfp = circle(pfp, size=(835, 839))
     draw = ImageDraw.Draw(background)
-    font_large = ImageFont.truetype('ANNIEMUSIC/assets/annie/ArialReg.ttf', size=65)
-    draw.text((421, 715), f'{user}', fill=(242, 242, 242), font=font_large)
-    draw.text((270, 1005), f'{user_id}', fill=(242, 242, 242), font=font_large)
+    font_large = ImageFont.truetype("ANNIEMUSIC/assets/annie/ArialReg.ttf", size=65)
+    draw.text((421, 715), f"{user}", fill=(242, 242, 242), font=font_large)
+    draw.text((270, 1005), f"{user_id}", fill=(242, 242, 242), font=font_large)
     draw.text((570, 1308), f"{uname}", fill=(242, 242, 242), font=font_large)
     pfp_position = (1887, 390)
     background.paste(pfp, pfp_position, pfp)
@@ -90,12 +99,17 @@ async def auto_state(client, message):
     usage = "**Usage:**\n⦿/wel [on|off]\n➤ANNIE SPECIAL WELCOME.........."
     if len(message.command) != 2:
         return await message.reply_text(usage)
-    
+
     chat_id = message.chat.id
     user_status = await client.get_chat_member(chat_id, message.from_user.id)
-    if user_status.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER):
-        return await message.reply_text("**sᴏʀʀʏ ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄʜᴀɴɢᴇ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ sᴛᴀᴛᴜs!**")
-    
+    if user_status.status not in (
+        enums.ChatMemberStatus.ADMINISTRATOR,
+        enums.ChatMemberStatus.OWNER,
+    ):
+        return await message.reply_text(
+            "**sᴏʀʀʏ ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄʜᴀɴɢᴇ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ sᴛᴀᴛᴜs!**"
+        )
+
     state = message.text.split(None, 1)[1].strip().lower()
     current_state = await wlcm.find_one(chat_id)
     if state == "off":
@@ -103,13 +117,17 @@ async def auto_state(client, message):
             await message.reply_text("**ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ᴀʟʀᴇᴀᴅʏ ᴅɪsᴀʙʟᴇᴅ!**")
         else:
             await wlcm.set_state(chat_id, "off")
-            await message.reply_text(f"**ᴅɪsᴀʙʟᴇᴅ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ɪɴ {message.chat.title}**")
+            await message.reply_text(
+                f"**ᴅɪsᴀʙʟᴇᴅ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ɪɴ {message.chat.title}**"
+            )
     elif state == "on":
         if current_state.get("state") == "on":
             await message.reply_text("**ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ᴀʟʀᴇᴀᴅʏ ᴇɴᴀʙʟᴇᴅ!**")
         else:
             await wlcm.set_state(chat_id, "on")
-            await message.reply_text(f"**ᴇɴᴀʙʟᴇᴅ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ɪɴ {message.chat.title}**")
+            await message.reply_text(
+                f"**ᴇɴᴀʙʟᴇᴅ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ɪɴ {message.chat.title}**"
+            )
     else:
         await message.reply_text(usage)
 
@@ -124,8 +142,7 @@ async def greet_new_member(client, member: ChatMemberUpdated):
         auto_reenabled = await wlcm.check_auto_reenable(chat_id)
         if auto_reenabled:
             await client.send_message(
-                chat_id,
-                "**ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ʜᴀᴠᴇ ʙᴇᴇɴ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ʀᴇ-ᴇɴᴀʙʟᴇᴅ.**"
+                chat_id, "**ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ʜᴀᴠᴇ ʙᴇᴇɴ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ʀᴇ-ᴇɴᴀʙʟᴇᴅ.**"
             )
         else:
             return
@@ -135,11 +152,14 @@ async def greet_new_member(client, member: ChatMemberUpdated):
         await wlcm.auto_disable_welcome(chat_id)
         await client.send_message(
             chat_id,
-            "**ᴍᴀssɪᴠᴇ ᴊᴏɪɴ ᴅᴇᴛᴇᴄᴛᴇᴅ. ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ᴀʀᴇ ᴛᴇᴍᴘᴏʀᴀʀɪʟʏ ᴅɪsᴀʙʟᴇᴅ ғᴏʀ 30 ᴍɪɴᴜᴛᴇs.**"
+            "**ᴍᴀssɪᴠᴇ ᴊᴏɪɴ ᴅᴇᴛᴇᴄᴛᴇᴅ. ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ᴀʀᴇ ᴛᴇᴍᴘᴏʀᴀʀɪʟʏ ᴅɪsᴀʙʟᴇᴅ ғᴏʀ 30 ᴍɪɴᴜᴛᴇs.**",
         )
         return
 
-    if member.new_chat_member and member.new_chat_member.status == enums.ChatMemberStatus.MEMBER:
+    if (
+        member.new_chat_member
+        and member.new_chat_member.status == enums.ChatMemberStatus.MEMBER
+    ):
         try:
             pic_path = None
             if user.photo:
@@ -157,7 +177,11 @@ async def greet_new_member(client, member: ChatMemberUpdated):
                     LOGGER.error(f"Error deleting previous welcome message: {e}")
 
             welcome_img = welcomepic(
-                pic_path, user.first_name, member.chat.title, user.id, user.username or "No Username"
+                pic_path,
+                user.first_name,
+                member.chat.title,
+                user.id,
+                user.username or "No Username",
             )
 
             count = await client.get_chat_members_count(chat_id)
@@ -179,14 +203,20 @@ async def greet_new_member(client, member: ChatMemberUpdated):
 ▰▰▰▰▰▰▰▰▰▰▰▰▰**
 **❅─────✧❅✦❅✧─────❅**
 """,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton(button_text, url=deep_link)],
-                    [InlineKeyboardButton(add_button_text, url=add_link)],
-                ])
+                reply_markup=InlineKeyboardMarkup(
+                    [
+                        [InlineKeyboardButton(button_text, url=deep_link)],
+                        [InlineKeyboardButton(add_button_text, url=add_link)],
+                    ]
+                ),
             )
             temp.MELCOW[f"welcome-{chat_id}"] = welcome_message
 
-            if pic_path and os.path.exists(pic_path) and "ANNIEMUSIC/assets/upic.png" not in pic_path:
+            if (
+                pic_path
+                and os.path.exists(pic_path)
+                and "ANNIEMUSIC/assets/upic.png" not in pic_path
+            ):
                 os.remove(pic_path)
             if welcome_img and os.path.exists(welcome_img):
                 os.remove(welcome_img)

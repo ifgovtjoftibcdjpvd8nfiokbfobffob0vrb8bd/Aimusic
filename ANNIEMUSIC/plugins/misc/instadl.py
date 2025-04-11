@@ -1,9 +1,9 @@
 # <============================================== IMPORTS =========================================================>
-from telegram import Update, Bot
 import httpx
+from pyrogram import filters
+from telegram import Bot, Update
 
 from ANNIEMUSIC import app
-from pyrogram import filters
 
 # <=======================================================================================================>
 
@@ -51,10 +51,10 @@ async def instadl_command_handler(client, message):
 
     except Exception as e:
         print(e)
-        await message.reply_text(
-            "An error occurred while processing the request."
-        )
+        await message.reply_text("An error occurred while processing the request.")
 
     finally:
         await downloading_sticker.delete()
+
+
 # <================================================ END =======================================================>

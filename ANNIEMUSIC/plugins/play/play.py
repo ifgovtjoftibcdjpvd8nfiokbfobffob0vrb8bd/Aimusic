@@ -1,8 +1,10 @@
 import random
 import string
+
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, InputMediaPhoto, Message
 from pytgcalls.exceptions import NoActiveGroupCall
+
 import config
 from ANNIEMUSIC import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
 from ANNIEMUSIC.core.call import JARVIS
@@ -20,12 +22,23 @@ from ANNIEMUSIC.utils.inline import (
 )
 from ANNIEMUSIC.utils.logger import play_logs
 from ANNIEMUSIC.utils.stream.stream import stream
-from config import BANNED_USERS, lyrical, AYU
+from config import AYU, BANNED_USERS, lyrical
 
 
 @app.on_message(
-   filters.command(["play", "vplay", "cplay", "cvplay", "playforce", "vplayforce", "cplayforce", "cvplayforce"] ,prefixes=["/", "!"])
-            
+    filters.command(
+        [
+            "play",
+            "vplay",
+            "cplay",
+            "cvplay",
+            "playforce",
+            "vplayforce",
+            "cplayforce",
+            "cvplayforce",
+        ],
+        prefixes=["/", "!"],
+    )
     & filters.group
     & ~BANNED_USERS
 )
@@ -165,7 +178,9 @@ async def play_commnd(
                 cap = _["play_10"]
             elif "https://youtu.be" in url:
                 videoid = url.split("/")[-1].split("?")[0]
-                details, track_id = await YouTube.track(f"https://www.youtube.com/watch?v={videoid}")
+                details, track_id = await YouTube.track(
+                    f"https://www.youtube.com/watch?v={videoid}"
+                )
                 streamtype = "youtube"
                 img = details["thumb"]
                 cap = _["play_11"].format(
@@ -179,12 +194,18 @@ async def play_commnd(
                         details, track_id = await YouTube.track(video_url)
                         streamtype = "playlist"
                         img = details["thumb"]
-                        cap = _["play_10"].format(details["title"], details["duration_min"])
-                        await queue_video_for_playback(video_url, details, track_id, streamtype, img, cap)
+                        cap = _["play_10"].format(
+                            details["title"], details["duration_min"]
+                        )
+                        await queue_video_for_playback(
+                            video_url, details, track_id, streamtype, img, cap
+                        )
 
-                    await mystic.edit_text("All videos from the channel have been added to the queue.")
+                    await mystic.edit_text(
+                        "All videos from the channel have been added to the queue."
+                    )
                 except Exception as e:
-                    print(e) 
+                    print(e)
                     await mystic.edit_text(_["play_3"])
             else:
                 try:

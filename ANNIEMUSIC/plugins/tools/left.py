@@ -1,31 +1,32 @@
-from ANNIEMUSIC import app
-from pyrogram import Client, filters
-from pyrogram.errors import RPCError
-from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton
-from os import remove
-import os
-from typing import Union, Optional
-from PIL import Image, ImageDraw, ImageFont
 import asyncio
+import os
 import time
 from collections import deque
+from os import remove
+from typing import Optional, Union
+
+from PIL import Image, ImageDraw, ImageFont
+from pyrogram import Client, filters
+from pyrogram.errors import RPCError
+from pyrogram.types import ChatMemberUpdated, InlineKeyboardButton, InlineKeyboardMarkup
+
+from ANNIEMUSIC import app
 
 # --------------------------------------------------------------------------------- #
 
 get_font = lambda font_size, font_path: ImageFont.truetype(font_path, font_size)
-resize_text = (
-    lambda text_size, text: (text[:text_size] + "...").upper()
-    if len(text) > text_size
-    else text.upper()
+resize_text = lambda text_size, text: (
+    (text[:text_size] + "...").upper() if len(text) > text_size else text.upper()
 )
 
 # --------------------------------------------------------------------------------- #
+
 
 async def get_userinfo_img(
     bg_path: str,
     font_path: str,
     user_id: Union[int, str],
-    profile_path: Optional[str] = None
+    profile_path: Optional[str] = None,
 ):
     bg = Image.open(bg_path)
 
@@ -53,6 +54,7 @@ async def get_userinfo_img(
     bg.save(path)
     return path
 
+
 # --------------------------------------------------------------------------------- #
 
 bg_path = "ANNIEMUSIC/assets/userinfo.png"
@@ -62,39 +64,40 @@ font_path = "ANNIEMUSIC/assets/hiroko.ttf"
 
 leave_events = {}
 
+
 async def handle_leave_event(chat_id):
     now = time.time()
     if chat_id not in leave_events:
         leave_events[chat_id] = {
-            'timestamps': deque(),
-            'notifications_disabled_until': 0,
-            'lock': asyncio.Lock()
+            "timestamps": deque(),
+            "notifications_disabled_until": 0,
+            "lock": asyncio.Lock(),
         }
     data = leave_events[chat_id]
 
-    async with data['lock']:
-        while data['timestamps'] and now - data['timestamps'][0] > 5:
-            data['timestamps'].popleft()
-        data['timestamps'].append(now)
-        if now < data['notifications_disabled_until']:
+    async with data["lock"]:
+        while data["timestamps"] and now - data["timestamps"][0] > 5:
+            data["timestamps"].popleft()
+        data["timestamps"].append(now)
+        if now < data["notifications_disabled_until"]:
             return False
         else:
-            if len(data['timestamps']) >= 10:
-                data['notifications_disabled_until'] = now + 15 * 60
-                data['timestamps'].clear()
+            if len(data["timestamps"]) >= 10:
+                data["notifications_disabled_until"] = now + 15 * 60
+                data["timestamps"].clear()
                 return False
             else:
                 return True
 
+
 # --------------------------------------------------------------------------------- #
+
 
 @app.on_chat_member_updated(filters.group, group=20)
 async def member_has_left(client: app, member: ChatMemberUpdated):
     if (
         not member.new_chat_member
-        and member.old_chat_member.status not in {
-            "banned", "left", "restricted"
-        }
+        and member.old_chat_member.status not in {"banned", "left", "restricted"}
         and member.old_chat_member
     ):
         pass
@@ -105,11 +108,7 @@ async def member_has_left(client: app, member: ChatMemberUpdated):
     if not should_notify:
         return
 
-    user = (
-        member.old_chat_member.user
-        if member.old_chat_member
-        else member.from_user
-    )
+    user = member.old_chat_member.user if member.old_chat_member else member.from_user
 
     if user.photo and user.photo.big_file_id:
         photo = None
@@ -134,9 +133,9 @@ async def member_has_left(client: app, member: ChatMemberUpdated):
                 chat_id=member.chat.id,
                 photo=welcome_photo,
                 caption=caption,
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton(button_text, url=deep_link)]
-                ])
+                reply_markup=InlineKeyboardMarkup(
+                    [[InlineKeyboardButton(button_text, url=deep_link)]]
+                ),
             )
 
             async def delete_message():

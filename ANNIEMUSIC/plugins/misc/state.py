@@ -1,12 +1,14 @@
-from pyrogram import Client, filters
 import pycountry
-from ANNIEMUSIC import app 
+from pyrogram import Client, filters
+
+from ANNIEMUSIC import app
+
 
 @app.on_message(filters.command("getstates"))
 def get_states(client, message):
     try:
         # Extract the country name from the message
-        country_name = message.text.split(' ', 1)[1]
+        country_name = message.text.split(" ", 1)[1]
         # Fetch the country information
         country = pycountry.countries.get(name=country_name)
         # Get the states (also known as subdivisions) of the country
@@ -20,6 +22,6 @@ def get_states(client, message):
     except AttributeError:
         # The country was not found
         states_message = f"I couldn't find the country '{country_name}'. Please make sure it's spelled correctly."
-    
+
     # Send the message with states
     message.reply_text(states_message)

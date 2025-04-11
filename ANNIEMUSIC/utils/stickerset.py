@@ -17,8 +17,6 @@ async def get_sticker_set_by_name(
         return None
 
 
-
-
 async def create_sticker_set(
     client: Client,
     owner: int,

@@ -1,11 +1,14 @@
 import os
-import aiohttp
+
 import aiofiles
+import aiohttp
 from aiohttp import ContentTypeError
-from ANNIEMUSIC import app as app
 from pyrogram import filters
 
+from ANNIEMUSIC import app as app
+
 API_KEY = "23nfCEipDijgVv6SH14oktJe"
+
 
 def check_filename(filroid):
     if os.path.exists(filroid):
@@ -17,6 +20,7 @@ def check_filename(filroid):
             else:
                 return ult
     return filroid
+
 
 async def RemoveBG(input_file_name):
     headers = {"X-API-Key": API_KEY}
@@ -38,7 +42,7 @@ async def RemoveBG(input_file_name):
 
 @app.on_message(filters.command("rmbg"))
 async def rmbg(bot, message):
-    rmbg = await message.reply("Processing...") 
+    rmbg = await message.reply("Processing...")
     replied = message.reply_to_message
     if not replied:
         return await rmbg.edit("Reply to a photo to remove its background")
@@ -51,7 +55,9 @@ async def rmbg(bot, message):
             bruh = y["errors"][0]
             details = bruh.get("detail", "")
             return await rmbg.edit(f"ERROR ~ {bruh['title']},\n{details}")
-        await message.reply_photo(photo=y, caption="Here is your image without background")
+        await message.reply_photo(
+            photo=y, caption="Here is your image without background"
+        )
         await message.reply_document(document=y)
         await rmbg.delete()
         os.remove(y)

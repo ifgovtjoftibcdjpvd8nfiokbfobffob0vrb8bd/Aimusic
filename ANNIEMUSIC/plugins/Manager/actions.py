@@ -1,27 +1,36 @@
-from pyrogram import Client, filters, enums
-from pyrogram.types import ChatPermissions
-from pyrogram.errors import ChatAdminRequired, UserAdminInvalid
 import asyncio
 import datetime
 from functools import wraps
+
+from pyrogram import Client, enums, filters
+from pyrogram.errors import ChatAdminRequired, UserAdminInvalid
+from pyrogram.types import ChatPermissions
+
 from ANNIEMUSIC import app
+
 
 def mention(user_id, name):
     return f"[{name}](tg://user?id={user_id})"
+
 
 def admin_required(func):
     @wraps(func)
     async def wrapper(client, message):
         member = await message.chat.get_member(message.from_user.id)
         if (
-            member.status in [enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER]
+            member.status
+            in [enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER]
             and member.privileges.can_restrict_members
         ):
             return await func(client, message)
         else:
-            await message.reply_text("You don't have permission to perform this action.")
+            await message.reply_text(
+                "You don't have permission to perform this action."
+            )
             return
+
     return wrapper
+
 
 async def extract_user_and_reason(message, client):
     args = message.text.split()
@@ -44,23 +53,25 @@ async def extract_user_and_reason(message, client):
         return None, None, None
     return user.id, user.first_name, reason
 
+
 def parse_time(time_str):
     unit = time_str[-1]
-    if unit not in ['s', 'm', 'h', 'd']:
+    if unit not in ["s", "m", "h", "d"]:
         return None
     try:
         time_amount = int(time_str[:-1])
     except ValueError:
         return None
-    if unit == 's':
+    if unit == "s":
         return datetime.timedelta(seconds=time_amount)
-    elif unit == 'm':
+    elif unit == "m":
         return datetime.timedelta(minutes=time_amount)
-    elif unit == 'h':
+    elif unit == "h":
         return datetime.timedelta(hours=time_amount)
-    elif unit == 'd':
+    elif unit == "d":
         return datetime.timedelta(days=time_amount)
     return None
+
 
 @app.on_message(filters.command("ban"))
 @admin_required
@@ -83,6 +94,7 @@ async def ban_command_handler(client, message):
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
 
+
 @app.on_message(filters.command("unban"))
 @admin_required
 async def unban_command_handler(client, message):
@@ -101,6 +113,7 @@ async def unban_command_handler(client, message):
         await message.reply_text("I need to be an admin with ban permissions.")
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
+
 
 @app.on_message(filters.command("mute"))
 @admin_required
@@ -123,6 +136,7 @@ async def mute_command_handler(client, message):
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
 
+
 @app.on_message(filters.command("unmute"))
 @admin_required
 async def unmute_command_handler(client, message):
@@ -137,8 +151,8 @@ async def unmute_command_handler(client, message):
                 can_send_messages=True,
                 can_send_media_messages=True,
                 can_send_other_messages=True,
-                can_add_web_page_previews=True
-            )
+                can_add_web_page_previews=True,
+            ),
         )
         user_mention = mention(user_id, first_name)
         admin_mention = mention(message.from_user.id, message.from_user.first_name)
@@ -150,6 +164,7 @@ async def unmute_command_handler(client, message):
         await message.reply_text("I need to be an admin with unmute permissions.")
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
+
 
 @app.on_message(filters.command("tmute"))
 @admin_required
@@ -169,17 +184,23 @@ async def tmute_command_handler(client, message):
             await message.reply_text("I can't find that user.")
             return
     else:
-        await message.reply_text("Usage: /tmute <user> <time> [reason]\nTime format: 10m, 1h, 2d")
+        await message.reply_text(
+            "Usage: /tmute <user> <time> [reason]\nTime format: 10m, 1h, 2d"
+        )
         return
 
     duration = parse_time(time_str)
     if not duration:
-        await message.reply_text("Invalid time format. Use s, m, h, or d for seconds, minutes, hours, or days respectively.")
+        await message.reply_text(
+            "Invalid time format. Use s, m, h, or d for seconds, minutes, hours, or days respectively."
+        )
         return
 
     until_date = datetime.datetime.now(datetime.timezone.utc) + duration
     try:
-        await client.restrict_chat_member(message.chat.id, user.id, ChatPermissions(), until_date=until_date)
+        await client.restrict_chat_member(
+            message.chat.id, user.id, ChatPermissions(), until_date=until_date
+        )
         user_mention = mention(user.id, user.first_name)
         admin_mention = mention(message.from_user.id, message.from_user.first_name)
         msg = f"{user_mention} was muted by {admin_mention} for {time_str}"
@@ -202,7 +223,10 @@ async def kick_command_handler(client, message):
         return
     try:
         member = await client.get_chat_member(message.chat.id, user_id)
-        if member.status in [enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER]:
+        if member.status in [
+            enums.ChatMemberStatus.ADMINISTRATOR,
+            enums.ChatMemberStatus.OWNER,
+        ]:
             await message.reply_text("I cannot kick an admin.")
             return
         await client.ban_chat_member(message.chat.id, user_id)

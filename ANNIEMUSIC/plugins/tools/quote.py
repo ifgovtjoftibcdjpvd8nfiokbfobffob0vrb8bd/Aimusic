@@ -1,8 +1,10 @@
 from io import BytesIO
+
+from httpx import AsyncClient, Timeout
 from pyrogram import Client, filters
 from pyrogram.types import Message
+
 from ANNIEMUSIC import app
-from httpx import AsyncClient, Timeout
 
 # -----------------------------------------------------------------
 fetch = AsyncClient(
@@ -16,9 +18,13 @@ fetch = AsyncClient(
     },
     timeout=Timeout(20),
 )
+
+
 # ------------------------------------------------------------------------
 class QuotlyException(Exception):
     pass
+
+
 # --------------------------------------------------------------------------
 async def get_message_sender_id(ctx: Message):
     if ctx.forward_date:
@@ -36,6 +42,8 @@ async def get_message_sender_id(ctx: Message):
         return ctx.sender_chat.id
     else:
         return 1
+
+
 # -----------------------------------------------------------------------------------------
 async def get_message_sender_name(ctx: Message):
     if ctx.forward_date:
@@ -60,6 +68,8 @@ async def get_message_sender_name(ctx: Message):
         return ctx.sender_chat.title
     else:
         return ""
+
+
 # ---------------------------------------------------------------------------------------------------
 async def get_custom_emoji(ctx: Message):
     if ctx.forward_date:
@@ -73,6 +83,7 @@ async def get_custom_emoji(ctx: Message):
         )
 
     return ctx.from_user.emoji_status.custom_emoji_id if ctx.from_user else ""
+
 
 # ---------------------------------------------------------------------------------------------------
 async def get_message_sender_username(ctx: Message):
@@ -105,6 +116,8 @@ async def get_message_sender_username(ctx: Message):
         return ""
     else:
         return ctx.sender_chat.username
+
+
 # ------------------------------------------------------------------------
 async def get_message_sender_photo(ctx: Message):
     if ctx.forward_date:
@@ -139,7 +152,7 @@ async def get_message_sender_photo(ctx: Message):
                 if ctx.forward_from.photo
                 else ""
             )
-# ---------------------------------------------------------------------------------
+    # ---------------------------------------------------------------------------------
     elif ctx.from_user and ctx.from_user.photo:
         return {
             "small_file_id": ctx.from_user.photo.small_file_id,
@@ -161,6 +174,8 @@ async def get_message_sender_photo(ctx: Message):
             "big_file_id": ctx.sender_chat.photo.big_file_id,
             "big_photo_unique_id": ctx.sender_chat.photo.big_photo_unique_id,
         }
+
+
 # ---------------------------------------------------------------------------------------------------
 async def get_text_or_caption(ctx: Message):
     if ctx.text:
@@ -169,6 +184,8 @@ async def get_text_or_caption(ctx: Message):
         return ctx.caption
     else:
         return ""
+
+
 # ---------------------------------------------------------------------------------------------------
 async def pyrogram_to_quotly(messages, is_reply):
     if not isinstance(messages, list):
@@ -179,7 +196,7 @@ async def pyrogram_to_quotly(messages, is_reply):
         "backgroundColor": "#1b1429",
         "messages": [],
     }
-# ------------------------------------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------------------------------
     for message in messages:
         the_message_dict_to_append = {}
         if message.entities:
@@ -231,7 +248,10 @@ async def pyrogram_to_quotly(messages, is_reply):
         return r.read()
     else:
         raise QuotlyException(r.json())
+
+
 # ------------------------------------------------------------------------------------------
+
 
 # Helper function to check if an argument is an integer
 def isArgInt(txt) -> list:
@@ -242,6 +262,7 @@ def isArgInt(txt) -> list:
     except ValueError:
         return [False, 0]
 
+
 # ---------------------------------------------------------------------------------------------------
 @app.on_message(filters.command("q") & filters.reply)
 async def msg_quotly_cmd(self: app, ctx: Message):
@@ -251,7 +272,7 @@ async def msg_quotly_cmd(self: app, ctx: Message):
     count = 1
 
     for arg in args:
-        if arg.lower() == 'r':
+        if arg.lower() == "r":
             is_reply = True
         else:
             check_arg = isArgInt(arg)
@@ -262,14 +283,16 @@ async def msg_quotly_cmd(self: app, ctx: Message):
 
     if count < 1 or count > 10:
         return await ctx.reply_text("Invalid range", delete_after=6)
-    
+
     # Send processing message
     processing_msg = await ctx.reply_text("❄️")
     try:
         if count == 1:
             messages = [ctx.reply_to_message]
         else:
-            message_ids = range(ctx.reply_to_message.id, ctx.reply_to_message.id + count)
+            message_ids = range(
+                ctx.reply_to_message.id, ctx.reply_to_message.id + count
+            )
             messages = [
                 i
                 for i in await self.get_messages(
@@ -291,4 +314,6 @@ async def msg_quotly_cmd(self: app, ctx: Message):
         await ctx.reply_text(f"ERROR: {e}")
     finally:
         await processing_msg.delete()
+
+
 # ---------------------------------------------------------------------------------

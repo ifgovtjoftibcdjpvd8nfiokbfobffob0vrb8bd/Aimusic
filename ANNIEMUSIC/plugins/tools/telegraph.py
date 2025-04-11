@@ -1,23 +1,41 @@
-
 import os
+
 import requests
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 from ANNIEMUSIC import app
+
 
 def upload_file(file_path):
     url = "https://catbox.moe/user/api.php"
     files = {"fileToUpload": open(file_path, "rb")}
-    response = requests.post(url, data={"reqtype": "fileupload", "json": "true"}, files=files)
-    return (response.status_code == 200, response.text.strip() if response.status_code == 200 else f"Error: {response.status_code} - {response.text}")
+    response = requests.post(
+        url, data={"reqtype": "fileupload", "json": "true"}, files=files
+    )
+    return (
+        response.status_code == 200,
+        (
+            response.text.strip()
+            if response.status_code == 200
+            else f"Error: {response.status_code} - {response.text}"
+        ),
+    )
+
 
 @app.on_message(filters.command(["tgm", "tgt", "telegraph"]))
 async def get_link_group(client, message):
     if not message.reply_to_message:
-        return await message.reply_text("❍ Please reply to a media to upload on Telegraph.")
+        return await message.reply_text(
+            "❍ Please reply to a media to upload on Telegraph."
+        )
 
     media = message.reply_to_message
-    file_size = getattr(media, 'photo', None) or getattr(media, 'video', None) or getattr(media, 'document', None)
+    file_size = (
+        getattr(media, "photo", None)
+        or getattr(media, "video", None)
+        or getattr(media, "document", None)
+    )
     if file_size and file_size.file_size > 200 * 1024 * 1024:
         return await message.reply_text("Please provide a media file under 200MB.")
 
@@ -42,7 +60,9 @@ async def get_link_group(client, message):
                 ),
             )
         else:
-            await text.edit_text(f"❍ An error occurred while uploading your file\n{upload_path}")
+            await text.edit_text(
+                f"❍ An error occurred while uploading your file\n{upload_path}"
+            )
 
         os.remove(local_path)
     except Exception as e:

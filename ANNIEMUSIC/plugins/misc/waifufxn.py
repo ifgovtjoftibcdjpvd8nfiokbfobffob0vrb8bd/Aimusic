@@ -1,5 +1,6 @@
-from pyrogram import Client, filters
 from nekosbest import Client as NekoClient
+from pyrogram import Client, filters
+
 from ANNIEMUSIC import app
 
 neko_client = NekoClient()
@@ -37,8 +38,9 @@ commands = {
     "stare": {"emoji": "👀", "text": "stared"},
     "shrug": {"emoji": "🤷", "text": "shrugged"},
     "sleep": {"emoji": "😴", "text": "slept"},
-    "lurk": {"emoji": "👤", "text": "lurking"}
+    "lurk": {"emoji": "👤", "text": "lurking"},
 }
+
 
 async def get_animation(animation_type):
     try:
@@ -48,17 +50,26 @@ async def get_animation(animation_type):
         print(f"Error: {e}")
         return None
 
-@app.on_message(filters.command(list(commands.keys())) & ~filters.forwarded & ~filters.via_bot)
+
+@app.on_message(
+    filters.command(list(commands.keys())) & ~filters.forwarded & ~filters.via_bot
+)
 async def animation_command(client, message):
     command = message.command[0].lower()
     if command in commands:
         gif_url = await get_animation(command)
         if gif_url:
-            sender = message.from_user.mention(style='markdown')
-            target = sender if not message.reply_to_message else message.reply_to_message.from_user.mention(style='markdown')
+            sender = message.from_user.mention(style="markdown")
+            target = (
+                sender
+                if not message.reply_to_message
+                else message.reply_to_message.from_user.mention(style="markdown")
+            )
             msg = f"{sender} {commands[command]['text']} {target}! {commands[command]['emoji']}"
             await message.reply_animation(animation=gif_url, caption=msg)
         else:
-            await message.reply_text("Couldn't retrieve the animation. Please try again.")
+            await message.reply_text(
+                "Couldn't retrieve the animation. Please try again."
+            )
     else:
         await message.reply_text("Command not available.")

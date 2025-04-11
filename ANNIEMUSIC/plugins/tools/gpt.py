@@ -1,17 +1,19 @@
 import os
+
 from gtts import gTTS
-
+from lexica import AsyncClient, Messages, languageModels
 from pyrogram import Client, filters
-from pyrogram.types import Message
 from pyrogram.enums import ChatAction
+from pyrogram.types import Message
 
-from lexica import AsyncClient, languageModels, Messages
 from ANNIEMUSIC import app
+
 
 def extract_content(response):
     if isinstance(response, dict):
-        return response.get('content', 'No content available.')
+        return response.get("content", "No content available.")
     return str(response)
+
 
 @app.on_message(filters.command(["arvis"], prefixes=["j", "J"]))
 async def gpt_handler(client: Client, message: Message):
@@ -20,10 +22,12 @@ async def gpt_handler(client: Client, message: Message):
         name = message.from_user.first_name
 
         if len(message.command) < 2:
-            await message.reply_text(f"Hello {name}, I am Jarvis. How can I help you today?")
+            await message.reply_text(
+                f"Hello {name}, I am Jarvis. How can I help you today?"
+            )
             return
 
-        query = message.text.split(' ', 1)[1]
+        query = message.text.split(" ", 1)[1]
         messages = [Messages(content=query, role="user")]
 
         lexica_client = AsyncClient()
@@ -39,7 +43,13 @@ async def gpt_handler(client: Client, message: Message):
     except Exception as e:
         await message.reply_text(f"An unexpected error occurred: {e}")
 
-@app.on_message(filters.command(["chatgpt", "ai", "ask", "Master"], prefixes=["+", ".", "/", "-", "?", "$", "#", "&"]))
+
+@app.on_message(
+    filters.command(
+        ["chatgpt", "ai", "ask", "Master"],
+        prefixes=["+", ".", "/", "-", "?", "$", "#", "&"],
+    )
+)
 async def chat_gpt(client: Client, message: Message):
     try:
         await client.send_chat_action(message.chat.id, ChatAction.TYPING)
@@ -49,7 +59,7 @@ async def chat_gpt(client: Client, message: Message):
             await message.reply_text(f"Hello {name}, how can I assist you today?")
             return
 
-        query = message.text.split(' ', 1)[1]
+        query = message.text.split(" ", 1)[1]
         messages = [Messages(content=query, role="user")]
 
         lexica_client = AsyncClient()
@@ -65,6 +75,7 @@ async def chat_gpt(client: Client, message: Message):
     except Exception as e:
         await message.reply_text(f"An unexpected error occurred: {e}")
 
+
 @app.on_message(filters.command(["ssis"], prefixes=["a", "A"]))
 async def chat_annie(client: Client, message: Message):
     try:
@@ -72,18 +83,20 @@ async def chat_annie(client: Client, message: Message):
         name = message.from_user.first_name
 
         if len(message.command) < 2:
-            await message.reply_text(f"Hello {name}, I am Annie. How can I assist you today?")
+            await message.reply_text(
+                f"Hello {name}, I am Annie. How can I assist you today?"
+            )
             return
 
-        query = message.text.split(' ', 1)[1]
+        query = message.text.split(" ", 1)[1]
         messages = [Messages(content=query, role="user")]
 
         lexica_client = AsyncClient()
         try:
             response = await lexica_client.ChatCompletion(messages, languageModels.gpt)
             content = extract_content(response)
-            tts = gTTS(text=content, lang='en')
-            audio_file = 'response.mp3'
+            tts = gTTS(text=content, lang="en")
+            audio_file = "response.mp3"
             tts.save(audio_file)
             await client.send_voice(chat_id=message.chat.id, voice=audio_file)
         except Exception as e:

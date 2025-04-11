@@ -1,18 +1,21 @@
-from pyrogram import filters
-from pyrogram import *
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-from config import  BOT_USERNAME
 from datetime import datetime
-from ANNIEMUSIC import app as app
+
 import requests
+from pyrogram import *
+from pyrogram import filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+
+from ANNIEMUSIC import app as app
+from config import BOT_USERNAME
+
 
 @app.on_message(filters.command("write"))
 async def handwrite(_, message: Message):
     if message.reply_to_message:
         text = message.reply_to_message.text
     else:
-        text =message.text.split(None, 1)[1]
-    m =await message.reply_text( "Please wait...,\n\nWriting your text...")
+        text = message.text.split(None, 1)[1]
+    m = await message.reply_text("Please wait...,\n\nWriting your text...")
     write = requests.get(f"https://apis.xditya.me/write?text={text}").url
 
     caption = f"""
@@ -21,7 +24,7 @@ sᴜᴄᴇssғᴜʟʟʏ ᴡʀɪᴛᴛᴇɴ ᴛᴇxᴛ 💘
 🥀 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ : {message.from_user.mention}
 """
     await m.delete()
-    await message.reply_photo(photo=write,caption=caption)
+    await message.reply_photo(photo=write, caption=caption)
 
 
 @app.on_message(filters.command("day"))
@@ -33,10 +36,14 @@ def date_to_day_command(client: Client, message: Message):
             date_object = datetime.strptime(input_date, "%Y-%m-%d")
             day_of_week = date_object.strftime("%A")
 
-            message.reply_text(f"The day of the week for {input_date} is {day_of_week}.")
+            message.reply_text(
+                f"The day of the week for {input_date} is {day_of_week}."
+            )
 
         else:
-            message.reply_text("Please provide a valid date in the format `/day 1947-08-15` ")
+            message.reply_text(
+                "Please provide a valid date in the format `/day 1947-08-15` "
+            )
 
     except ValueError as e:
         message.reply_text(f"Error: {str(e)}")

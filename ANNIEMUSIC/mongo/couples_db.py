@@ -2,6 +2,7 @@ from ANNIEMUSIC.utils.mongo import db
 
 coupledb = db.couple
 
+
 async def _get_lovers(cid: int):
     lovers = await coupledb.find_one({"chat_id": cid})
     if lovers:
@@ -10,6 +11,7 @@ async def _get_lovers(cid: int):
         lovers = {}
     return lovers
 
+
 async def _get_image(cid: int):
     lovers = await coupledb.find_one({"chat_id": cid})
     if lovers:
@@ -17,6 +19,7 @@ async def _get_image(cid: int):
     else:
         lovers = {}
     return lovers
+
 
 async def get_couple(cid: int, date: str):
     lovers = await _get_lovers(cid)
@@ -33,4 +36,4 @@ async def save_couple(cid: int, date: str, couple: dict, img: str):
         {"chat_id": cid},
         {"$set": {"couple": lovers, "img": img}},
         upsert=True,
-                              )
+    )
