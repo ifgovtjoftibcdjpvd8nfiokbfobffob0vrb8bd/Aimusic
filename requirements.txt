@@ -14,7 +14,6 @@ emojis
 Faker
 ffmpeg-python
 future
-g4f
 geopy
 gitpython
 google-api-python-client
