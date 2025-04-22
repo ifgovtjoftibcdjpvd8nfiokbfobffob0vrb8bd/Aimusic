@@ -4,8 +4,6 @@ import random
 import requests
 from ANNIEMUSIC import app 
 
-SUPPORT_CHAT = "CertifiedDiscussion"
-
 @app.on_message(filters.command("wish"))
 async def wish(_, m):
     if len(m.command) < 2:
@@ -25,11 +23,11 @@ async def wish(_, m):
         animation=url,
         caption=wish,
         reply_markup=InlineKeyboardMarkup(
-            [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/{SUPPORT_CHAT}")]])
+            [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/+v1ubYvri73owZDk9")]])
     )
             
     
-BUTTON = [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/{SUPPORT_CHAT}")]]
+BUTTON = [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/+v1ubYvri73owZDk9")]]
 CUTIE = "https://telegra.ph/file/528d0563175669e123a75.mp4"
 
 @app.on_message(filters.command("cute"))
