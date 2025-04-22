@@ -35,6 +35,9 @@ GIT_TOKEN = getenv("GIT_TOKEN", None)
 SUPPORT_CHANNEL = getenv("SUPPORT_CHANNEL", "https://t.me/+v1ubYvri73owZDk9")
 SUPPORT_CHAT = getenv("SUPPORT_CHAT", "https://t.me/+rFrVYWJbaCsxNzRl")
 
+API_URL = getenv("API_URL", 'https://api.thequickearn.xyz')
+API_KEY = getenv("API_KEY", None)
+
 # Set this to True if you want the assistant to automatically leave chats after an interval
 AUTO_LEAVING_ASSISTANT = bool(getenv("AUTO_LEAVING_ASSISTANT", False))
 AUTO_LEAVE_ASSISTANT_TIME = int(getenv("ASSISTANT_LEAVE_TIME", "11500"))
