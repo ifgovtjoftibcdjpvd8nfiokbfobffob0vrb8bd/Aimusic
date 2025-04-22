@@ -5,6 +5,7 @@ from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboa
 from logging import getLogger
 
 from ANNIEMUSIC import app
+from ANNIEMUSIC.utils.jarvis_ban import admin_filter
 
 LOGGER = getLogger(__name__)
 
