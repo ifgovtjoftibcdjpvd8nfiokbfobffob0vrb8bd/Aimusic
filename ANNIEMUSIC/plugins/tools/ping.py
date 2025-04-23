@@ -2,13 +2,10 @@ from datetime import datetime
 
 from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from config import *
 from ANNIEMUSIC import app
 from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.utils import bot_sys_stats
 from ANNIEMUSIC.utils.decorators.language import language
-from ANNIEMUSIC.utils.inline import supp_markup
 from config import BANNED_USERS
 
 
@@ -25,6 +22,5 @@ async def ping_com(client, message: Message, _):
     await response.edit_text(
         "ɪ ᴀᴍ ᴀʟɪᴠᴇ ʙᴀʙʏ! 🖤\n"
         "<b>ᴛɪᴍᴇ ᴛᴀᴋᴇɴ:</b> <code>{}</code> <code>ms</code>\n"
-        "<b>ᴜᴘᴛɪᴍᴇ:</b> <code>{}</code>".format(resp, UP),
-        reply_markup=supp_markup(_),
+        "<b>ᴜᴘᴛɪᴍᴇ:</b> <code>{}</code>".format(resp, UP)
     )
