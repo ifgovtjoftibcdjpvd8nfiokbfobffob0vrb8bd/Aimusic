@@ -1,22 +1,23 @@
-
-from typing import Union
-import re
 import random
+import re
+from typing import Union
+
 from pyrogram import filters, types
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from ANNIEMUSIC import app
-from ANNIEMUSIC.utils.inline.help import (
-    first_page,
-    second_page,
-    help_back_markup,
-    private_help_panel
-)
-from ANNIEMUSIC.utils.inline.start import private_panel
 from ANNIEMUSIC.utils.database import get_lang
 from ANNIEMUSIC.utils.decorators.language import LanguageStart, languageCB
+from ANNIEMUSIC.utils.inline.help import (
+    first_page,
+    help_back_markup,
+    private_help_panel,
+    second_page,
+)
+from ANNIEMUSIC.utils.inline.start import private_panel
 from config import BANNED_USERS, START_IMG_URL, SUPPORT_CHAT
 from strings import get_string, helpers
+
 
 @app.on_message(filters.command(["help"]) & filters.private & ~BANNED_USERS)
 @app.on_callback_query(filters.regex("open_help") & ~BANNED_USERS)
@@ -51,7 +52,7 @@ async def help_com_group(client, message: Message, _):
     await message.reply_text(
         _["help_2"],
         reply_markup=InlineKeyboardMarkup(keyboard),
-        disable_web_page_preview=True
+        disable_web_page_preview=True,
     )
 
 
@@ -62,13 +63,11 @@ async def helper_cb(client, CallbackQuery, _):
     if cb_match:
         number = int(cb_match.group(1))
         current_page = int(cb_match.group(2))
-        help_text = getattr(helpers, f'HELP_{number}', None)
+        help_text = getattr(helpers, f"HELP_{number}", None)
         if help_text:
             keyboard = help_back_markup(_, current_page)
             await CallbackQuery.edit_message_text(
-                help_text,
-                reply_markup=keyboard,
-                disable_web_page_preview=True
+                help_text, reply_markup=keyboard, disable_web_page_preview=True
             )
         else:
             await CallbackQuery.answer("Invalid help topic.", show_alert=True)
@@ -86,9 +85,7 @@ async def help_next_cb(client, CallbackQuery, _):
             keyboard = second_page(_)
             text = _["help_1"].format(SUPPORT_CHAT)
             await CallbackQuery.edit_message_text(
-                text,
-                reply_markup=keyboard,
-                disable_web_page_preview=True
+                text, reply_markup=keyboard, disable_web_page_preview=True
             )
         else:
             await CallbackQuery.answer("No more pages.", show_alert=True)
@@ -106,9 +103,7 @@ async def help_prev_cb(client, CallbackQuery, _):
             keyboard = first_page(_)
             text = _["help_1"].format(SUPPORT_CHAT)
             await CallbackQuery.edit_message_text(
-                text,
-                reply_markup=keyboard,
-                disable_web_page_preview=True
+                text, reply_markup=keyboard, disable_web_page_preview=True
             )
         else:
             await CallbackQuery.answer("No previous page.", show_alert=True)
@@ -131,12 +126,11 @@ async def help_back_cb(client, CallbackQuery, _):
             return
         text = _["help_1"].format(SUPPORT_CHAT)
         await CallbackQuery.edit_message_text(
-            text,
-            reply_markup=keyboard,
-            disable_web_page_preview=True
+            text, reply_markup=keyboard, disable_web_page_preview=True
         )
     else:
         await CallbackQuery.answer("Invalid callback data.", show_alert=True)
+
 
 @app.on_callback_query(filters.regex("back_to_main") & ~BANNED_USERS)
 @languageCB
@@ -144,5 +138,5 @@ async def back_to_main_cb(client, CallbackQuery, _):
     out = private_panel(_)
     await CallbackQuery.edit_message_caption(
         caption=_["start_2"].format(CallbackQuery.from_user.mention, app.mention),
-        reply_markup=InlineKeyboardMarkup(out)
+        reply_markup=InlineKeyboardMarkup(out),
     )
