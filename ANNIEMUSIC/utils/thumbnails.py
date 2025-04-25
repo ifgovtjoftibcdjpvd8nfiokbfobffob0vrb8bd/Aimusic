@@ -146,7 +146,7 @@ async def get_thumb(videoid):
     text_x_position = 565
 
     # USERNAME FIRST (above song title)
-    username = "@ScoutMusicBot"
+    username = ""
     
     # Draw username text above the title
     username_y = 140  # Position username above the title
