@@ -4,11 +4,12 @@ from ANNIEMUSIC import YouTube, app
 from ANNIEMUSIC.utils.channelplay import get_channeplayCB
 from ANNIEMUSIC.utils.decorators.language import languageCB
 from ANNIEMUSIC.utils.stream.stream import stream
+from ANNIEMUSIC.utils.errors import capture_callback_err
 from config import BANNED_USERS, AYU
-
 
 @app.on_callback_query(filters.regex("LiveStream") & ~BANNED_USERS)
 @languageCB
+@capture_callback_err
 async def play_live_stream(client, CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
     callback_request = callback_data.split(None, 1)[1]

@@ -9,7 +9,7 @@ from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.utils import bot_sys_stats
 from ANNIEMUSIC.utils.decorators.language import language
 from ANNIEMUSIC.utils.inline import supp_markup
-from config import BANNED_USERS
+from config import BANNED_USERS, PING_VID_URL
 
 
 @app.on_message(filters.command("ping", prefixes=["/"]) & ~BANNED_USERS)
@@ -17,7 +17,7 @@ from config import BANNED_USERS
 async def ping_com(client, message: Message, _):
     start = datetime.now()
     response = await message.reply_video(
-        video="https://telegra.ph/file/634addcd0a2828f4e8913.mp4",
+        video=PING_VID_URL,
         caption=_["ping_1"].format(app.mention),
     )
     pytgping = await JARVIS.ping()

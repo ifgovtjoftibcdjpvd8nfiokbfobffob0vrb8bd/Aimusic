@@ -1,23 +1,35 @@
 from pyrogram import Client, filters
-import requests
+from pyrogram.types import Message
+from pyrogram.enums import ParseMode
 from ANNIEMUSIC import app
+import httpx
 
-# URL for the Bored API
-bored_api_url = "https://apis.scrimba.com/bored/api/activity"
+BORED_API_URL = "https://apis.scrimba.com/bored/api/activity"
 
+@app.on_message(filters.command("bored"))
+async def bored_command(client: Client, message: Message):
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as http:
+            response = await http.get(BORED_API_URL)
 
-# Function to handle /bored command
-@app.on_message(filters.command("bored", prefixes="/"))
-async def bored_command(client, message):
-    # Fetch a random activity from the Bored API
-    response = requests.get(bored_api_url)
-    if response.status_code == 200:
+        if response.status_code != 200:
+            return await message.reply_text(
+                "❌ Failed to fetch a fun activity. Try again later.",
+            )
+
         data = response.json()
         activity = data.get("activity")
+
         if activity:
-            # Send the activity to the user who triggered the command
-            await message.reply(f"𝗙𝗲𝗲𝗹𝗶𝗻𝗴 𝗯𝗼𝗿𝗲𝗱? 𝗛𝗼𝘄 𝗮𝗯𝗼𝘂𝘁:\n\n {activity}")
+            await message.reply_text(
+                f"😐 **Feeling bored?**\n\n🎯 **Try this:** `{activity}`",
+                parse_mode=ParseMode.MARKDOWN
+            )
         else:
-            await message.reply("Nᴏ ᴀᴄᴛɪᴠɪᴛʏ ғᴏᴜɴᴅ.")
-    else:
-        await message.reply("Fᴀɪʟᴇᴅ ᴛᴏ ғᴇᴛᴄʜ ᴀᴄᴛɪᴠɪᴛʏ.")
+            await message.reply_text("🤷 No activity found.")
+
+    except Exception as e:
+        print(f"Bored API error: {e}")
+        await message.reply_text(
+            "⚠️ Something went wrong while fetching boredom busters.",
+        )

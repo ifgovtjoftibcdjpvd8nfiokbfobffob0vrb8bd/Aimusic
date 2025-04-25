@@ -1,4 +1,6 @@
 from pyrogram import Client, filters
+from pyrogram.types import Message
+from pyrogram.enums import ParseMode
 from nekosbest import Client as NekoClient
 from ANNIEMUSIC import app
 
@@ -37,28 +39,50 @@ commands = {
     "stare": {"emoji": "👀", "text": "stared"},
     "shrug": {"emoji": "🤷", "text": "shrugged"},
     "sleep": {"emoji": "😴", "text": "slept"},
-    "lurk": {"emoji": "👤", "text": "lurking"}
+    "lurk": {"emoji": "👤", "text": "is lurking"}
 }
 
-async def get_animation(animation_type):
+
+def md_escape(text: str) -> str:
+    return text.replace('[', '\\[').replace(']', '\\]')
+
+
+async def get_animation(action: str):
     try:
-        result = await neko_client.get_image(animation_type)
+        result = await neko_client.get_image(action)
         return result.url
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"❌ NekoClient error: {e}")
         return None
 
+
 @app.on_message(filters.command(list(commands.keys())) & ~filters.forwarded & ~filters.via_bot)
-async def animation_command(client, message):
+async def animation_command(client: Client, message: Message):
     command = message.command[0].lower()
-    if command in commands:
-        gif_url = await get_animation(command)
-        if gif_url:
-            sender = message.from_user.mention(style='markdown')
-            target = sender if not message.reply_to_message else message.reply_to_message.from_user.mention(style='markdown')
-            msg = f"{sender} {commands[command]['text']} {target}! {commands[command]['emoji']}"
-            await message.reply_animation(animation=gif_url, caption=msg)
-        else:
-            await message.reply_text("Couldn't retrieve the animation. Please try again.")
+
+    if command not in commands:
+        return await message.reply_text("⚠️ That command is not supported.")
+
+    gif_url = await get_animation(command)
+    if not gif_url:
+        return await message.reply_text("❌ Couldn't fetch the animation. Please try again later.")
+
+    sender_name = md_escape(message.from_user.first_name)
+    sender = f"[{sender_name}](tg://user?id={message.from_user.id})"
+
+    if message.reply_to_message:
+        target_name = md_escape(message.reply_to_message.from_user.first_name)
+        target = f"[{target_name}](tg://user?id={message.reply_to_message.from_user.id})"
     else:
-        await message.reply_text("Command not available.")
+        target = sender
+
+    action_text = commands[command]['text']
+    emoji = commands[command]['emoji']
+
+    caption = f"**{sender} {action_text} {target}!** {emoji}"
+
+    await message.reply_animation(
+        animation=gif_url,
+        caption=caption,
+        parse_mode=ParseMode.MARKDOWN
+    )

@@ -1,54 +1,68 @@
-from pyrogram import Client, filters
-import requests
+import aiohttp
+from pyrogram import filters
+from pyrogram.enums import ParseMode
+from pyrogram.types import Message
+
 from ANNIEMUSIC import app
 
 API_KEY = "f66950368a61ebad3cba9b5924b4532d"
 API_URL = "http://apilayer.net/api/validate"
 
-def send_message(message, text):
-    message.reply_text(text)
 
 @app.on_message(filters.command("phone"))
-def check_phone(client, message):
+async def check_phone(_, message: Message):
+
     if len(message.command) < 2:
-        send_message(message, "Please provide a phone number to check. Usage: /phone <number>")
-        return
+        return await message.reply_text(
+            "📱 **ᴘʟᴇᴀꜱᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴘʜᴏɴᴇ ɴᴜᴍʙᴇʀ ᴡɪᴛʜ ᴄᴏᴜɴᴛʀʏ ᴄᴏᴅᴇ.**\n"
+            "**ᴜꜱᴀɢᴇ:** `/phone <number>`",
+            parse_mode=ParseMode.MARKDOWN
+        )
 
     number = message.command[1]
 
+    params = {
+        "access_key": API_KEY,
+        "number": number,
+        "country_code": "",
+        "format": 1
+    }
+
     try:
-        response = requests.get(API_URL, params={
-            "access_key": API_KEY,
-            "number": number,
-            "country_code": "",
-            "format": 1
-        })
-        response.raise_for_status()
-        data = response.json()
+        async with aiohttp.ClientSession() as session:
+            async with session.get(API_URL, params=params) as response:
+                if response.status != 200:
+                    return await message.reply_text(
+                        "❌ **ɴᴇᴛᴡᴏʀᴋ ᴇʀʀᴏʀ. ᴀᴘɪ ɴᴏᴛ ʀᴇᴀᴄʜᴀʙʟᴇ.**",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
 
-        if not data.get("valid"):
-            send_message(message, "The phone number is invalid.")
-            return
+                data = await response.json()
 
-        country_code = data.get("country_code", "N/A")
-        country_name = data.get("country_name", "N/A")
-        location = data.get("location", "N/A")
-        carrier = data.get("carrier", "N/A")
-        line_type = data.get("line_type", "N/A")
-        valid = data.get("valid", False)
+                if not data.get("valid"):
+                    return await message.reply_text(
+                        "❌ **ɪɴᴠᴀʟɪᴅ ᴘʜᴏɴᴇ ɴᴜᴍʙᴇʀ.**",
+                        parse_mode=ParseMode.MARKDOWN
+                    )
 
-        response_text = (
-            f"**Valid:** {valid}\n"
-            f"**Phone Number:** {number}\n"
-            f"**Country Code:** {country_code}\n"
-            f"**Country Name:** {country_name}\n"
-            f"**Location:** {location}\n"
-            f"**Carrier:** {carrier}\n"
-            f"**Device Type:** {line_type}"
+                result = (
+                    "📞 **ᴠᴀʟɪᴅ ᴘʜᴏɴᴇ ᴅᴇᴛᴀɪʟꜱ:**\n"
+                    f"➤ **ɴᴜᴍʙᴇʀ:** `{number}`\n"
+                    f"➤ **ᴄᴏᴜɴᴛʀʏ:** `{data.get('country_name', 'N/A')} ({data.get('country_code', 'N/A')})`\n"
+                    f"➤ **ʟᴏᴄᴀᴛɪᴏɴ:** `{data.get('location', 'N/A')}`\n"
+                    f"➤ **ᴄᴀʀʀɪᴇʀ:** `{data.get('carrier', 'N/A')}`\n"
+                    f"➤ **ᴅᴇᴠɪᴄᴇ ᴛʏᴘᴇ:** `{data.get('line_type', 'N/A')}`"
+                )
+
+                return await message.reply_text(result, parse_mode=ParseMode.MARKDOWN)
+
+    except aiohttp.ClientError as e:
+        return await message.reply_text(
+            f"⚠️ **ɴᴇᴛᴡᴏʀᴋ ᴇʀʀᴏʀ:** `{str(e)}`",
+            parse_mode=ParseMode.MARKDOWN
         )
-
-        send_message(message, response_text)
-    except requests.exceptions.RequestException as e:
-        send_message(message, f"Network error: {str(e)}")
     except Exception as e:
-        send_message(message, f"An error occurred: {str(e)}")
+        return await message.reply_text(
+            f"⚠️ **ᴜɴᴋɴᴏᴡɴ ᴇʀʀᴏʀ:** `{str(e)}`",
+            parse_mode=ParseMode.MARKDOWN
+        )

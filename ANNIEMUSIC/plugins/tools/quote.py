@@ -291,4 +291,4 @@ async def msg_quotly_cmd(self: app, ctx: Message):
         await ctx.reply_text(f"ERROR: {e}")
     finally:
         await processing_msg.delete()
-# ---------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------

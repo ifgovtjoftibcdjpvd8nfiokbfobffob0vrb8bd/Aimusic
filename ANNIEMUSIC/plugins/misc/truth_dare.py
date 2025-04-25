@@ -1,35 +1,44 @@
 from pyrogram import Client, filters
-import requests
-import random
+from pyrogram.types import Message
+from pyrogram.enums import ParseMode
+import httpx
 from ANNIEMUSIC import app
 
-# Truth or Dare API URLs
-truth_api_url = "https://api.truthordarebot.xyz/v1/truth"
-dare_api_url = "https://api.truthordarebot.xyz/v1/dare"
+TRUTH_API = "https://api.truthordarebot.xyz/v1/truth"
+DARE_API = "https://api.truthordarebot.xyz/v1/dare"
 
 
 @app.on_message(filters.command("truth"))
-def get_truth(client, message):
+async def get_truth(client: Client, message: Message):
     try:
-        # Make a GET request to the Truth API
-        response = requests.get(truth_api_url)
-        if response.status_code == 200:
-            truth_question = response.json()["question"]
-            message.reply_text(f"Truth question:\n\n{truth_question}")
+        async with httpx.AsyncClient(timeout=10.0) as http:
+            res = await http.get(TRUTH_API)
+        if res.status_code == 200:
+            question = res.json().get("question", "No question found.")
+            await message.reply_text(
+                f"🔎 **Truth:**\n\n{question}",
+                parse_mode=ParseMode.MARKDOWN
+            )
         else:
-            message.reply_text("Failed to fetch a truth question. Please try again later.")
+            await message.reply_text("❌ Failed to fetch a truth question.")
     except Exception as e:
-        message.reply_text("An error occurred while fetching a truth question. Please try again later.")
+        print(f"Truth error: {e}")
+        await message.reply_text("⚠️ Error occurred while fetching a truth question.")
+
 
 @app.on_message(filters.command("dare"))
-def get_dare(client, message):
+async def get_dare(client: Client, message: Message):
     try:
-        # Make a GET request to the Dare API
-        response = requests.get(dare_api_url)
-        if response.status_code == 200:
-            dare_question = response.json()["question"]
-            message.reply_text(f"Dare question:\n\n{dare_question}")
+        async with httpx.AsyncClient(timeout=10.0) as http:
+            res = await http.get(DARE_API)
+        if res.status_code == 200:
+            question = res.json().get("question", "No question found.")
+            await message.reply_text(
+                f"🎯 **Dare:**\n\n{question}",
+                parse_mode=ParseMode.MARKDOWN
+            )
         else:
-            message.reply_text("Failed to fetch a dare question. Please try again later.")
+            await message.reply_text("❌ Failed to fetch a dare question.")
     except Exception as e:
-        message.reply_text("An error occurred while fetching a dare question. Please try again later.")
+        print(f"Dare error: {e}")
+        await message.reply_text("⚠️ Error occurred while fetching a dare question.")

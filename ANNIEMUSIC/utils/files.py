@@ -1,50 +1,39 @@
-import math
 import os
-
+import asyncio
 from PIL import Image
-from pyrogram import Client, raw
+from pyrogram import raw
 from pyrogram.file_id import FileId
-# ------------------
+
 STICKER_DIMENSIONS = (512, 512)
 
-# -------------------
+
 async def resize_file_to_sticker_size(file_path: str) -> str:
-    im = Image.open(file_path)
-    if (im.width, im.height) < STICKER_DIMENSIONS:
-        size1 = im.width
-        size2 = im.height
-        if im.width > im.height:
-            scale = STICKER_DIMENSIONS[0] / size1
-            size1new = STICKER_DIMENSIONS[0]
-            size2new = size2 * scale
-        else:
-            scale = STICKER_DIMENSIONS[1] / size2
-            size1new = size1 * scale
-            size2new = STICKER_DIMENSIONS[1]
-        size1new = math.floor(size1new)
-        size2new = math.floor(size2new)
-        sizenew = (size1new, size2new)
-        im = im.resize(sizenew)
-    else:
+    """
+    Resize the image at file_path so its max dimension is 512px and save as PNG.
+    Runs the CPU‑bound work in a thread to avoid blocking the event loop.
+    """
+    def _sync_resize() -> str:
+        im = Image.open(file_path).convert("RGBA")
         im.thumbnail(STICKER_DIMENSIONS)
-    try:
-        os.remove(file_path)
-        file_path = f"{file_path}.png"
-        return file_path
-    finally:
-        im.save(file_path)
+        new_path = file_path if file_path.lower().endswith(".png") else f"{file_path}.png"
+        im.save(new_path, "PNG")
+        if new_path != file_path:
+            os.remove(file_path)
+        return new_path
+
+    return await asyncio.to_thread(_sync_resize)
 
 
-async def upload_document(
-    client: Client, file_path: str, chat_id: int
-) -> raw.base.InputDocument:
+async def upload_document(client, file_path: str, chat_id: int) -> raw.types.InputDocument:
+    """
+    Upload a file to Telegram and return an InputDocument for raw calls.
+    """
     media = await client.invoke(
         raw.functions.messages.UploadMedia(
             peer=await client.resolve_peer(chat_id),
             media=raw.types.InputMediaUploadedDocument(
-                mime_type=client.guess_mime_type(file_path)
-                or "application/zip",
                 file=await client.save_file(file_path),
+                mime_type=client.guess_mime_type(file_path) or "application/octet-stream",
                 attributes=[
                     raw.types.DocumentAttributeFilename(
                         file_name=os.path.basename(file_path)
@@ -53,16 +42,18 @@ async def upload_document(
             ),
         )
     )
+    doc = media.document
     return raw.types.InputDocument(
-        id=media.document.id,
-        access_hash=media.document.access_hash,
-        file_reference=media.document.file_reference,
+        id=doc.id,
+        access_hash=doc.access_hash,
+        file_reference=doc.file_reference,
     )
 
 
-async def get_document_from_file_id(
-    file_id: str,
-) -> raw.base.InputDocument:
+async def get_document_from_file_id(file_id: str) -> raw.types.InputDocument:
+    """
+    Decode a file_id string into an InputDocument for raw calls.
+    """
     decoded = FileId.decode(file_id)
     return raw.types.InputDocument(
         id=decoded.media_id,

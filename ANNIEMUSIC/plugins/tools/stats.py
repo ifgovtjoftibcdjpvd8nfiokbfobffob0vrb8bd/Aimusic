@@ -133,3 +133,4 @@ async def bot_stats(client, CallbackQuery, _):
         await CallbackQuery.message.reply_video(
             video=config.STATS_VID_URL, caption=text, reply_markup=upl
         )
+        

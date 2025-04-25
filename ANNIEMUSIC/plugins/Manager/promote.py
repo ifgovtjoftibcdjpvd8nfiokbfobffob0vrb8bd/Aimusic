@@ -1,202 +1,255 @@
-from pyrogram import Client, filters, enums
-from pyrogram.types import ChatPrivileges
-from pyrogram.errors import ChatAdminRequired
-from functools import wraps
+"""
+-------------------------------------------------------------------------
+Promotion and demotion commands with edge‑case handling and time‑bound promotions.
+
+• /promote      – limited‑rights promote
+• /fullpromote  – full‑rights promote
+• /demote       – remove all admin rights
+• /tempadmin    – promote for given time, then auto‑demote
+
+All commands accept reply, @username, or user‑ID, with graceful usage hints.
+-------------------------------------------------------------------------
+"""
+
+import asyncio
+import datetime as dt
+from typing import Optional
+
+from pyrogram import filters, enums
+from pyrogram.errors import ChatAdminRequired, UserAdminInvalid
+from pyrogram.types import ChatPrivileges, Message
+
 from ANNIEMUSIC import app
+from ANNIEMUSIC.utils.decorator import admin_required
+from ANNIEMUSIC.utils.permissions import extract_user_and_title, mention, parse_time
 
-def mention(user_id, name):
-    return f"[{name}](tg://user?id={user_id})"
 
-def admin_required(*privileges):
-    def decorator(func):
-        @wraps(func)
-        async def wrapper(client, message):
-            if not message.from_user:
-                await message.reply_text("You are an anonymous admin. Please unhide your account to use this command.")
-                return
+# ────────────────────────────────────────────────────────────
+# Privilege presets
+# ────────────────────────────────────────────────────────────
+_LIMITED_PRIVS = ChatPrivileges(
+    can_change_info=False,
+    can_delete_messages=True,
+    can_invite_users=True,
+    can_pin_messages=True,
+    can_restrict_members=False,
+    can_promote_members=False,
+    can_manage_chat=True,
+    can_manage_video_chats=True,
+    is_anonymous=False,
+)
 
-            member = await message.chat.get_member(message.from_user.id)
-            if member.status == enums.ChatMemberStatus.OWNER:
-                return await func(client, message)
-            elif member.status == enums.ChatMemberStatus.ADMINISTRATOR:
-                if not member.privileges:
-                    await message.reply_text("Cannot retrieve your admin privileges.")
-                    return
-                missing_privileges = [priv for priv in privileges if not getattr(member.privileges, priv, False)]
-                if missing_privileges:
-                    await message.reply_text(f"You don't have the required permissions: {', '.join(missing_privileges)}")
-                    return
-                return await func(client, message)
-            else:
-                await message.reply_text("You are not an admin.")
-                return
-        return wrapper
-    return decorator
+_FULL_PRIVS = ChatPrivileges(
+    can_manage_chat=True,
+    can_change_info=True,
+    can_delete_messages=True,
+    can_invite_users=True,
+    can_restrict_members=True,
+    can_pin_messages=True,
+    can_promote_members=True,
+    can_manage_video_chats=True,
+    is_anonymous=False,
+)
 
-async def extract_user_and_title(message, client):
-    user = None
-    title = None
+_DEMOTE_PRIVS = ChatPrivileges(
+    can_change_info=False,
+    can_delete_messages=False,
+    can_invite_users=False,
+    can_pin_messages=False,
+    can_restrict_members=False,
+    can_promote_members=False,
+    can_manage_chat=False,
+    can_manage_video_chats=False,
+    is_anonymous=False,
+)
 
-    cmd = message.text.strip().split()[0]
-    text = message.text[len(cmd):].strip()
+# ────────────────────────────────────────────────────────────
+# Usage strings
+# ────────────────────────────────────────────────────────────
+_USAGES = {
+    "promote":     "/promote @user [title] — or reply with /promote [title]",
+    "fullpromote": "/fullpromote @user [title] — or reply with /fullpromote [title]",
+    "demote":      "/demote @user — or reply with /demote",
+    "tempadmin":   "/tempadmin @user <time> [title] — or reply with /tempadmin <time> [title]",
+}
 
-    if message.reply_to_message:
-        user = message.reply_to_message.from_user
-        if not user:
-            await message.reply_text("I can't find the user in the replied message.")
-            return None, None, None
-        title = text if text else None
-    else:
-        args = text.strip().split(maxsplit=1)
-        if not args:
-            await message.reply_text("Please specify a user or reply to a user's message.")
-            return None, None, None
-        user_arg = args[0]
-        try:
-            user = await client.get_users(user_arg)
-            if not user:
-                await message.reply_text("I can't find that user.")
-                return None, None, None
-        except Exception:
-            await message.reply_text("I can't find that user.")
-            return None, None, None
-        title = args[1] if len(args) > 1 else None
+def _usage(cmd: str) -> str:
+    return _USAGES.get(cmd, "Invalid usage.")
 
-    return user.id, user.first_name, title
+async def _info(msg: Message, text: str):
+    await msg.reply_text(text)
 
-def format_promotion_message(chat_name, user_mention, admin_mention, action):
-    action_text = "ᴩʀᴏᴍᴏᴛɪɴɢ" if action == "promote" else "ᴅᴇᴍᴏᴛɪɴɢ"
-    return (
-        f"» {action_text} ᴀ ᴜsᴇʀ ɪɴ {chat_name}\n"
-        f"ᴜsᴇʀ : {user_mention}\n"
-        f"ᴀᴅᴍɪɴ : {admin_mention}"
+def _format_success(action: str, chat: Message, uid: int, name: str, title: Optional[str] = None) -> str:
+    chat_name = chat.chat.title
+    user_m    = mention(uid, name)
+    admin_m   = mention(chat.from_user.id, chat.from_user.first_name)
+    text = (
+        f"» {action} ᴀ ᴜsᴇʀ ɪɴ {chat_name}\n"
+        f" ᴜsᴇʀ  : {user_m}\n"
+        f" ᴀᴅᴍɪɴ : {admin_m}"
     )
+    if title:
+        text += f"\nTitle: {title}"
+    return text
 
+# ────────────────────────────────────────────────────────────
+# /promote
+# ────────────────────────────────────────────────────────────
 @app.on_message(filters.command("promote"))
 @admin_required("can_promote_members")
-async def promote_command_handler(client, message):
-    user_id, first_name, title = await extract_user_and_title(message, client)
-    if not user_id:
-        return
-    try:
-        member = await client.get_chat_member(message.chat.id, user_id)
-        if member.status == enums.ChatMemberStatus.ADMINISTRATOR:
-            await message.reply_text("This user is already an admin.")
-            return
+async def promote_command(client, message: Message):
+    if len(message.command) == 1 and not message.reply_to_message:
+        return await _info(message, _usage("promote"))
 
+    uid, name, title = await extract_user_and_title(message, client)
+    if not uid:
+        return
+
+    member = await client.get_chat_member(message.chat.id, uid)
+    if member.status == enums.ChatMemberStatus.ADMINISTRATOR:
+        return await _info(message, "User is already an admin.")
+
+    try:
         await client.promote_chat_member(
             chat_id=message.chat.id,
-            user_id=user_id,
-            privileges=ChatPrivileges(
-                can_change_info=False,
-                can_delete_messages=True,
-                can_invite_users=True,
-                can_pin_messages=True,
-                can_restrict_members=False,
-                can_promote_members=False,
-                can_manage_chat=True,
-                can_manage_video_chats=True,
-                is_anonymous=False,
-            )
+            user_id=uid,
+            privileges=_LIMITED_PRIVS,
         )
-
         if title:
             try:
-                await client.set_administrator_title(message.chat.id, user_id, title)
-            except Exception as e:
-                await message.reply_text(f"Failed to set title: {e}")
-
-        user_mention = mention(user_id, first_name)
-        admin_mention = mention(message.from_user.id, message.from_user.first_name)
-        chat_name = message.chat.title
-        msg = format_promotion_message(chat_name, user_mention, admin_mention, action="promote")
-        await message.reply_text(msg)
+                await client.set_administrator_title(message.chat.id, uid, title)
+            except ValueError:
+                title = "⚠️ Couldn’t set custom title (not a supergroup)"
+        await message.reply_text(_format_success("Promoted", message, uid, name, title))
     except ChatAdminRequired:
-        await message.reply_text("I need to be an admin with promote permissions.")
-    except Exception as e:
-        await message.reply_text(f"An error occurred: {e}")
+        await message.reply_text("I need promote permissions.")
+    except UserAdminInvalid:
+        await message.reply_text("I cannot promote that user.")
 
+# ────────────────────────────────────────────────────────────
+# /fullpromote
+# ────────────────────────────────────────────────────────────
 @app.on_message(filters.command("fullpromote"))
 @admin_required("can_promote_members")
-async def fullpromote_command_handler(client, message):
-    user_id, first_name, title = await extract_user_and_title(message, client)
-    if not user_id:
-        return
-    try:
-        member = await client.get_chat_member(message.chat.id, user_id)
-        if member.status == enums.ChatMemberStatus.ADMINISTRATOR:
-            await message.reply_text("This user is already an admin.")
-            return
+async def fullpromote_command(client, message: Message):
+    if len(message.command) == 1 and not message.reply_to_message:
+        return await _info(message, _usage("fullpromote"))
 
+    uid, name, title = await extract_user_and_title(message, client)
+    if not uid:
+        return
+
+    member = await client.get_chat_member(message.chat.id, uid)
+    if member.status == enums.ChatMemberStatus.ADMINISTRATOR:
+        return await _info(message, "User is already an admin.")
+
+    try:
         await client.promote_chat_member(
             chat_id=message.chat.id,
-            user_id=user_id,
-            privileges=ChatPrivileges(
-                can_manage_chat=True,
-                can_change_info=True,
-                can_delete_messages=True,
-                can_invite_users=True,
-                can_restrict_members=True,
-                can_pin_messages=True,
-                can_promote_members=True,
-                is_anonymous=False,
-                can_manage_video_chats=True,
-            )
+            user_id=uid,
+            privileges=_FULL_PRIVS,
         )
-
         if title:
             try:
-                await client.set_administrator_title(message.chat.id, user_id, title)
-            except Exception as e:
-                await message.reply_text(f"Failed to set title: {e}")
-
-        user_mention = mention(user_id, first_name)
-        admin_mention = mention(message.from_user.id, message.from_user.first_name)
-        chat_name = message.chat.title
-        msg = format_promotion_message(chat_name, user_mention, admin_mention, action="promote")
-        await message.reply_text(msg)
+                await client.set_administrator_title(message.chat.id, uid, title)
+            except ValueError:
+                title = "⚠️ Couldn’t set custom title (not a supergroup)"
+        await message.reply_text(_format_success("Fully promoted", message, uid, name, title))
     except ChatAdminRequired:
-        await message.reply_text("I need to be an admin with promote permissions.")
-    except Exception as e:
-        await message.reply_text(f"An error occurred: {e}")
+        await message.reply_text("I need promote permissions.")
+    except UserAdminInvalid:
+        await message.reply_text("I cannot promote that user.")
 
+# ────────────────────────────────────────────────────────────
+# /demote
+# ────────────────────────────────────────────────────────────
 @app.on_message(filters.command("demote"))
 @admin_required("can_promote_members")
-async def demote_command_handler(client, message):
-    user_id, first_name, _ = await extract_user_and_title(message, client)
-    if not user_id:
-        return
-    try:
-        member = await client.get_chat_member(message.chat.id, user_id)
-        if member.status != enums.ChatMemberStatus.ADMINISTRATOR:
-            await message.reply_text("This user is not an admin.")
-            return
+async def demote_command(client, message: Message):
+    if len(message.command) == 1 and not message.reply_to_message:
+        return await _info(message, _usage("demote"))
 
+    uid, name, _ = await extract_user_and_title(message, client)
+    if not uid:
+        return
+
+    member = await client.get_chat_member(message.chat.id, uid)
+    if member.status != enums.ChatMemberStatus.ADMINISTRATOR:
+        return await _info(message, "User is not an admin.")
+
+    try:
         await client.promote_chat_member(
             chat_id=message.chat.id,
-            user_id=user_id,
-            privileges=ChatPrivileges(
-                can_change_info=False,
-                can_invite_users=False,
-                can_delete_messages=False,
-                can_restrict_members=False,
-                can_pin_messages=False,
-                can_promote_members=False,
-                can_manage_chat=False,
-                can_manage_video_chats=False,
-                is_anonymous=False
-            )
+            user_id=uid,
+            privileges=_DEMOTE_PRIVS,
         )
-
-        user_mention = mention(user_id, first_name)
-        admin_mention = mention(message.from_user.id, message.from_user.first_name)
-        chat_name = message.chat.title
-        msg = format_promotion_message(chat_name, user_mention, admin_mention, action="demote")
-        await message.reply_text(msg)
+        await message.reply_text(_format_success("Demoted", message, uid, name))
     except ChatAdminRequired:
-        await message.reply_text("I need to be an admin with promote permissions.")
-    except Exception as e:
-        if "CHAT_ADMIN_REQUIRED" in str(e):
-            await message.reply_text("I don't have permission to demote this user.")
-        else:
-            await message.reply_text(f"An error occurred: {e}")
+        await message.reply_text("I need promote permissions.")
+    except UserAdminInvalid:
+        await message.reply_text("I cannot demote that user.")
+
+# ────────────────────────────────────────────────────────────
+# /tempadmin
+# ────────────────────────────────────────────────────────────
+@app.on_message(filters.command("tempadmin"))
+@admin_required("can_promote_members")
+async def tempadmin_command(client, message: Message):
+    if ((not message.reply_to_message and len(message.command) < 3) or
+        (message.reply_to_message and len(message.command) < 2)):
+        return await _info(message, _usage("tempadmin"))
+
+    if message.reply_to_message:
+        user     = message.reply_to_message.from_user
+        time_arg = message.command[1]
+        title    = message.text.partition(time_arg)[2].strip() or None
+    else:
+        user = await client.get_users(message.command[1])
+        if not user:
+            return await message.reply_text("I can’t find that user.")
+        time_arg = message.command[2]
+        title    = message.text.partition(time_arg)[2].strip() or None
+
+    delta = parse_time(time_arg)
+    if not delta:
+        return await message.reply_text("Invalid time format. Use s/m/h/d suffix.")
+
+    uid, name = user.id, user.first_name
+    member = await client.get_chat_member(message.chat.id, uid)
+    if member.status == enums.ChatMemberStatus.ADMINISTRATOR:
+        return await _info(message, "User is already an admin.")
+
+    try:
+        await client.promote_chat_member(
+            chat_id=message.chat.id,
+            user_id=uid,
+            privileges=_FULL_PRIVS,
+        )
+        if title:
+            try:
+                await client.set_administrator_title(message.chat.id, uid, title)
+            except ValueError:
+                title = "⚠️ Couldn’t set custom title (not a supergroup)"
+        await message.reply_text(_format_success(f"Temp‑promoted for {time_arg}", message, uid, name, title))
+    except ChatAdminRequired:
+        return await message.reply_text("I need promote permissions.")
+    except UserAdminInvalid:
+        return await message.reply_text("I cannot promote that user.")
+
+
+    async def _auto_demote():
+        await asyncio.sleep(delta.total_seconds())
+        try:
+            await client.promote_chat_member(
+                chat_id=message.chat.id,
+                user_id=uid,
+                privileges=_DEMOTE_PRIVS,
+            )
+            await client.send_message(
+                message.chat.id,
+                f"Auto‑demoted {mention(uid, name)} after {time_arg}."
+            )
+        except Exception:
+            pass
+
+    asyncio.create_task(_auto_demote())

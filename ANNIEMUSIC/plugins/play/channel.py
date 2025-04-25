@@ -5,11 +5,15 @@ from pyrogram.types import Message
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.database import set_cmode
 from ANNIEMUSIC.utils.decorators.admins import AdminActual
+from ANNIEMUSIC.utils.errors import capture_err
+
 from config import BANNED_USERS
 
 
 @app.on_message(filters.command(["channelplay"]) & filters.group & ~BANNED_USERS)
 @AdminActual
+@capture_err
+
 async def playmode_(client, message: Message, _):
     if len(message.command) < 2:
         return await message.reply_text(_["cplay_1"].format(message.chat.title))

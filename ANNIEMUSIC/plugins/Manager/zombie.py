@@ -1,144 +1,156 @@
-import os
 import asyncio
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from pyrogram import enums
+from typing import List
+
+from pyrogram import Client, enums, filters
 from pyrogram.enums import ChatMemberStatus
 from pyrogram.errors import FloodWait
+from pyrogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
+
 from ANNIEMUSIC import app
+from ANNIEMUSIC.utils.admin_check import is_admin
 
-# ------------------------------------------------------------------------------- #
 
-chatQueue = []
+chatQueue: set[int] = set()
+stopProcess: bool = False
 
-stopProcess = False
 
-# ------------------------------------------------------------------------------- #
+async def scan_deleted_members(chat_id: int) -> List:
+    deleted = []
+    async for member in app.get_chat_members(chat_id):
+        if member.user and member.user.is_deleted:
+            deleted.append(member.user)
+    return deleted
 
-@app.on_message(filters.command(["zombies","clean"]))
-async def remove(client, message):
-  global stopProcess
-  try: 
+
+async def safe_edit(msg: Message, text: str):
     try:
-      sender = await app.get_chat_member(message.chat.id, message.from_user.id)
-      has_permissions = sender.privileges
-    except:
-      has_permissions = message.sender_chat  
-    if has_permissions:
-      bot = await app.get_chat_member(message.chat.id, "self")
-      if bot.status == ChatMemberStatus.MEMBER:
-        await message.reply("➠ | ɪ ɴᴇᴇᴅ ᴀᴅᴍɪɴ ᴘᴇʀᴍɪssɪᴏɴs ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.")  
-      else:  
-        if len(chatQueue) > 30 :
-          await message.reply("➠ | ɪ'ᴍ ᴀʟʀᴇᴀᴅʏ ᴡᴏʀᴋɪɴɢ ᴏɴ ᴍʏ ᴍᴀxɪᴍᴜᴍ ɴᴜᴍʙᴇʀ ᴏғ 30 ᴄʜᴀᴛs ᴀᴛ ᴛʜᴇ ᴍᴏᴍᴇɴᴛ. ᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ sʜᴏʀᴛʟʏ.")
-        else:  
-          if message.chat.id in chatQueue:
-            await message.reply("➠ | ᴛʜᴇʀᴇ's ᴀʟʀᴇᴀᴅʏ ᴀɴ ᴏɴɢɪɪɴɢ ᴘʀᴏᴄᴇss ɪɴ ᴛʜɪs ᴄʜᴀᴛ. ᴘʟᴇᴀsᴇ [ /stop ] ᴛᴏ sᴛᴀʀᴛ ᴀ ɴᴇᴡ ᴏɴᴇ.")
-          else:  
-            chatQueue.append(message.chat.id)  
-            deletedList = []
-            async for member in app.get_chat_members(message.chat.id):
-              if member.user.is_deleted == True:
-                deletedList.append(member.user)
-              else:
-                pass
-            lenDeletedList = len(deletedList)  
-            if lenDeletedList == 0:
-              await message.reply("⟳ | ɴᴏ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs ɪɴ ᴛʜɪs ᴄʜᴀᴛ.")
-              chatQueue.remove(message.chat.id)
-            else:
-              k = 0
-              processTime = lenDeletedList*1
-              temp = await app.send_message(message.chat.id, f"🧭 | ᴛᴏᴛᴀʟ ᴏғ {lenDeletedList} ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs ʜᴀs ʙᴇᴇɴ ᴅᴇᴛᴇᴄᴛᴇᴅ.\n🥀 | ᴇsᴛɪᴍᴀᴛᴇᴅ ᴛɪᴍᴇ: {processTime} sᴇᴄᴏɴᴅs ғʀᴏᴍ ɴᴏᴡ.")
-              if stopProcess: stopProcess = False
-              while len(deletedList) > 0 and not stopProcess:   
-                deletedAccount = deletedList.pop(0)
-                try:
-                  await app.ban_chat_member(message.chat.id, deletedAccount.id)
-                except Exception:
-                  pass  
-                k+=1
-                await asyncio.sleep(10)
-              if k == lenDeletedList:  
-                await message.reply(f"✅ | sᴜᴄᴄᴇssғᴜʟʟʏ ʀᴇᴍᴏᴠᴇᴅ ᴀʟʟ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄɪᴜɴᴛs ғʀᴏᴍ ᴛʜɪs ᴄʜᴀᴛ.")  
-                await temp.delete()
-              else:
-                await message.reply(f"✅ | sᴜᴄᴄᴇssғᴜʟʟʏ ʀᴇᴍᴏᴠᴇᴅ {k} ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs ғʀᴏᴍ ᴛʜɪs ᴄʜᴀᴛ.")  
-                await temp.delete()  
-              chatQueue.remove(message.chat.id)
-    else:
-      await message.reply("👮🏻 | sᴏʀʀʏ, **ᴏɴʟʏ ᴀᴅᴍɪɴ** ᴄᴀɴ ᴇxᴇᴄᴜᴛᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ.")  
-  except FloodWait as e:
-    await asyncio.sleep(e.value)                               
-        
+        await msg.edit(text)
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+        await msg.edit(text)
+    except Exception:
+        pass
 
-# ------------------------------------------------------------------------------- #
 
-@app.on_message(filters.command(["admins","staff"]))
-async def admins(client, message):
-  try: 
-    adminList = []
-    ownerList = []
-    async for admin in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.ADMINISTRATORS):
-      if admin.privileges.is_anonymous == False:
-        if admin.user.is_bot == True:
-          pass
-        elif admin.status == ChatMemberStatus.OWNER:
-          ownerList.append(admin.user)
-        else:  
-          adminList.append(admin.user)
-      else:
-        pass   
-    lenAdminList= len(ownerList) + len(adminList)  
-    text2 = f"**ɢʀᴏᴜᴘ sᴛᴀғғ - {message.chat.title}**\n\n"
+@app.on_message(filters.command(["zombies", "clean"]))
+async def prompt_zombie_cleanup(_: Client, message: Message):
+    if not await is_admin(message):
+        return await message.reply("👮🏻 | **ᴏɴʟʏ ᴀᴅᴍɪɴs** ᴄᴀɴ ᴇxᴇᴄᴜᴛᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ.")
+
+    deleted_list = await scan_deleted_members(message.chat.id)
+    if not deleted_list:
+        return await message.reply("⟳ | **ɴᴏ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs ғᴏᴜɴᴅ ɪɴ ᴛʜɪs ᴄʜᴀᴛ.**")
+
+    total = len(deleted_list)
+    est_time = total * 10
+
+    keyboard = InlineKeyboardMarkup(
+        [
+            [
+                InlineKeyboardButton("✅ ʏᴇs, ᴄʟᴇᴀɴ", callback_data=f"confirm_zombies:{message.chat.id}"),
+                InlineKeyboardButton("❌ ɴᴏᴛ ɴᴏᴡ", callback_data="cancel_zombies"),
+            ]
+        ]
+    )
+
+    await message.reply(
+        (
+            f"⚠️ | **ғᴏᴜɴᴅ `{total}` ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**\n"
+            f"🥀 | **ᴇsᴛɪᴍᴀᴛᴇᴅ ᴄʟᴇᴀɴᴜᴘ ᴛɪᴍᴇ:** `{est_time}s`\n\n"
+            "ᴅᴏ ʏᴏᴜ ᴡᴀɴɴᴀ ᴄʟᴇᴀɴ ᴛʜᴇᴍ?"
+        ),
+        reply_markup=keyboard,
+    )
+
+
+@app.on_callback_query(filters.regex(r"^confirm_zombies"))
+async def execute_zombie_cleanup(_: Client, cq: CallbackQuery):
+    global stopProcess
+    chat_id = int(cq.data.split(":")[1])
+
+    if not await is_admin(cq):
+        return await cq.answer("👮🏻 | ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄᴏɴғɪʀᴍ ᴛʜɪs ᴀᴄᴛɪᴏɴ.", show_alert=True)
+
+    if chat_id in chatQueue:
+        return await cq.answer("⚠️ | ᴄʟᴇᴀɴᴜᴘ ᴀʟʀᴇᴀᴅʏ ɪɴ ᴘʀᴏɢʀᴇss.", show_alert=True)
+
+    bot_me = await app.get_chat_member(chat_id, "self")
+    if bot_me.status == ChatMemberStatus.MEMBER:
+        return await cq.edit_message_text("➠ | **ɪ ɴᴇᴇᴅ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**")
+
+    chatQueue.add(chat_id)
+    deleted_list = await scan_deleted_members(chat_id)
+    total = len(deleted_list)
+
+    status = await cq.edit_message_text(
+        f"🧭 | **ғᴏᴜɴᴅ `{total}` ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**\n🥀 | **sᴛᴀʀᴛɪɴɢ ᴄʟᴇᴀɴᴜᴘ...**"
+    )
+
+    removed = 0
+    for user in deleted_list:
+        if stopProcess:
+            break
+        try:
+            await app.ban_chat_member(chat_id, user.id)
+            removed += 1
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+        except Exception:
+            pass
+
+        if removed % 10 == 0 or removed == total:
+            await safe_edit(status, f"♻️ | **ʀᴇᴍᴏᴠᴇᴅ {removed}/{total}...**")
+        await asyncio.sleep(10)
+
+    chatQueue.discard(chat_id)
+    await safe_edit(status, f"✅ | **sᴜᴄᴄᴇssғᴜʟʟʏ ʀᴇᴍᴏᴠᴇᴅ `{removed}` ᴏꜰ `{total}`.**")
+
+
+@app.on_callback_query(filters.regex(r"^cancel_zombies$"))
+async def cancel_zombie_cleanup(_: Client, cq: CallbackQuery):
+    await cq.edit_message_text("❌ | **ᴄʟᴇᴀɴᴜᴘ ᴄᴀɴᴄᴇʟʟᴇᴅ ʙʏ ᴜsᴇʀ.**")
+
+
+@app.on_message(filters.command(["admins", "staff"]))
+async def list_admins(_: Client, message: Message):
     try:
-      owner = ownerList[0]
-      if owner.username == None:
-        text2 += f"👑 ᴏᴡɴᴇʀ\n└ {owner.mention}\n\n👮🏻 ᴀᴅᴍɪɴs\n"
-      else:
-        text2 += f"👑 ᴏᴡɴᴇʀ\n└ @{owner.username}\n\n👮🏻 ᴀᴅᴍɪɴs\n"
-    except:
-      text2 += f"👑 ᴏᴡɴᴇʀ\n└ <i>Hidden</i>\n\n👮🏻 ᴀᴅᴍɪɴs\n"
-    if len(adminList) == 0:
-      text2 += "└ <i>ᴀᴅᴍɪɴs ᴀʀᴇ ʜɪᴅᴅᴇɴ</i>"  
-      await app.send_message(message.chat.id, text2)   
-    else:  
-      while len(adminList) > 1:
-        admin = adminList.pop(0)
-        if admin.username == None:
-          text2 += f"├ {admin.mention}\n"
-        else:
-          text2 += f"├ @{admin.username}\n"    
-      else:    
-        admin = adminList.pop(0)
-        if admin.username == None:
-          text2 += f"└ {admin.mention}\n\n"
-        else:
-          text2 += f"└ @{admin.username}\n\n"
-      text2 += f"✅ | **ᴛᴏᴛᴀʟ ɴᴜᴍʙᴇʀ ᴏғ ᴀᴅᴍɪɴs**: {lenAdminList}"  
-      await app.send_message(message.chat.id, text2)           
-  except FloodWait as e:
-    await asyncio.sleep(e.value)       
+        owners, admins = [], []
+        async for m in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.ADMINISTRATORS):
+            if m.privileges.is_anonymous or m.user.is_bot:
+                continue
+            (owners if m.status == ChatMemberStatus.OWNER else admins).append(m.user)
 
-# ------------------------------------------------------------------------------- #
+        txt = f"**ɢʀᴏᴜᴘ sᴛᴀғғ – {message.chat.title}**\n\n"
+        owner_line = owners[0].mention if owners else "<i>Hidden</i>"
+        txt += f"👑 ᴏᴡɴᴇʀ\n└ {owner_line}\n\n👮🏻 ᴀᴅᴍɪɴs\n"
+
+        if not admins:
+            txt += "└ <i>Admins are hidden</i>"
+        else:
+            for i, adm in enumerate(admins):
+                branch = "└" if i == len(admins) - 1 else "├"
+                txt += f"{branch} {'@'+adm.username if adm.username else adm.mention}\n"
+        txt += f"\n✅ | **Total admins**: {len(owners)+len(admins)}"
+        await app.send_message(message.chat.id, txt)
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+
+
 
 @app.on_message(filters.command("bots"))
-async def bots(client, message):  
-  try:    
-    botList = []
-    async for bot in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.BOTS):
-      botList.append(bot.user)
-    lenBotList = len(botList) 
-    text3  = f"**ʙᴏᴛ ʟɪsᴛ - {message.chat.title}**\n\n🤖 ʙᴏᴛs\n"
-    while len(botList) > 1:
-      bot = botList.pop(0)
-      text3 += f"├ @{bot.username}\n"    
-    else:    
-      bot = botList.pop(0)
-      text3 += f"└ @{bot.username}\n\n"
-      text3 += f"✅ | *ᴛᴏᴛᴀʟ ɴᴜᴍʙᴇʀ ᴏғ ʙᴏᴛs**: {lenBotList}"  
-      await app.send_message(message.chat.id, text3)
-  except FloodWait as e:
-    await asyncio.sleep(e.value)
-    
-# ------------------------------------------------------------------------------- #
+async def list_bots(_: Client, message: Message):
+    try:
+        bots = [b.user async for b in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.BOTS)]
+        txt = f"**ʙᴏᴛ ʟɪsᴛ – {message.chat.title}**\n\n🤖 ʙᴏᴛs\n"
+        for i, bt in enumerate(bots):
+            branch = "└" if i == len(bots) - 1 else "├"
+            txt += f"{branch} @{bt.username}\n"
+        txt += f"\n✅ | **Total bots**: {len(bots)}"
+        await app.send_message(message.chat.id, txt)
+    except FloodWait as e:
+        await asyncio.sleep(e.value)

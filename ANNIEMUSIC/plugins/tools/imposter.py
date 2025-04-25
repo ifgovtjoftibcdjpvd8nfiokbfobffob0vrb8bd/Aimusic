@@ -1,10 +1,11 @@
 from pyrogram import filters
 from pyrogram.types import Message
-from ANNIEMUSIC.plugins.tools.pretenderdb import impo_off, impo_on, check_pretender, add_userdata, get_userdata, usr_data
 from ANNIEMUSIC import app
-
-
-
+from ANNIEMUSIC.mongo.pretenderdb import (
+    impo_off, impo_on, check_pretender,
+    add_userdata, get_userdata, usr_data
+)
+from ANNIEMUSIC.utils.admin_filters import admin_filter
 
 @app.on_message(filters.group & ~filters.bot & ~filters.via_bot, group=69)
 async def chk_usr(_, message: Message):
@@ -26,10 +27,10 @@ async def chk_usr(_, message: Message):
     ):
         msg += f"""
 **🔓 ᴘʀᴇᴛᴇɴᴅᴇʀ ᴅᴇᴛᴇᴄᴛᴇᴅ 🔓**
-➖➖➖➖➖➖➖➖➖➖➖➖
+━━━━━━━━━━━━━━━  
 **🍊 ɴᴀᴍᴇ** : {message.from_user.mention}
 **🍅 ᴜsᴇʀ ɪᴅ** : {message.from_user.id}
-➖➖➖➖➖➖➖➖➖➖➖➖\n
+━━━━━━━━━━━━━━━  \n
 """
     if usernamebefore != message.from_user.username:
         usernamebefore = f"@{usernamebefore}" if usernamebefore else "NO USERNAME"
@@ -40,10 +41,10 @@ async def chk_usr(_, message: Message):
         )
         msg += """
 **🐻‍❄️ ᴄʜᴀɴɢᴇᴅ ᴜsᴇʀɴᴀᴍᴇ 🐻‍❄️**
-➖➖➖➖➖➖➖➖➖➖➖➖
+━━━━━━━━━━━━━━━  
 **🎭 ғʀᴏᴍ** : {bef}
 **🍜 ᴛᴏ** : {aft}
-➖➖➖➖➖➖➖➖➖➖➖➖\n
+━━━━━━━━━━━━━━━  \n
 """.format(bef=usernamebefore, aft=usernameafter)
         await add_userdata(
             message.from_user.id,
@@ -54,10 +55,10 @@ async def chk_usr(_, message: Message):
     if first_name != message.from_user.first_name:
         msg += """
 **🪧 ᴄʜᴀɴɢᴇs ғɪʀsᴛ ɴᴀᴍᴇ 🪧**
-➖➖➖➖➖➖➖➖➖➖➖➖
+━━━━━━━━━━━━━━━  
 **🔐 ғʀᴏᴍ** : {bef}
 **🍓 ᴛᴏ** : {aft}
-➖➖➖➖➖➖➖➖➖➖➖➖\n
+━━━━━━━━━━━━━━━  \n
 """.format(
             bef=first_name, aft=message.from_user.first_name
         )
@@ -72,10 +73,10 @@ async def chk_usr(_, message: Message):
         lastname_after = message.from_user.last_name or "NO LAST NAME"
         msg += """
 **🪧 ᴄʜᴀɴɢᴇs ʟᴀsᴛ ɴᴀᴍᴇ 🪧**
-➖➖➖➖➖➖➖➖➖➖➖➖
+━━━━━━━━━━━━━━━  
 **🚏ғʀᴏᴍ** : {bef}
 **🍕 ᴛᴏ** : {aft}
-➖➖➖➖➖➖➖➖➖➖➖➖\n
+━━━━━━━━━━━━━━━  \n
 """.format(
             bef=lastname_before, aft=lastname_after
         )
@@ -89,10 +90,10 @@ async def chk_usr(_, message: Message):
         await message.reply_photo("https://telegra.ph/file/58afe55fee5ae99d6901b.jpg", caption=msg)
 
 
-@app.on_message(filters.group & filters.command("imposter") & ~filters.bot & ~filters.via_bot)
+@app.on_message(filters.group & filters.command("imposter") & ~filters.bot & ~filters.via_bot & admin_filter)
 async def set_mataa(_, message: Message):
     if len(message.command) == 1:
-        return await message.reply("**ᴅᴇᴛᴇᴄᴛ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴜsᴇʀs ᴜsᴀɢᴇ : ᴘʀᴇᴛᴇɴᴅᴇʀ ᴏɴ|ᴏғғ**")
+        return await message.reply("ᴅᴇᴛᴇᴄᴛ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴜsᴇʀs **ᴜsᴀɢᴇ:** `/imposter enable|disable`")
     if message.command[1] == "enable":
         cekset = await impo_on(message.chat.id)
         if cekset:

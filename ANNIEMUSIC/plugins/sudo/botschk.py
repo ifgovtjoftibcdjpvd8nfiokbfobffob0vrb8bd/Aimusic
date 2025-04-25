@@ -8,25 +8,23 @@ from config import OWNER_ID
 userbot = Userbot()
 
 BOT_LIST = [
-    "Ava_The_RoBot",
-    "Strings_Gen_Bot",
+    "TuneviaBot",
+    "AvaTheRobot",
     "TheFlashRobot",
     "AnnieTheRobot",
-    "String_Phish_Robot"
+    "GuardShieldRobot"
 ]
 
 @app.on_message(filters.command("botschk") & filters.group)
 async def check_bots_command(client, message):
     global last_checked_time
 
-    # Check if the user is the owner
     if message.from_user.id != OWNER_ID:
         return await message.reply_text("🚫 You are not authorized to use this command.")
 
     if not userbot.one.is_connected:
         await userbot.one.start()
 
-    # Send the photo with the caption
     processing_msg = await message.reply_photo(
         photo="https://graph.org/file/e6b215db83839e8edf831.jpg",
         caption="**ᴄʜᴇᴄᴋɪɴɢ ʙᴏᴛs sᴛᴀᴛs ᴀʟɪᴠᴇ ᴏʀ ᴅᴇᴀᴅ...**"

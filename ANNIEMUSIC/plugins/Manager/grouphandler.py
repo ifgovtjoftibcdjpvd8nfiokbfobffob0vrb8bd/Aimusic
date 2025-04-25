@@ -1,192 +1,131 @@
-from pyrogram import enums
+from pyrogram import filters
 from pyrogram.enums import ChatType
-from pyrogram import filters, Client
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
 from ANNIEMUSIC import app
-from config import OWNER_ID
-from pyrogram.types import Message
-from ANNIEMUSIC.utils.jarvis_ban import admin_filter
-from pyrogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
+from ANNIEMUSIC.utils.admin_filters import admin_filter
 
-# ------------------------------------------------------------------------------- #
+# ------------------- Utility Functions ------------------- #
+
+def is_group(message: Message) -> bool:
+    return message.chat.type not in [ChatType.PRIVATE, ChatType.BOT]
+
+async def has_permission(user_id: int, chat_id: int, permission: str) -> bool:
+    try:
+        member = await app.get_chat_member(chat_id, user_id)
+        return getattr(member.privileges, permission, False)
+    except Exception:
+        return False
+
+# ------------------- Pin Message ------------------- #
 
 @app.on_message(filters.command("pin") & admin_filter)
-async def pin(_, message):
-    replied = message.reply_to_message
-    chat_title = message.chat.title
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    name = message.from_user.mention
-    
-    if message.chat.type == enums.ChatType.PRIVATE:
-        await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ᴏɴ ɢʀᴏᴜᴘs !**")
-    elif not replied:
-        await message.reply_text("**ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴍᴇssᴀɢᴇ ᴛᴏ ᴘɪɴ ɪᴛ !**")
-    else:
-        user_stats = await app.get_chat_member(chat_id, user_id)
-        if user_stats.privileges.can_pin_messages and message.reply_to_message:
-            try:
-                await message.reply_to_message.pin()
-                await message.reply_text(f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇ!**\n\n**ᴄʜᴀᴛ:** {chat_title}\n**ᴀᴅᴍɪɴ:** {name}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(" 📝 ᴠɪᴇᴡs ᴍᴇssᴀɢᴇ ", url=replied.link)]]))
-            except Exception as e:
-                await message.reply_text(str(e))
+async def pin(_, message: Message):
+    if not is_group(message):
+        return await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ɪɴ ɢʀᴏᴜᴘs!**")
 
+    if not message.reply_to_message:
+        return await message.reply_text("**ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴍᴇssᴀɢᴇ ᴛᴏ ᴘɪɴ ɪᴛ!**")
 
-@app.on_message(filters.command("pinned"))
-async def pinned(_, message):
-    chat = await app.get_chat(message.chat.id)
-    if not chat.pinned_message:
-        return await message.reply_text("**ɴᴏ ᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇ ғᴏᴜɴᴅ**")
-    try:        
-        await message.reply_text("ʜᴇʀᴇ ɪs ᴛʜᴇ ʟᴀᴛᴇsᴛ ᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇ",reply_markup=
-        InlineKeyboardMarkup([[InlineKeyboardButton(text="📝 ᴠɪᴇᴡ ᴍᴇssᴀɢᴇ",url=chat.pinned_message.link)]]))  
-    except Exception as er:
-        await message.reply_text(er)
+    if not await has_permission(message.from_user.id, message.chat.id, "can_pin_messages"):
+        return await message.reply_text("**ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴘɪɴ ᴍᴇssᴀɢᴇs.**")
 
+    try:
+        await message.reply_to_message.pin()
+        await message.reply_text(
+            f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇ!**\n\n**ᴄʜᴀᴛ:** {message.chat.title}\n**ᴀᴅᴍɪɴ:** {message.from_user.mention}",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("📝 ᴠɪᴇᴡ ᴍᴇssᴀɢᴇ", url=message.reply_to_message.link)]]
+            )
+        )
+    except Exception as e:
+        await message.reply_text(f"**ғᴀɪʟᴇᴅ ᴛᴏ ᴘɪɴ ᴍᴇssᴀɢᴇ:**\n`{str(e)}`")
 
-# ------------------------------------------------------------------------------- #
+# ------------------- Unpin Message ------------------- #
 
 @app.on_message(filters.command("unpin") & admin_filter)
-async def unpin(_, message):
-    replied = message.reply_to_message
-    chat_title = message.chat.title
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    name = message.from_user.mention
-    
-    if message.chat.type == enums.ChatType.PRIVATE:
-        await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ᴏɴ ɢʀᴏᴜᴘs !**")
-    elif not replied:
-        await message.reply_text("**ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴍᴇssᴀɢᴇ ᴛᴏ ᴜɴᴘɪɴ ɪᴛ !**")
-    else:
-        user_stats = await app.get_chat_member(chat_id, user_id)
-        if user_stats.privileges.can_pin_messages and message.reply_to_message:
-            try:
-                await message.reply_to_message.unpin()
-                await message.reply_text(f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴜɴᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇ!**\n\n**ᴄʜᴀᴛ:** {chat_title}\n**ᴀᴅᴍɪɴ:** {name}", reply_markup=InlineKeyboardMarkup([[InlineKeyboardButton(" 📝 ᴠɪᴇᴡs ᴍᴇssᴀɢᴇ ", url=replied.link)]]))
-            except Exception as e:
-                await message.reply_text(str(e))
+async def unpin(_, message: Message):
+    if not is_group(message):
+        return await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ɪɴ ɢʀᴏᴜᴘs!**")
 
+    if not message.reply_to_message:
+        return await message.reply_text("**ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴍᴇssᴀɢᴇ ᴛᴏ ᴜɴᴘɪɴ ɪᴛ!**")
 
+    if not await has_permission(message.from_user.id, message.chat.id, "can_pin_messages"):
+        return await message.reply_text("**ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴜɴᴘɪɴ ᴍᴇssᴀɢᴇs.**")
 
-# --------------------------------------------------------------------------------- #
+    try:
+        await message.reply_to_message.unpin()
+        await message.reply_text(
+            f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴜɴᴘɪɴɴᴇᴅ ᴍᴇssᴀɢᴇ!**\n\n**ᴄʜᴀᴛ:** {message.chat.title}\n**ᴀᴅᴍɪɴ:** {message.from_user.mention}",
+            reply_markup=InlineKeyboardMarkup(
+                [[InlineKeyboardButton("📝 ᴠɪᴇᴡ ᴍᴇssᴀɢᴇ", url=message.reply_to_message.link)]]
+            )
+        )
+    except Exception as e:
+        await message.reply_text(f"**ғᴀɪʟᴇᴅ ᴛᴏ ᴜɴᴘɪɴ ᴍᴇssᴀɢᴇ:**\n`{str(e)}`")
+
+# ------------------- Set / Remove Photo, Title, Description ------------------- #
+
+@app.on_message(filters.command("setphoto") & admin_filter)
+async def set_photo(_, message: Message):
+    if not is_group(message):
+        return await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ɪɴ ɢʀᴏᴜᴘs!**")
+    if not message.reply_to_message:
+        return await message.reply_text("**ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴘʜᴏᴛᴏ ᴏʀ ᴅᴏᴄᴜᴍᴇɴᴛ.**")
+    if not await has_permission(message.from_user.id, message.chat.id, "can_change_info"):
+        return await message.reply_text("**ʏᴏᴜ ʟᴀᴄᴋ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ɪɴғᴏ.**")
+    try:
+        photo = await message.reply_to_message.download()
+        await message.chat.set_photo(photo=photo)
+        await message.reply_text(f"**ɢʀᴏᴜᴘ ᴘʜᴏᴛᴏ ᴜᴘᴅᴀᴛᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ!**\nʙʏ {message.from_user.mention}")
+    except Exception as e:
+        await message.reply_text(f"**ғᴀɪʟᴇᴅ ᴛᴏ sᴇᴛ ᴘʜᴏᴛᴏ:**\n`{str(e)}`")
+
 
 @app.on_message(filters.command("removephoto") & admin_filter)
-async def deletechatphoto(_, message):
-      
-      chat_id = message.chat.id
-      user_id = message.from_user.id
-      msg = await message.reply_text("**ᴘʀᴏᴄᴇssɪɴɢ....**")
-      admin_check = await app.get_chat_member(chat_id, user_id)
-      if message.chat.type == enums.ChatType.PRIVATE:
-           await msg.edit("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋ ᴏɴ ɢʀᴏᴜᴘs !**") 
-      try:
-         if admin_check.privileges.can_change_info:
-             await app.delete_chat_photo(chat_id)
-             await msg.edit("**sᴜᴄᴄᴇssғᴜʟʟʏ ʀᴇᴍᴏᴠᴇᴅ ᴘʀᴏғɪʟᴇ ᴘʜᴏᴛᴏ ғʀᴏᴍ ɢʀᴏᴜᴘ !\nʙʏ** {}".format(message.from_user.mention))    
-      except:
-          await msg.edit("**ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʀᴇᴍᴏᴠᴇ ɢʀᴏᴜᴘ ᴘʜᴏᴛᴏ !**")
+async def remove_photo(_, message: Message):
+    if not is_group(message):
+        return await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ɪɴ ɢʀᴏᴜᴘs!**")
+    if not await has_permission(message.from_user.id, message.chat.id, "can_change_info"):
+        return await message.reply_text("**ʏᴏᴜ ʟᴀᴄᴋ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ɪɴғᴏ.**")
+    try:
+        await app.delete_chat_photo(message.chat.id)
+        await message.reply_text(f"**ɢʀᴏᴜᴘ ᴘʜᴏᴛᴏ ʀᴇᴍᴏᴠᴇᴅ!**\nʙʏ {message.from_user.mention}")
+    except Exception as e:
+        await message.reply_text(f"**ғᴀɪʟᴇᴅ ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴘʜᴏᴛᴏ:**\n`{str(e)}`")
 
 
-# --------------------------------------------------------------------------------- #
+@app.on_message(filters.command("settitle") & admin_filter)
+async def set_title(_, message: Message):
+    if not is_group(message):
+        return await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ɪɴ ɢʀᴏᴜᴘs!**")
+    if not await has_permission(message.from_user.id, message.chat.id, "can_change_info"):
+        return await message.reply_text("**ʏᴏᴜ ʟᴀᴄᴋ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ɪɴғᴏ.**")
 
-@app.on_message(filters.command("setphoto")& admin_filter)
-async def setchatphoto(_, message):
-      reply = message.reply_to_message
-      chat_id = message.chat.id
-      user_id = message.from_user.id
-      msg = await message.reply_text("ᴘʀᴏᴄᴇssɪɴɢ...")
-      admin_check = await app.get_chat_member(chat_id, user_id)
-      if message.chat.type == enums.ChatType.PRIVATE:
-           await msg.edit("`ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋ ᴏɴ ɢʀᴏᴜᴘs !`") 
-      elif not reply:
-           await msg.edit("**ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴘʜᴏᴛᴏ ᴏʀ ᴅᴏᴄᴜᴍᴇɴᴛ.**")
-      elif reply:
-          try:
-             if admin_check.privileges.can_change_info:
-                photo = await reply.download()
-                await message.chat.set_photo(photo=photo)
-                await msg.edit_text("**sᴜᴄᴄᴇssғᴜʟʟʏ ɴᴇᴡ ᴘʀᴏғɪʟᴇ ᴘʜᴏᴛᴏ ɪɴsᴇʀᴛ !\nʙʏ** {}".format(message.from_user.mention))
-             else:
-                await msg.edit("**sᴏᴍᴇᴛʜɪɴɢ ᴡʀᴏɴɢ ʜᴀᴘᴘᴇɴᴇᴅ ᴛʀʏ ᴀɴᴏᴛʜᴇʀ ᴘʜᴏᴛᴏ !**")
-     
-          except:
-              await msg.edit("**ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴘʜᴏᴛᴏ !**")
+    title = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.text if message.reply_to_message else None)
+    if not title:
+        return await message.reply_text("**ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ɴᴇᴡ ᴛɪᴛʟᴇ.**")
 
+    try:
+        await message.chat.set_title(title)
+        await message.reply_text(f"**ɢʀᴏᴜᴘ ɴᴀᴍᴇ ᴄʜᴀɴɢᴇᴅ ᴛᴏ:** {title}\nʙʏ {message.from_user.mention}")
+    except Exception as e:
+        await message.reply_text(f"**ғᴀɪʟᴇᴅ ᴛᴏ sᴇᴛ ᴛɪᴛʟᴇ:**\n`{str(e)}`")
 
-# --------------------------------------------------------------------------------- #
-
-@app.on_message(filters.command("settitle")& admin_filter)
-async def setgrouptitle(_, message):
-    reply = message.reply_to_message
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    msg = await message.reply_text("ᴘʀᴏᴄᴇssɪɴɢ...")
-    if message.chat.type == enums.ChatType.PRIVATE:
-          await msg.edit("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋ ᴏɴ ɢʀᴏᴜᴘs !**")
-    elif reply:
-          try:
-            title = message.reply_to_message.text
-            admin_check = await app.get_chat_member(chat_id, user_id)
-            if admin_check.privileges.can_change_info:
-               await message.chat.set_title(title)
-               await msg.edit("**sᴜᴄᴄᴇssғᴜʟʟʏ ɴᴇᴡ ɢʀᴏᴜᴘ ɴᴀᴍᴇ ɪɴsᴇʀᴛ !\nʙʏ** {}".format(message.from_user.mention))
-          except AttributeError:
-                await msg.edit("**ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴛɪᴛʟᴇ !**")   
-    elif len(message.command) >1:
-        try:
-            title = message.text.split(None, 1)[1]
-            admin_check = await app.get_chat_member(chat_id, user_id)
-            if admin_check.privileges.can_change_info:
-               await message.chat.set_title(title)
-               await msg.edit("**sᴜᴄᴄᴇssғᴜʟʟʏ ɴᴇᴡ ɢʀᴏᴜᴘ ɴᴀᴍᴇ ɪɴsᴇʀᴛ !\nʙʏ** {}".format(message.from_user.mention))
-        except AttributeError:
-               await msg.edit("**ᴛʜᴇ ᴜsᴇʀ ᴍᴏsᴛ ɴᴇᴇᴅ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴛɪᴛʟᴇ !**")
-          
-
-    else:
-       await msg.edit("**ʏᴏᴜ ɴᴇᴇᴅ ʀᴇᴘʟʏ ᴛᴏ ᴛᴇxᴛ ᴏʀ ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴛɪᴛʟᴇ **")
-
-
-# --------------------------------------------------------------------------------- #
 
 @app.on_message(filters.command("setdiscription") & admin_filter)
-async def setg_discription(_, message):
-    reply = message.reply_to_message
-    chat_id = message.chat.id
-    user_id = message.from_user.id
-    msg = await message.reply_text("**ᴘʀᴏᴄᴇssɪɴɢ...**")
-    if message.chat.type == enums.ChatType.PRIVATE:
-        await msg.edit("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴ ɢʀᴏᴜᴘs!**")
-    elif reply:
-        try:
-            discription = message.reply_to_message.text
-            admin_check = await app.get_chat_member(chat_id, user_id)
-            if admin_check.privileges.can_change_info:
-                await message.chat.set_description(discription)
-                await msg.edit("**sᴜᴄᴄᴇssғᴜʟʟʏ ɴᴇᴡ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛɪᴏɴ ɪɴsᴇʀᴛ!**\nʙʏ {}".format(message.from_user.mention))
-        except AttributeError:
-            await msg.edit("**ᴛʜᴇ ᴜsᴇʀ ᴍᴜsᴛ ʜᴀᴠᴇ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛɪᴏɴ!**")   
-    elif len(message.command) > 1:
-        try:
-            discription = message.text.split(None, 1)[1]
-            admin_check = await app.get_chat_member(chat_id, user_id)
-            if admin_check.privileges.can_change_info:
-                await message.chat.set_description(discription)
-                await msg.edit("**sᴜᴄᴄᴇssғᴜʟʟʏ ɴᴇᴡ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛɪᴏɴ ɪɴsᴇʀᴛ!**\nʙʏ {}".format(message.from_user.mention))
-        except AttributeError:
-            await msg.edit("**ᴛʜᴇ ᴜsᴇʀ ᴍᴜsᴛ ʜᴀᴠᴇ ᴄʜᴀɴɢᴇ ɪɴғᴏ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛɪᴏɴ!**")
-    else:
-        await msg.edit("**ʏᴏᴜ ɴᴇᴇᴅ ᴛᴏ ʀᴇᴘʟʏ ᴛᴏ ᴛᴇxᴛ ᴏʀ ɢɪᴠᴇ sᴏᴍᴇ ᴛᴇxᴛ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ᴅɪsᴄʀɪᴘᴛᴏɴ!**")
+async def set_description(_, message: Message):
+    if not is_group(message):
+        return await message.reply_text("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴡᴏʀᴋs ᴏɴʟʏ ɪɴ ɢʀᴏᴜᴘs!**")
+    if not await has_permission(message.from_user.id, message.chat.id, "can_change_info"):
+        return await message.reply_text("**ʏᴏᴜ ʟᴀᴄᴋ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴄʜᴀɴɢᴇ ɢʀᴏᴜᴘ ɪɴғᴏ.**")
 
+    desc = message.text.split(None, 1)[1] if len(message.command) > 1 else (message.reply_to_message.text if message.reply_to_message else None)
+    if not desc:
+        return await message.reply_text("**ᴘʟᴇᴀsᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ɴᴇᴡ ᴅᴇsᴄʀɪᴘᴛɪᴏɴ.**")
 
-# --------------------------------------------------------------------------------- #
-
-@app.on_message(filters.command("lg")& filters.user(OWNER_ID))
-async def bot_leave(_, message):
-    chat_id = message.chat.id
-    text = "**sᴜᴄᴄᴇssғᴜʟʟʏ ʜɪʀᴏ !!.**"
-    await message.reply_text(text)
-    await app.leave_chat(chat_id=chat_id, delete=True)
-
-
-# --------------------------------------------------------------------------------- #
+    try:
+        await message.chat.set_description(desc)
+        await message.reply_text(f"**ɢʀᴏᴜᴘ ᴅᴇsᴄʀɪᴘᴛɪᴏɴ ᴜᴘᴅᴀᴛᴇᴅ!**\nʙʏ {message.from_user.mention}")
+    except Exception as e:
+        await message.reply_text(f"**ғᴀɪʟᴇᴅ ᴛᴏ sᴇᴛ ᴅᴇsᴄʀɪᴘᴛɪᴏɴ:**\n`{str(e)}`")

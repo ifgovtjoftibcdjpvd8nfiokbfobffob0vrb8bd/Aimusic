@@ -1,40 +1,54 @@
 from pyrogram import Client, filters
-import requests
+from pyrogram.types import Message
+import httpx
 from ANNIEMUSIC import app
+
 
 def chunk_string(text, chunk_size):
     return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
 
+
 @app.on_message(filters.command("allrepo"))
-async def all_repo_command(client, message):
+async def all_repo_command(client: Client, message: Message):
+    if len(message.command) < 2:
+        return await message.reply_text("❌ Please enter a GitHub username.\n\nExample: `/allrepo CertifiedCoders`")
+
+    username = message.command[1].strip()
+
     try:
-        if len(message.command) > 1:
-            github_username = message.command[1]
+        repo_info = await get_all_repository_info(username)
 
-            repo_info = get_all_repository_info(github_username)
+        if not repo_info:
+            return await message.reply_text("❌ No public repositories found or user does not exist.")
 
-            chunked_repo_info = chunk_string(repo_info, 4000)
+        chunks = chunk_string(repo_info, 4000)
 
-            for chunk in chunked_repo_info:
-                await message.reply_text(chunk)
-        else:
-            await message.reply_text("Please enter a GitHub username after the /allrepo command.")
+        for chunk in chunks:
+            await message.reply_text(chunk, disable_web_page_preview=True)
+
     except Exception as e:
-        await message.reply_text(f"An error occurred: {str(e)}")
+        print(f"Error in /allrepo: {e}")
+        await message.reply_text("⚠️ An error occurred while fetching repositories.")
 
-def get_all_repository_info(github_username):
-    github_api_url = f"https://api.github.com/users/{github_username}/repos"
 
-    response = requests.get(github_api_url)
+async def get_all_repository_info(username: str) -> str:
+    url = f"https://api.github.com/users/{username}/repos"
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        response = await client.get(url)
+
+    if response.status_code != 200:
+        return None
+
     data = response.json()
+    if not data:
+        return None
 
-    repo_info = "\n\n".join([
-        f"Repository: {repo['full_name']}\n"
-        f"Description: {repo['description']}\n"
-        f"Stars: {repo['stargazers_count']}\n"
-        f"Forks: {repo['forks_count']}\n"
-        f"URL: {repo['html_url']}"
+    info_lines = [
+        f"🔹 **[{repo['name']}]({repo['html_url']})**\n"
+        f"⭐ Stars: `{repo['stargazers_count']}` | 🍴 Forks: `{repo['forks_count']}`\n"
+        f"📄 {repo['description'] or 'No description'}"
         for repo in data
-    ])
+    ]
 
-    return repo_info
+    profile_link = f"👤 [View GitHub Profile](https://github.com/{username})"
+    return f"{profile_link}\n\n" + "\n\n".join(info_lines)

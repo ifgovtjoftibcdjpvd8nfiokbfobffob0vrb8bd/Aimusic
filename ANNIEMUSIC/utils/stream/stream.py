@@ -1,6 +1,7 @@
 import os
 from random import randint
 from typing import Union
+
 from pyrogram.types import InlineKeyboardMarkup
 
 import config
@@ -13,8 +14,9 @@ from ANNIEMUSIC.utils.inline import aq_markup, close_markup, stream_markup
 from ANNIEMUSIC.utils.pastebin import ANNIEBIN
 from ANNIEMUSIC.utils.stream.queue import put_queue, put_queue_index
 from ANNIEMUSIC.utils.thumbnails import get_thumb
+from ANNIEMUSIC.utils.errors import capture_internal_err
 
-
+@capture_internal_err
 async def stream(
     _,
     mystic,

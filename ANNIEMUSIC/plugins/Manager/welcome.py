@@ -1,195 +1,190 @@
+from __future__ import annotations
+
 import os
-import random
-import asyncio
-from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageEnhance, ImageChops
-from pyrogram import Client, filters, enums
-from pyrogram.types import ChatMemberUpdated, InlineKeyboardMarkup, InlineKeyboardButton, Message
-from typing import Union, Optional
-from logging import getLogger
 from datetime import datetime, timedelta, timezone
 
+from PIL import Image, ImageDraw, ImageFont
+from pyrogram import enums, filters
+from pyrogram.types import (
+    Message, ChatMemberUpdated,
+    InlineKeyboardMarkup, InlineKeyboardButton
+)
+
 from ANNIEMUSIC import app
-from ANNIEMUSIC.utils.jarvis_ban import admin_filter
 
-LOGGER = getLogger(__name__)
+# ─────────────────────────────
+# CONFIG
+# ─────────────────────────────
+BG_PATH      = "ANNIEMUSIC/assets/annie/AnnieNwel.png"
+FALLBACK_PIC = "ANNIEMUSIC/assets/upic.png"
+FONT_PATH    = "ANNIEMUSIC/assets/annie/ArialReg.ttf"
+BTN_VIEW     = "๏ ᴠɪᴇᴡ ɴᴇᴡ ᴍᴇᴍʙᴇʀ ๏"
+BTN_ADD      = "๏ ᴋɪᴅɴᴀᴘ ᴍᴇ ๏"
 
-
-class WelDatabase:
-    def __init__(self):
-        self.data = {}
-        self.join_counts = {}
-        self.join_timestamps = {}
-        self.auto_disabled = {}
-
-    async def find_one(self, chat_id):
-        return self.data.get(chat_id, {"state": "on"})
-
-    async def set_state(self, chat_id, state):
-        self.data[chat_id] = {"state": state}
-
-    async def is_welcome_on(self, chat_id):
-        chat_data = await self.find_one(chat_id)
-        return chat_data.get("state") == "on"
-
-    async def track_join(self, chat_id):
-        now = datetime.now(timezone.utc)
-        last_join_time = self.join_timestamps.get(chat_id, now)
-        if (now - last_join_time).total_seconds() > 8:
-            self.join_counts[chat_id] = 1
-        else:
-            self.join_counts[chat_id] = self.join_counts.get(chat_id, 0) + 1
-        self.join_timestamps[chat_id] = now
-        return self.join_counts[chat_id]
-
-    async def auto_disable_welcome(self, chat_id):
-        await self.set_state(chat_id, "off")
-        self.auto_disabled[chat_id] = datetime.now(timezone.utc) + timedelta(minutes=30)
-
-    async def check_auto_reenable(self, chat_id):
-        disable_time = self.auto_disabled.get(chat_id)
-        if disable_time and datetime.now(timezone.utc) >= disable_time:
-            await self.set_state(chat_id, "on")
-            del self.auto_disabled[chat_id]
-            return True
-        return False
-
-wlcm = WelDatabase()
-
-class temp:
-    MELCOW = {}
-
-def circle(pfp, size=(500, 500)):
-    pfp = pfp.resize(size, Image.LANCZOS).convert("RGBA")
-    mask = Image.new("L", size, 0)
-    draw = ImageDraw.Draw(mask)
-    draw.ellipse((0, 0, size[0], size[1]), fill=255)
-    mask = mask.resize(pfp.size, Image.LANCZOS)
-    pfp.putalpha(mask)
-    return pfp
-
-
-def welcomepic(pic_path, user, chatname, user_id, uname):
-    background = Image.open("ANNIEMUSIC/assets/annie/AnnieNwel.png")
-    pfp = Image.open(pic_path).convert("RGBA")
-    pfp = circle(pfp, size=(835, 839))
-    draw = ImageDraw.Draw(background)
-    font_large = ImageFont.truetype('ANNIEMUSIC/assets/annie/ArialReg.ttf', size=65)
-    draw.text((421, 715), f'{user}', fill=(242, 242, 242), font=font_large)
-    draw.text((270, 1005), f'{user_id}', fill=(242, 242, 242), font=font_large)
-    draw.text((570, 1308), f"{uname}", fill=(242, 242, 242), font=font_large)
-    pfp_position = (1887, 390)
-    background.paste(pfp, pfp_position, pfp)
-    image_path = f"downloads/welcome#{user_id}.png"
-    background.save(image_path)
-    return image_path
-
-
-@app.on_message(filters.command("wel") & ~filters.private)
-async def auto_state(client, message):
-    usage = "**Usage:**\n⦿/wel [on|off]\n➤ANNIE SPECIAL WELCOME.........."
-    if len(message.command) != 2:
-        return await message.reply_text(usage)
-    
-    chat_id = message.chat.id
-    user_status = await client.get_chat_member(chat_id, message.from_user.id)
-    if user_status.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER):
-        return await message.reply_text("**sᴏʀʀʏ ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄʜᴀɴɢᴇ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ sᴛᴀᴛᴜs!**")
-    
-    state = message.text.split(None, 1)[1].strip().lower()
-    current_state = await wlcm.find_one(chat_id)
-    if state == "off":
-        if current_state.get("state") == "off":
-            await message.reply_text("**ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ᴀʟʀᴇᴀᴅʏ ᴅɪsᴀʙʟᴇᴅ!**")
-        else:
-            await wlcm.set_state(chat_id, "off")
-            await message.reply_text(f"**ᴅɪsᴀʙʟᴇᴅ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ɪɴ {message.chat.title}**")
-    elif state == "on":
-        if current_state.get("state") == "on":
-            await message.reply_text("**ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ᴀʟʀᴇᴀᴅʏ ᴇɴᴀʙʟᴇᴅ!**")
-        else:
-            await wlcm.set_state(chat_id, "on")
-            await message.reply_text(f"**ᴇɴᴀʙʟᴇᴅ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ɪɴ {message.chat.title}**")
-    else:
-        await message.reply_text(usage)
-
-
-@app.on_chat_member_updated(filters.group, group=-3)
-async def greet_new_member(client, member: ChatMemberUpdated):
-    chat_id = member.chat.id
-    user = member.new_chat_member.user if member.new_chat_member else member.from_user
-
-    welcome_enabled = await wlcm.is_welcome_on(chat_id)
-    if not welcome_enabled:
-        auto_reenabled = await wlcm.check_auto_reenable(chat_id)
-        if auto_reenabled:
-            await client.send_message(
-                chat_id,
-                "**ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ʜᴀᴠᴇ ʙᴇᴇɴ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ʀᴇ-ᴇɴᴀʙʟᴇᴅ.**"
-            )
-        else:
-            return
-
-    join_count = await wlcm.track_join(chat_id)
-    if join_count >= 10:
-        await wlcm.auto_disable_welcome(chat_id)
-        await client.send_message(
-            chat_id,
-            "**ᴍᴀssɪᴠᴇ ᴊᴏɪɴ ᴅᴇᴛᴇᴄᴛᴇᴅ. ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ᴀʀᴇ ᴛᴇᴍᴘᴏʀᴀʀɪʟʏ ᴅɪsᴀʙʟᴇᴅ ғᴏʀ 30 ᴍɪɴᴜᴛᴇs.**"
-        )
-        return
-
-    if member.new_chat_member and member.new_chat_member.status == enums.ChatMemberStatus.MEMBER:
-        try:
-            pic_path = None
-            if user.photo:
-                pic_path = await client.download_media(
-                    user.photo.big_file_id, file_name=f"downloads/pp{user.id}.png"
-                )
-            else:
-                pic_path = "ANNIEMUSIC/assets/upic.png"
-
-            previous_message = temp.MELCOW.get(f"welcome-{chat_id}")
-            if previous_message:
-                try:
-                    await previous_message.delete()
-                except Exception as e:
-                    LOGGER.error(f"Error deleting previous welcome message: {e}")
-
-            welcome_img = welcomepic(
-                pic_path, user.first_name, member.chat.title, user.id, user.username or "No Username"
-            )
-
-            count = await client.get_chat_members_count(chat_id)
-            button_text = "๏ ᴠɪᴇᴡ ɴᴇᴡ ᴍᴇᴍʙᴇʀ ๏"
-            add_button_text = "๏ ᴋɪᴅɴᴀᴘ ᴍᴇ ๏"
-            deep_link = f"tg://openmessage?user_id={user.id}"
-            add_link = f"https://t.me/{client.username}?startgroup=true"
-            welcome_message = await client.send_photo(
-                chat_id,
-                photo=welcome_img,
-                caption=f"""
+CAPTION_TXT = """
 **❅────✦ ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ ✦────❅
-{member.chat.title}
+{chat_title}
 ▰▰▰▰▰▰▰▰▰▰▰▰▰
-➻ Nᴀᴍᴇ ✧ {user.mention}
-➻ Iᴅ ✧ `{user.id}`
-➻ Usᴇʀɴᴀᴍᴇ ✧ @{user.username or "No Username"}
+➻ Nᴀᴍᴇ ✧ {mention}
+➻ Iᴅ ✧ `{uid}`
+➻ Usᴇʀɴᴀᴍᴇ ✧ @{uname}
 ➻ Tᴏᴛᴀʟ Mᴇᴍʙᴇʀs ✧ {count}
 ▰▰▰▰▰▰▰▰▰▰▰▰▰**
 **❅─────✧❅✦❅✧─────❅**
-""",
-                reply_markup=InlineKeyboardMarkup([
-                    [InlineKeyboardButton(button_text, url=deep_link)],
-                    [InlineKeyboardButton(add_button_text, url=add_link)],
-                ])
-            )
-            temp.MELCOW[f"welcome-{chat_id}"] = welcome_message
+"""
 
-            if pic_path and os.path.exists(pic_path) and "ANNIEMUSIC/assets/upic.png" not in pic_path:
-                os.remove(pic_path)
-            if welcome_img and os.path.exists(welcome_img):
-                os.remove(welcome_img)
+JOIN_THRESHOLD = 10
+TIME_WINDOW    = 8
+COOL_MINUTES   = 10
+WELCOME_LIMIT  = 10
 
-        except Exception as e:
-            LOGGER.error(f"Error in greeting new member: {e}")
+# ─────────────────────────────
+# DATABASE
+# ─────────────────────────────
+class _WelDB:
+    def __init__(self):
+        self.state = {}
+        self.join_cnt = {}
+        self.last_ts = {}
+        self.cool_until = {}
+
+    async def is_on(self, cid): return self.state.get(cid, "on") == "on"
+    async def set(self, cid, flag): self.state[cid] = flag
+
+    async def bump(self, cid):
+        now = datetime.now(timezone.utc)
+        last = self.last_ts.get(cid, now - timedelta(seconds=TIME_WINDOW + 1))
+        cnt = 1 if (now - last).total_seconds() > TIME_WINDOW else self.join_cnt.get(cid, 0) + 1
+        self.join_cnt[cid] = cnt
+        self.last_ts[cid] = now
+        return cnt
+
+    async def cool(self, cid):
+        await self.set(cid, "off")
+        self.cool_until[cid] = datetime.now(timezone.utc) + timedelta(minutes=COOL_MINUTES)
+
+    async def auto_on(self, cid):
+        ts = self.cool_until.get(cid)
+        if ts and datetime.now(timezone.utc) >= ts:
+            await self.set(cid, "on")
+            self.cool_until.pop(cid, None)
+            return True
+        return False
+
+db = _WelDB()
+last_messages: dict[int, list] = {}
+
+# ─────────────────────────────
+# IMAGE UTILS
+# ─────────────────────────────
+def _circle(im, size=(835, 839)):
+    im = im.resize(size, Image.LANCZOS).convert("RGBA")
+    mask = Image.new("L", size, 0)
+    ImageDraw.Draw(mask).ellipse((0, 0, *size), fill=255)
+    im.putalpha(mask)
+    return im
+
+def build_pic(av, fn, uid, un):
+    bg = Image.open(BG_PATH).convert("RGBA")
+    avatar = _circle(Image.open(av))
+    bg.paste(avatar, (1887, 390), avatar)
+    draw = ImageDraw.Draw(bg)
+    font = ImageFont.truetype(FONT_PATH, 65)
+    draw.text((421, 715), fn, fill=(242, 242, 242), font=font)
+    draw.text((270, 1005), str(uid), fill=(242, 242, 242), font=font)
+    draw.text((570, 1308), un, fill=(242, 242, 242), font=font)
+    path = f"downloads/welcome_{uid}.png"
+    bg.save(path)
+    return path
+
+# ─────────────────────────────
+# TOGGLE COMMAND
+# ─────────────────────────────
+@app.on_message(filters.command("welcome") & filters.group)
+async def toggle(client, m: Message):
+    usage = "**Usage:**\n⦿/welcome [on|off]\n➤ Annie Special Welcome....."
+    if len(m.command) != 2:
+        return await m.reply_text(usage)
+
+    u = await client.get_chat_member(m.chat.id, m.from_user.id)
+    if u.status not in (enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER):
+        return await m.reply_text("**sᴏʀʀʏ ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄʜᴀɴɢᴇ ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ sᴛᴀᴛᴜs!**")
+
+    flag = m.command[1].lower()
+    if flag not in ("on", "off"):
+        return await m.reply_text(usage)
+
+    cur = await db.is_on(m.chat.id)
+    if flag == "off" and not cur:
+        return await m.reply_text("**ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ᴀʟʀᴇᴀᴅʏ ᴅɪsᴀʙʟᴇᴅ!**")
+    if flag == "on" and cur:
+        return await m.reply_text("**ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ᴀʟʀᴇᴀᴅʏ ᴇɴᴀʙʟᴇᴅ!**")
+
+    await db.set(m.chat.id, flag)
+    await m.reply_text(f"**{'ᴇɴᴀʙʟᴇᴅ' if flag == 'on' else 'ᴅɪsᴀʙʟᴇᴅ'} ᴡᴇʟᴄᴏᴍᴇ ɴᴏᴛɪғɪᴄᴀᴛɪᴏɴ ɪɴ {m.chat.title}**")
+
+# ─────────────────────────────
+# WELCOME HANDLER
+# ─────────────────────────────
+@app.on_chat_member_updated(filters.group, group=-3)
+async def welcome(client, update: ChatMemberUpdated):
+    old, new, cid = update.old_chat_member, update.new_chat_member, update.chat.id
+    if not (new and new.status == enums.ChatMemberStatus.MEMBER):
+        return
+    if old and old.status in (
+        enums.ChatMemberStatus.MEMBER,
+        enums.ChatMemberStatus.ADMINISTRATOR,
+        enums.ChatMemberStatus.OWNER,
+    ):
+        return
+
+    if not await db.is_on(cid):
+        if await db.auto_on(cid):
+            await client.send_message(cid, "**ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ʜᴀᴠᴇ ʙᴇᴇɴ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ʀᴇ-ᴇɴᴀʙʟᴇᴅ.**")
+        else:
+            return
+
+    if await db.bump(cid) >= JOIN_THRESHOLD:
+        await db.cool(cid)
+        return await client.send_message(
+            cid, "**ᴍᴀssɪᴠᴇ ᴊᴏɪɴ ᴅᴇᴛᴇᴄᴛᴇᴅ. ᴡᴇʟᴄᴏᴍᴇ ᴍᴇssᴀɢᴇs ᴀʀᴇ ᴛᴇᴍᴘᴏʀᴀʀɪʟʏ ᴅɪsᴀʙʟᴇᴅ ғᴏʀ 10 ᴍɪɴᴜᴛᴇs.**"
+        )
+
+    user = new.user
+    avatar = img = None
+    try:
+        avatar = await client.download_media(user.photo.big_file_id, file_name=f"downloads/pp_{user.id}.png") if user.photo else FALLBACK_PIC
+        img = build_pic(avatar, user.first_name, user.id, user.username or "No Username")
+
+        members = await client.get_chat_members_count(cid)
+        caption = CAPTION_TXT.format(
+            chat_title=update.chat.title,
+            mention=user.mention,
+            uid=user.id,
+            uname=user.username or "No Username",
+            count=members
+        )
+
+        sent = await client.send_photo(
+            cid,
+            img,
+            caption=caption,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton(BTN_VIEW, url=f"tg://openmessage?user_id={user.id}")],
+                [InlineKeyboardButton(BTN_ADD,  url=f"https://t.me/{client.username}?startgroup=true")],
+            ])
+        )
+
+        last_messages.setdefault(cid, []).append(sent)
+        if len(last_messages[cid]) > WELCOME_LIMIT:
+            old_msg = last_messages[cid].pop(0)
+            try: await old_msg.delete()
+            except: pass
+
+    except Exception:
+        await client.send_message(cid, f"🎉 Welcome, {user.mention}!")
+    finally:
+        for f in (avatar, img):
+            if f and os.path.exists(f) and "ANNIEMUSIC/assets" not in f:
+                try: os.remove(f)
+                except: pass

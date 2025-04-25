@@ -156,6 +156,3 @@ async def drawText(image_path, text):
     img.save(webp_file, "webp")
 
     return webp_file
-
-
-__mod_name__ = "mmf"

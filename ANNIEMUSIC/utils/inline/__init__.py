@@ -4,4 +4,4 @@ from .play import *
 from .queue import *
 from .settings import *
 from .start import *
-from .playlist import *
+from .speed import *

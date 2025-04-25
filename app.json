@@ -3,81 +3,85 @@
     "description": "ANNIE X MUSIC is a Telegram Music Player Bot built using Python, leveraging Pyrogram and Py-Tgcalls for seamless music streaming.",
     "logo": "https://telegra.ph/file/2c6d1a6f78eba6199933a.jpg",
     "keywords": [
-        "python3",
-        "telegram",
-        "bot",
-        "Jarvis",
-        "MusicBot",
-        "telegram-bot",
-        "pyrogram"
+      "python3",
+      "telegram",
+      "bot",
+      "MusicBot",
+      "telegram-bot",
+      "pyrogram"
     ],
     "env": {
-        "API_ID": {
-            "description": "Retrieve this value from https://my.telegram.org.",
-            "value": "",
-            "required": true
-        },
-        "API_HASH": {
-            "description": "Retrieve this value from https://my.telegram.org.",
-            "value": "",
-            "required": true
-        },
-        "BOT_TOKEN": {
-            "description": "Obtain a bot token from Botfather on Telegram.",
-            "value": "",
-            "required": true
-        },
-        "MONGO_DB_URI": {
-            "description": "Get a MongoDB URL from https://cloud.mongodb.com.",
-            "value": "",
-            "required": true
-        },
-        "OWNER_ID": {
-            "description": "The user ID of the owner you want to add.",
-            "value": "",
-            "required": true
-        },
-        "STRING_SESSION": {
-            "description": "Generate a Pyrogram v2 String Session using @Strings_Gen_Robot on Telegram.",
-            "value": "",
-            "required": true
-        },
-        "HEROKU_API_KEY": {
-            "description": "Your Heroku account's API key.",
-            "value": "",
-            "required": false
-        },
-        "HEROKU_APP_NAME": {
-            "description": "The name of your Heroku app.",
-            "value": "",
-            "required": false
-        },
-        "LOGGER_ID": {
-            "description": "Your Log Group ID. Add your bot and promote it to admin with full rights.",
-            "value": "",
-            "required": true
-        },
-        "GPT_API": {
-            "description": "Your OpenAI GPT API key.",
-            "value": "",
-            "required": false
-        },
-        "DEEP_API": {
-            "description": "Your DEEP API key from https://deepai.org/",
-            "value": "",
-            "required": false
-        }
+      "API_ID": {
+        "description": "Telegram API ID from https://my.telegram.org.",
+        "value": "",
+        "required": true
+      },
+      "API_HASH": {
+        "description": "Telegram API HASH from https://my.telegram.org.",
+        "value": "",
+        "required": true
+      },
+      "BOT_TOKEN": {
+        "description": "Token from BotFather after creating your bot on Telegram.",
+        "value": "",
+        "required": true
+      },
+      "MONGO_DB_URI": {
+        "description": "Your MongoDB URI from https://cloud.mongodb.com.",
+        "value": "",
+        "required": true
+      },
+      "OWNER_ID": {
+        "description": "Your Telegram numeric user ID (use @userinfobot to get it).",
+        "value": "",
+        "required": true
+      },
+      "STRING_SESSION": {
+        "description": "Pyrogram v2 session string from t.me/CertifiedSessionBot on Telegram.",
+        "value": "",
+        "required": true
+      },
+      "LOGGER_ID": {
+        "description": "Chat ID of your log group. Add your bot there and make it admin.",
+        "value": "",
+        "required": true
+      },
+      "COOKIE_URL": {
+        "description": "Batbin or Pastebin raw URL containing your YouTube cookies file.",
+        "value": "",
+        "required": true
+      },
+      "API_KEY": {
+        "description": "API key for custom music download server (used with API_URL).",
+        "value": "",
+        "required": false
+      },
+      "DEEP_API": {
+        "description": "DeepAI API key from https://deepai.org/ for AI features (optional).",
+        "value": "",
+        "required": false
+      },
+      "HEROKU_API_KEY": {
+        "description": "API key of your Heroku account (used for update deployment).",
+        "value": "",
+        "required": false
+      },
+      "HEROKU_APP_NAME": {
+        "description": "The name of your Heroku app (used with HEROKU_API_KEY).",
+        "value": "",
+        "required": false
+      }
     },
     "buildpacks": [
-        {
-            "url": "heroku/python"
-        },
-        {
-            "url": "heroku/nodejs"
-        },
-        {
-            "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
-        }
+      {
+        "url": "heroku/python"
+      },
+      {
+        "url": "heroku/nodejs"
+      },
+      {
+        "url": "https://github.com/jonathanong/heroku-buildpack-ffmpeg-latest.git"
+      }
     ],
     "stack": "container"
-}
+  }

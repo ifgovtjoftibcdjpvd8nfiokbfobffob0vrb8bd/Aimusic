@@ -1,71 +1,51 @@
 import os
-from pyrogram import Client, filters
+import asyncio
+from pyrogram import filters
 from pyrogram.types import Message
 from pydub import AudioSegment
-import speech_recognition as sr
 from ANNIEMUSIC import app
-# --------------------------------------
 
-def convert_video_to_text(video_path):
-    audio = AudioSegment.from_file(video_path)
-    audio.export("audio.wav", format="wav")
-# -----------------------------------------
-    recognizer = sr.Recognizer()
-    with sr.AudioFile("audio.wav") as source:
-        audio_data = recognizer.record(source)
-# --------------------------------------------
-    text = recognizer.recognize_google(audio_data)
-    return text
 
-# ----------------------------------------------
+# ─── /remove Command Handler ──────────────────────────────────
 
-@app.on_message(filters.command("vtxt") & filters.reply)
-def convert_video_to_text_cmd(_, message: Message):
-    # -------------------------------
-    video_path = message.reply_to_message.download("video.mp4")
+@app.on_message(filters.command("remove") & filters.reply)
+async def remove_media(_, message: Message):
+    replied = message.reply_to_message
+    if not (replied and replied.video):
+        return await message.reply_text("❌ Please reply to a video message.")
+    if len(message.command) < 2:
+        return await message.reply_text("ℹ️ Use `/remove audio` or `/remove video`.", quote=True)
 
-    # ------------------------------
-    text_result = convert_video_to_text(video_path)
+    command = message.command[1].lower()
+    processing_msg = await message.reply_text("🔧 Processing video...")
 
-    # --------------------------
-    with open("file.txt", "w", encoding="utf-8") as file:
-        file.write(text_result)
-     # ---------------------------   
-    message.reply_document("file.txt")
-    
-    
-    
-    # -------------------------------------
-    
-@app.on_message(filters.command("remove", prefixes="/") & filters.reply)
-def remove_media(client, message: Message):
-    # Fetching the replied message
-    replied_message = message.reply_to_message
+    try:
+        file_path = await replied.download(file_name="media_input.mp4")
 
-    if replied_message.video:
-        # If the replied message is a video, remove either the audio or the video depending on the command
-        if len(message.command) > 1:
-            command = message.command[1].lower()
-            if command == "audio":
-                # Remove audio
-                file_path = app.download_media(replied_message.video)
+        if command == "audio":
+            output_audio = "output_audio.mp3"
+            def process_audio():
                 audio = AudioSegment.from_file(file_path)
                 audio = audio.set_channels(1)
-                audio.export("output.mp3", format="mp3")
-                app.send_audio(message.chat.id, "output.mp3")
-                os.remove(file_path)
-                os.remove("output.mp3")
-            elif command == "video":
-                # Remove video
-                file_path = app.download_media(replied_message.video)
-                os.system(f"ffmpeg -i {file_path} -c copy -an output.mp4")
-                app.send_video(message.chat.id, "output.mp4")
-                os.remove(file_path)
-                os.remove("output.mp4")
-            else:
-                app.send_message(message.chat.id, "Invalid command. Please use either /remove audio or /remove video.")
+                audio.export(output_audio, format="mp3")
+            await asyncio.to_thread(process_audio)
+            await app.send_audio(message.chat.id, output_audio, caption="🎧 Audio extracted.")
+            os.remove(output_audio)
+
+        elif command == "video":
+            output_video = "output_video.mp4"
+            def process_video():
+                os.system(f"ffmpeg -i {file_path} -c copy -an {output_video}")
+            await asyncio.to_thread(process_video)
+            await app.send_video(message.chat.id, output_video, caption="🎞️ Video with no audio.")
+            os.remove(output_video)
+
         else:
-            app.send_message(message.chat.id, "Please specify whether to remove audio or video using /remove audio or /remove video.")
-    else:
-        app.send_message(message.chat.id, "The replied message is not a video.")
-        
+            return await message.reply_text("❌ Invalid command. Use `/remove audio` or `/remove video`.")
+
+    except Exception as e:
+        await message.reply_text(f"❌ Error: {e}")
+    finally:
+        await processing_msg.delete()
+        if os.path.exists(file_path):
+            os.remove(file_path)

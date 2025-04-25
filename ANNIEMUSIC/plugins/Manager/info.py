@@ -1,171 +1,102 @@
-import os
-import random
-from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
-from pyrogram import filters, Client, enums
-from pyrogram.types import Message
-from typing import Union, Optional
+import asyncio
+from pyrogram import filters, enums, types
+from pyrogram.errors import PeerIdInvalid, RPCError, FloodWait
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
+
 from ANNIEMUSIC import app
 
 
-anniephoto = [
-    "https://telegra.ph/file/07fd9e0e34bc84356f30d.jpg",
-    "https://telegra.ph/file/3c4de59511e179018f902.jpg",
-    "https://telegra.ph/file/07fd9e0e34bc84356f30d.jpg",
-    "https://telegra.ph/file/3c4de59511e179018f902.jpg"
-]
+def get_full_name(user):
+    return f"{user.first_name} {user.last_name}" if user.last_name else user.first_name
 
 
-bg_path = "ANNIEMUSIC/assets/annie/AnnieNinfo.png"
-font_path = "ANNIEMUSIC/assets/annie/jarvisinf.ttf"
+def get_last_seen(status):
+    if isinstance(status, str):
+        status = status.replace("UserStatus.", "").lower()
+    elif isinstance(status, enums.UserStatus):
+        status = status.name.lower()
+
+    return {
+        "online": "☑️ ᴏɴʟɪɴᴇ",
+        "offline": "❄️ ᴏғғʟɪɴᴇ",
+        "recently": "⏱ ʀᴇᴄᴇɴᴛʟʏ",
+        "last_week": "🗓 ʟᴀsᴛ ᴡᴇᴇᴋ",
+        "last_month": "📆 ʟᴀsᴛ ᴍᴏɴᴛʜ",
+        "long_ago": "😴 ʟᴏɴɢ ᴛɪᴍᴇ ᴀɢᴏ"
+    }.get(status, "❓ ᴜɴᴋɴᴏᴡɴ")
 
 
-INFO_TEXT = """**
-❅─────✧❅✦❅✧─────❅
-            ✦ ᴜsᴇʀ ɪɴғᴏ ✦
-
-➻ ᴜsᴇʀ ɪᴅ ‣ **`{}`
-**➻ ғɪʀsᴛ ɴᴀᴍᴇ ‣ **{}
-**➻ ʟᴀsᴛ ɴᴀᴍᴇ ‣ **{}
-**➻ ᴜsᴇʀɴᴀᴍᴇ ‣ **{}
-**➻ ᴍᴇɴᴛɪᴏɴ ‣ **{}
-**➻ ʟᴀsᴛ sᴇᴇɴ ‣ **{}
-**➻ ᴅᴄ ɪᴅ ‣ **{}
-**➻ ʙɪᴏ ‣ **`{}`
-
-**❅─────✧❅✦❅✧─────❅**
-"""
-
-
-async def userstatus(user_id):
+@app.on_message(filters.command(["info", "userinfo", "whois"]))
+async def whois_handler(_, message: Message):
     try:
-        user = await app.get_users(user_id)
-        status = user.status
-        if status == enums.UserStatus.RECENTLY:
-            return "Recently"
-        elif status == enums.UserStatus.LAST_WEEK:
-            return "Last week"
-        elif status == enums.UserStatus.LONG_AGO:
-            return "Long time ago"
-        elif status == enums.UserStatus.OFFLINE:
-            return "Offline"
-        elif status == enums.UserStatus.ONLINE:
-            return "Online"
+        if message.reply_to_message:
+            user = message.reply_to_message.from_user
+        elif len(message.command) > 1:
+            user = await app.get_users(message.command[1])
         else:
-            return "Unknown"
-    except Exception:
-        return "Unknown"
+            user = message.from_user
 
+        loading = await message.reply("🔍 <b>ɢᴀᴛʜᴇʀɪɴɢ ᴜsᴇʀ ɪɴғᴏ...</b>")
+        await asyncio.sleep(0.5)
 
-async def get_userinfo_img(
-    bg_path: str,
-    font_path: str,
-    user_id: Union[int, str],
-    profile_path: Optional[str] = None
-):
-    bg = Image.open(bg_path).convert("RGBA")
+        chat_user = await app.get_chat(user.id)
 
-    if profile_path:
-        img = Image.open(profile_path).convert("RGBA")
-        mask = Image.new("L", img.size, 0)
-        draw = ImageDraw.Draw(mask)
-        draw.ellipse([(0, 0), img.size], fill=255)
-        circular_img = Image.new("RGBA", img.size)
-        circular_img.paste(img, (0, 0), mask)
-        resized = circular_img.resize((977, 979))
-        bg.paste(resized, (1673, 293), resized)
+        name = get_full_name(user)
+        username = f"@{user.username}" if user.username else "ɴ/ᴀ"
+        bio = chat_user.bio or "ɴᴏ ʙɪᴏ"
+        dc_id = getattr(user, "dc_id", "ɴ/ᴀ")
+        last_seen = get_last_seen(user.status)
+        lang = getattr(user, "language_code", "ɴ/ᴀ")
 
-    img_draw = ImageDraw.Draw(bg)
-    font = ImageFont.truetype(font_path, 95)
-    img_draw.text(
-        (460, 1055),
-        text=str(user_id).upper(),
-        font=font,
-        fill=(125, 227, 230),
-    )
+        text = (
+            f"👤 <b>ᴜsᴇʀ ɪɴғᴏ</b>\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"➣ <b>ᴜsᴇʀ ɪᴅ:</b> <code>{user.id}</code>\n"
+            f"➣ <b>ɴᴀᴍᴇ:</b> {name}\n"
+            f"➣ <b>ᴜsᴇʀɴᴀᴍᴇ:</b> {username}\n"
+            f"➣ <b>ʟᴀsᴛ sᴇᴇɴ:</b> {last_seen}\n"
+            f"➣ <b>ᴅᴀᴛᴀᴄᴇɴᴛᴇʀ ɪᴅ:</b> {dc_id}\n"
+            f"➣ <b>ʟᴀɴɢᴜᴀɢᴇ:</b> {lang}\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"➣ <b>ᴠᴇʀɪғɪᴇᴅ:</b> {'ʏᴇs ✅' if user.is_verified else 'ɴᴏ 🥀'}\n"
+            f"➣ <b>ᴘʀᴇᴍɪᴜᴍ:</b> {'ʏᴇs ☑️' if user.is_premium else 'ɴᴏ 🥀'}\n"
+            f"➣ <b>ʙᴏᴛ:</b> {'ʏᴇs 🤖' if user.is_bot else 'ɴᴏ 👤'}\n"
+            f"➣ <b>sᴄᴀᴍ ᴀᴄᴄᴏᴜɴᴛ:</b> {'ʏᴇs ⚠️' if getattr(user, 'is_scam', False) else 'ɴᴏ ☑️'}\n"
+            f"➣ <b>ғᴀᴋᴇ ᴀᴄᴄᴏᴜɴᴛ:</b> {'ʏᴇs 🎭' if getattr(user, 'is_fake', False) else 'ɴᴏ ☑️'}\n"
+            f"➣ <b>ᴘʀᴏғɪʟᴇ ᴘɪᴄᴛᴜʀᴇ:</b> {'ʏᴇs 🌠' if user.photo else 'ɴᴏ 🥀'}\n"
+            f"━━━━━━━━━━━━━━━\n"
+            f"➣ <b>ʙɪᴏ:</b> <code>{bio}</code>"
+        )
 
-    path = f"./userinfo_img_{user_id}.png"
-    bg.save(path)
-    return path
+        profile_url = f"https://t.me/{user.username}" if user.username else f"tg://user?id={user.id}"
+        buttons = InlineKeyboardMarkup([[
+            InlineKeyboardButton("👤 ᴠɪᴇᴡ ᴘʀᴏғɪʟᴇ", url=profile_url),
+            InlineKeyboardButton("📞 ᴘʜᴏɴᴇ", url="tg://settings")
+        ]])
 
-@app.on_message(filters.command(["info", "userinfo"], prefixes=["/", "!", "."]))
-async def userinfo(client: Client, message: Message):
-    chat_id = message.chat.id
-
-    if message.reply_to_message:
-        target_user = message.reply_to_message.from_user
-    elif len(message.command) > 1:
-        user_identifier = message.text.split(None, 1)[1]
-        try:
-            if user_identifier.isdigit():
-                user_id = int(user_identifier)
-            else:
-                user_id = user_identifier
-            target_user = await app.get_users(user_id)
-        except Exception as e:
-            await message.reply_text(f"Could not find user: {e}")
-            return
-    else:
-        target_user = message.from_user
-
-    user_id = target_user.id
-
-    try:
-        user_info = await app.get_chat(user_id)
-        status = await userstatus(user_id)
-        dc_id = target_user.dc_id or "Unknown"
-        first_name = user_info.first_name or "No first name"
-        last_name = user_info.last_name or "No last name"
-        username = f"@{user_info.username}" if user_info.username else "No username"
-        mention = target_user.mention
-        bio = user_info.bio or "No bio set"
-
-        if target_user.photo:
-            photo_file_id = target_user.photo.big_file_id
-            profile_photo_path = await app.download_media(photo_file_id)
-
-            welcome_photo = await get_userinfo_img(
-                bg_path=bg_path,
-                font_path=font_path,
-                user_id=user_id,
-                profile_path=profile_photo_path,
+        if user.photo:
+            photo = await app.download_media(user.photo.big_file_id)
+            await app.edit_message_media(
+                chat_id=message.chat.id,
+                message_id=loading.id,
+                media=types.InputMediaPhoto(media=photo, caption=text, parse_mode=enums.ParseMode.HTML),
+                reply_markup=buttons
             )
-            await app.send_photo(
-                chat_id,
-                photo=welcome_photo,
-                caption=INFO_TEXT.format(
-                    user_id,
-                    first_name,
-                    last_name,
-                    username,
-                    mention,
-                    status,
-                    dc_id,
-                    bio
-                ),
-                reply_to_message_id=message.id
-            )
-            try:
-                os.remove(profile_photo_path)
-                os.remove(welcome_photo)
-            except Exception as e:
-                print(f"Error deleting files: {e}")
         else:
-            welcome_photo = random.choice(anniephoto)
-            await app.send_photo(
-                chat_id,
-                photo=welcome_photo,
-                caption=INFO_TEXT.format(
-                    user_id,
-                    first_name,
-                    last_name,
-                    username,
-                    mention,
-                    status,
-                    dc_id,
-                    bio
-                ),
-                reply_to_message_id=message.id
+            await app.edit_message_text(
+                chat_id=message.chat.id,
+                message_id=loading.id,
+                text=text,
+                parse_mode=enums.ParseMode.HTML,
+                reply_markup=buttons
             )
+
+    except PeerIdInvalid:
+        await message.reply("🥀 ɪ ᴄᴏᴜʟᴅɴ'ᴛ ꜰɪɴᴅ ᴛʜᴀᴛ ᴜsᴇʀ.")
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+        return await whois_handler(_, message)
+    except RPCError as e:
+        await message.reply(f"⚠️ ʀᴘᴄ ᴇʀʀᴏʀ:\n<code>{e}</code>")
     except Exception as e:
-        await message.reply_text(f"An error occurred: {e}")
+        await message.reply(f"🥀 ᴇʀʀᴏʀ:\n<code>{e}</code>")

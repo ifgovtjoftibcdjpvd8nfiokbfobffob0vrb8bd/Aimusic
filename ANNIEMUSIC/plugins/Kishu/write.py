@@ -1,42 +1,65 @@
-from pyrogram import filters
-from pyrogram import *
+from pyrogram import Client, filters, enums
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
-from config import  BOT_USERNAME
 from datetime import datetime
-from ANNIEMUSIC import app as app
+from config import BOT_USERNAME
+from ANNIEMUSIC import app
 import requests
+
 
 @app.on_message(filters.command("write"))
 async def handwrite(_, message: Message):
-    if message.reply_to_message:
+    if message.reply_to_message and message.reply_to_message.text:
         text = message.reply_to_message.text
+    elif len(message.command) > 1:
+        text = message.text.split(None, 1)[1]
     else:
-        text =message.text.split(None, 1)[1]
-    m =await message.reply_text( "Please wait...,\n\nWriting your text...")
-    write = requests.get(f"https://apis.xditya.me/write?text={text}").url
+        return await message.reply_text(
+            "❌ Please provide some text to write.\n\nUse `/write your message` or reply to a message.",
+            parse_mode=enums.ParseMode.MARKDOWN
+        )
 
-    caption = f"""
-sᴜᴄᴇssғᴜʟʟʏ ᴡʀɪᴛᴛᴇɴ ᴛᴇxᴛ 💘
-✨ ᴡʀɪᴛᴛᴇɴ ʙʏ : [𝐀𝐍𝐍𝐈𝐄](https://t.me/{BOT_USERNAME})
-🥀 ʀᴇǫᴜᴇsᴛᴇᴅ ʙʏ : {message.from_user.mention}
-"""
-    await m.delete()
-    await message.reply_photo(photo=write,caption=caption)
+    msg = await message.reply_text("✍️ Please wait...\nWriting your text...")
+
+    try:
+        response = requests.get(f"https://apis.xditya.me/write?text={text}")
+        if response.status_code != 200:
+            raise Exception("API Error")
+        image_url = response.url
+    except Exception:
+        return await msg.edit(
+            "❌ Failed to generate handwritten text. Try again later.",
+            parse_mode=enums.ParseMode.MARKDOWN
+        )
+
+    caption = (
+        f"📝 𝒮𝓊𝒸𝒸𝑒𝓈𝓈!\n\n"
+        f"✨ 𝒲𝓇𝒾𝓉𝓉𝑒𝓃 𝒷𝓎: [𝐀𝐍𝐍𝐈𝐄](https://t.me/{BOT_USERNAME})\n"
+        f"🥀 𝑅𝑒𝓆𝓊𝑒𝓈𝓉𝑒𝒹 𝒷𝓎: {message.from_user.mention}"
+    )
+
+    await msg.delete()
+    await message.reply_photo(photo=image_url, caption=caption)
 
 
 @app.on_message(filters.command("day"))
-def date_to_day_command(client: Client, message: Message):
+async def date_to_day_command(client: Client, message: Message):
+    if len(message.command) < 2:
+        return await message.reply_text(
+            "❌ Please provide a date in this format: `/day 1947-08-15`",
+            parse_mode=enums.ParseMode.MARKDOWN
+        )
+
+    input_date = message.command[1].strip()
     try:
-        command_parts = message.text.split(" ", 1)
-        if len(command_parts) == 2:
-            input_date = command_parts[1].strip()
-            date_object = datetime.strptime(input_date, "%Y-%m-%d")
-            day_of_week = date_object.strftime("%A")
+        date_object = datetime.strptime(input_date, "%Y-%m-%d")
+        day_of_week = date_object.strftime("%A")
 
-            message.reply_text(f"The day of the week for {input_date} is {day_of_week}.")
-
-        else:
-            message.reply_text("Please provide a valid date in the format `/day 1947-08-15` ")
-
-    except ValueError as e:
-        message.reply_text(f"Error: {str(e)}")
+        await message.reply_text(
+            f"📆 The day of the week for `{input_date}` is **{day_of_week}**.",
+            parse_mode=enums.ParseMode.MARKDOWN
+        )
+    except ValueError:
+        await message.reply_text(
+            "❌ Invalid date format. Please use: `/day YYYY-MM-DD`",
+            parse_mode=enums.ParseMode.MARKDOWN
+        )

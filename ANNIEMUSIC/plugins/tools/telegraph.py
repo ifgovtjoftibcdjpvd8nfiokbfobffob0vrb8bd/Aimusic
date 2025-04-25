@@ -1,53 +1,65 @@
-
 import os
-import requests
+import aiohttp
+
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+
 from ANNIEMUSIC import app
 
-def upload_file(file_path):
+
+async def upload_file(path: str):
     url = "https://catbox.moe/user/api.php"
-    files = {"fileToUpload": open(file_path, "rb")}
-    response = requests.post(url, data={"reqtype": "fileupload", "json": "true"}, files=files)
-    return (response.status_code == 200, response.text.strip() if response.status_code == 200 else f"Error: {response.status_code} - {response.text}")
+    data = {"reqtype": "fileupload", "json": "true"}
+
+    async with aiohttp.ClientSession() as session:
+        with open(path, "rb") as f:
+            form = aiohttp.FormData()
+            form.add_field("fileToUpload", f, filename=os.path.basename(path))
+            for k, v in data.items():
+                form.add_field(k, v)
+
+            async with session.post(url, data=form) as resp:
+                if resp.status == 200:
+                    result = await resp.text()
+                    return True, result.strip()
+                return False, f"Error: {resp.status} - {await resp.text()}"
+
 
 @app.on_message(filters.command(["tgm", "tgt", "telegraph"]))
-async def get_link_group(client, message):
-    if not message.reply_to_message:
-        return await message.reply_text("❍ Please reply to a media to upload on Telegraph.")
+async def telegraph_handler(_, message: Message):
+    if not message.reply_to_message or not (
+        message.reply_to_message.photo
+        or message.reply_to_message.video
+        or message.reply_to_message.document
+    ):
+        return await message.reply_text("📎 **Please reply to an image/video/document to upload.**")
 
     media = message.reply_to_message
-    file_size = getattr(media, 'photo', None) or getattr(media, 'video', None) or getattr(media, 'document', None)
-    if file_size and file_size.file_size > 200 * 1024 * 1024:
-        return await message.reply_text("Please provide a media file under 200MB.")
+    file = media.photo or media.video or media.document
 
-    text = await message.reply("❍ Processing...")
+    if file.file_size > 200 * 1024 * 1024:
+        return await message.reply_text("⚠️ **File too large. Max size is 200MB.**")
 
-    async def progress(current, total):
-        try:
-            await text.edit_text(f"❍ Downloading... {current * 100 / total:.1f}%")
-        except Exception:
-            pass
+    status = await message.reply("🔄 **Downloading your media...**")
 
     try:
-        local_path = await media.download(progress=progress)
-        await text.edit_text("❍ Uploading to Telegraph...")
-        success, upload_path = upload_file(local_path)
+        local_path = await media.download()
+        await status.edit("⬆️ **Uploading to Telegraph...**")
+        success, result = await upload_file(local_path)
 
         if success:
-            await text.edit_text(
-                f"❍ | [Tap the link]({upload_path})",
+            await status.edit(
+                f"✅ **Uploaded successfully!**\n🔗 [Click to View]({result})",
                 reply_markup=InlineKeyboardMarkup(
-                    [[InlineKeyboardButton("❍ TeleGraph Uploader ❍", url=upload_path)]]
+                    [[InlineKeyboardButton("📎 Open Telegraph", url=result)]]
                 ),
             )
         else:
-            await text.edit_text(f"❍ An error occurred while uploading your file\n{upload_path}")
+            await status.edit(f"❌ **Upload failed:**\n`{result}`")
 
-        os.remove(local_path)
     except Exception as e:
-        await text.edit_text(f"❍ File upload failed\n\n❍ <i>Reason: {e}</i>")
-        try:
+        await status.edit(f"❌ **Failed to process media:**\n`{e}`")
+
+    finally:
+        if os.path.exists(local_path):
             os.remove(local_path)
-        except Exception:
-            pass

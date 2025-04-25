@@ -6,10 +6,12 @@ from ANNIEMUSIC.utils.database import get_playmode, get_playtype, is_nonadmin_ch
 from ANNIEMUSIC.utils.decorators import language
 from ANNIEMUSIC.utils.inline.settings import playmode_users_markup
 from config import BANNED_USERS
+from ANNIEMUSIC.utils.errors import capture_err
 
 
 @app.on_message(filters.command(["playmode" , "mode" ] ,prefixes=["/", "!", "%", ",", ".", "@", "#"]) & filters.group & ~BANNED_USERS)
 @language
+@capture_err
 async def playmode_(client, message: Message, _):
     playmode = await get_playmode(message.chat.id)
     if playmode == "Direct":

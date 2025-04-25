@@ -1,38 +1,36 @@
 from pyrogram import filters
-from pyrogram.types import *
+from pyrogram.types import Message
 from ANNIEMUSIC import app
 from gpytranslate import Translator
 
-#.......
+translator = Translator()
 
-trans = Translator()
-
-#......
 
 @app.on_message(filters.command("tr"))
-async def translate(_, message) -> None:
-    reply_msg = message.reply_to_message
-    if not reply_msg:
-        await message.reply_text("ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴍᴇssᴀɢᴇ ᴛᴏ ᴛʀᴀɴsʟᴀᴛᴇ ɪᴛ !")
-        return
-    if reply_msg.caption:
-        to_translate = reply_msg.caption
-    elif reply_msg.text:
-        to_translate = reply_msg.text
+async def translate(_, message: Message):
+    reply = message.reply_to_message
+
+    if not reply or not (reply.text or reply.caption):
+        return await message.reply_text("📌 ʀᴇᴘʟʏ ᴛᴏ ᴀ ᴛᴇxᴛ ᴏʀ ᴄᴀᴘᴛɪᴏɴ ᴛᴏ ᴛʀᴀɴsʟᴀᴛᴇ.")
+
+    content = reply.text or reply.caption
+
     try:
-        args = message.text.split()[1].lower()
-        if "//" in args:
-            source = args.split("//")[0]
-            dest = args.split("//")[1]
+        arg = message.text.split(maxsplit=1)[1].lower()
+        if "//" in arg:
+            source_lang, target_lang = arg.split("//")
         else:
-            source = await trans.detect(to_translate)
-            dest = args
+            source_lang = await translator.detect(content)
+            target_lang = arg
     except IndexError:
-        source = await trans.detect(to_translate)
-        dest = "en"
-    translation = await trans(to_translate, sourcelang=source, targetlang=dest)
-    reply = (
-        f"ᴛʀᴀɴsʟᴀᴛᴇᴅ ғʀᴏᴍ {source} to {dest}:\n"
-        f"{translation.text}"
-    )
-    await message.reply_text(reply)
+        source_lang = await translator.detect(content)
+        target_lang = "en"
+
+    try:
+        result = await translator(content, sourcelang=source_lang, targetlang=target_lang)
+        await message.reply_text(
+            f"🌐 **ᴛʀᴀɴsʟᴀᴛᴇᴅ:** `{source_lang}` ➜ `{target_lang}`\n\n"
+            f"`{result.text}`"
+        )
+    except Exception as e:
+        await message.reply_text(f"❌ **ᴛʀᴀɴsʟᴀᴛɪᴏɴ ꜰᴀɪʟᴇᴅ:** `{str(e)}`")
