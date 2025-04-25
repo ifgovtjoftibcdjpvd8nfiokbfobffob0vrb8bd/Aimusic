@@ -1,7 +1,8 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from pyrogram.enums import ParseMode
 import httpx
+from pyrogram import Client, filters
+from pyrogram.enums import ParseMode
+from pyrogram.types import Message
+
 from ANNIEMUSIC import app
 
 TRUTH_API = "https://api.truthordarebot.xyz/v1/truth"
@@ -16,8 +17,7 @@ async def get_truth(client: Client, message: Message):
         if res.status_code == 200:
             question = res.json().get("question", "No question found.")
             await message.reply_text(
-                f"🔎 **Truth:**\n\n{question}",
-                parse_mode=ParseMode.MARKDOWN
+                f"🔎 **Truth:**\n\n{question}", parse_mode=ParseMode.MARKDOWN
             )
         else:
             await message.reply_text("❌ Failed to fetch a truth question.")
@@ -34,8 +34,7 @@ async def get_dare(client: Client, message: Message):
         if res.status_code == 200:
             question = res.json().get("question", "No question found.")
             await message.reply_text(
-                f"🎯 **Dare:**\n\n{question}",
-                parse_mode=ParseMode.MARKDOWN
+                f"🎯 **Dare:**\n\n{question}", parse_mode=ParseMode.MARKDOWN
             )
         else:
             await message.reply_text("❌ Failed to fetch a dare question.")

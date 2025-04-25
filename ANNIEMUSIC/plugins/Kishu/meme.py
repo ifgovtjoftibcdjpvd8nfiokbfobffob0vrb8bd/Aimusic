@@ -1,5 +1,6 @@
-from pyrogram import Client, filters
 import requests
+from pyrogram import Client, filters
+
 from ANNIEMUSIC import app
 
 
@@ -8,14 +9,24 @@ async def meme_command(client, message):
     args = message.text.split()
     category = args[1] if len(args) > 1 else ""
 
-    api_url = f"https://meme-api.com/gimme/{category}" if category else "https://meme-api.com/gimme"
+    api_url = (
+        f"https://meme-api.com/gimme/{category}"
+        if category
+        else "https://meme-api.com/gimme"
+    )
 
     try:
         response = requests.get(api_url)
         data = response.json()
 
-        if response.status_code == 403 or "message" in data and "Unable to Access Subreddit" in data["message"]:
-            await message.reply_text("❌ Memes from this category are not found. Please try a different one.")
+        if (
+            response.status_code == 403
+            or "message" in data
+            and "Unable to Access Subreddit" in data["message"]
+        ):
+            await message.reply_text(
+                "❌ Memes from this category are not found. Please try a different one."
+            )
             return
 
         meme_url = data.get("url")

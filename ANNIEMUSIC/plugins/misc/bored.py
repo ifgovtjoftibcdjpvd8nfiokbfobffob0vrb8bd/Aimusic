@@ -1,10 +1,12 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from pyrogram.enums import ParseMode
-from ANNIEMUSIC import app
 import httpx
+from pyrogram import Client, filters
+from pyrogram.enums import ParseMode
+from pyrogram.types import Message
+
+from ANNIEMUSIC import app
 
 BORED_API_URL = "https://apis.scrimba.com/bored/api/activity"
+
 
 @app.on_message(filters.command("bored"))
 async def bored_command(client: Client, message: Message):
@@ -23,7 +25,7 @@ async def bored_command(client: Client, message: Message):
         if activity:
             await message.reply_text(
                 f"😐 **Feeling bored?**\n\n🎯 **Try this:** `{activity}`",
-                parse_mode=ParseMode.MARKDOWN
+                parse_mode=ParseMode.MARKDOWN,
             )
         else:
             await message.reply_text("🤷 No activity found.")

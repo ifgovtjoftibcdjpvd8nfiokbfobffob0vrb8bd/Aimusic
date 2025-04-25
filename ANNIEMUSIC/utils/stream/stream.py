@@ -9,12 +9,13 @@ from ANNIEMUSIC import Carbon, YouTube, app
 from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.misc import db
 from ANNIEMUSIC.utils.database import add_active_video_chat, is_active_chat
+from ANNIEMUSIC.utils.errors import capture_internal_err
 from ANNIEMUSIC.utils.exceptions import AssistantErr
 from ANNIEMUSIC.utils.inline import aq_markup, close_markup, stream_markup
 from ANNIEMUSIC.utils.pastebin import ANNIEBIN
 from ANNIEMUSIC.utils.stream.queue import put_queue, put_queue_index
 from ANNIEMUSIC.utils.thumbnails import get_thumb
-from ANNIEMUSIC.utils.errors import capture_internal_err
+
 
 @capture_internal_err
 async def stream(

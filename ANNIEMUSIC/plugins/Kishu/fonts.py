@@ -1,7 +1,8 @@
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-from ANNIEMUSIC.utils.font_styles import Fonts
+
 from ANNIEMUSIC import app
+from ANNIEMUSIC.utils.font_styles import Fonts
 
 
 @app.on_message(filters.command(["font", "fonts"]))
@@ -11,7 +12,10 @@ async def style_buttons(c, m, cb=False):
         text = message.text.replace("`", "")
     else:
         if len(m.command) < 2:
-            return await m.reply("❌ Please provide text to style.\n\nExample: `/font Hello World!`", quote=True)
+            return await m.reply(
+                "❌ Please provide text to style.\n\nExample: `/font Hello World!`",
+                quote=True,
+            )
         message = m
         text = m.text.split(" ", 1)[1]
 
@@ -51,14 +55,18 @@ async def style_buttons(c, m, cb=False):
             InlineKeyboardButton("H̆̈ă̈p̆̈p̆̈y̆̈", callback_data="style+happy"),
             InlineKeyboardButton("S̑̈ȃ̈d̑̈", callback_data="style+sad"),
         ],
-        [InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close_reply"), InlineKeyboardButton("ɴᴇxᴛ ➻", callback_data="nxt")],
+        [
+            InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close_reply"),
+            InlineKeyboardButton("ɴᴇxᴛ ➻", callback_data="nxt"),
+        ],
     ]
 
     if cb:
         await m.message.edit_reply_markup(InlineKeyboardMarkup(buttons))
     else:
-        await m.reply_text(f"`{text}`", reply_markup=InlineKeyboardMarkup(buttons), quote=True)
-
+        await m.reply_text(
+            f"`{text}`", reply_markup=InlineKeyboardMarkup(buttons), quote=True
+        )
 
 
 @app.on_callback_query(filters.regex("^nxt"))
@@ -96,16 +104,20 @@ async def nxt(c, m):
                 InlineKeyboardButton("S̶t̶r̶i̶k̶e̶", callback_data="style+strike"),
                 InlineKeyboardButton("F༙r༙o༙z༙e༙n༙", callback_data="style+frozen"),
             ],
-            [InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close_reply"), InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="nxt+0")],
+            [
+                InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close_reply"),
+                InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="nxt+0"),
+            ],
         ]
         await m.message.edit_reply_markup(InlineKeyboardMarkup(buttons))
     else:
         await style_buttons(c, m, cb=True)
 
+
 @app.on_callback_query(filters.regex("^style"))
 async def style(c, m):
     await m.answer()
-    _, style = m.data.split('+')
+    _, style = m.data.split("+")
 
     style_map = {
         "typewriter": Fonts.typewriter,

@@ -18,7 +18,7 @@ async def get_couple(cid: int, date: str):
     return {
         "user1": couple_map[date]["user1"],
         "user2": couple_map[date]["user2"],
-        "img": img_path
+        "img": img_path,
     }
 
 
@@ -36,5 +36,5 @@ async def save_couple(cid: int, date: str, couple: dict, img_path: str):
     await coupledb.update_one(
         {"chat_id": cid},
         {"$set": {"couple": couple_map, "img": img_field}},
-        upsert=True
+        upsert=True,
     )

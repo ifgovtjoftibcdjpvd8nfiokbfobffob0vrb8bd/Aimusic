@@ -5,7 +5,7 @@ from pyrogram.types import Message
 from ANNIEMUSIC import app
 
 
-@app.on_message(filters.command('id'))
+@app.on_message(filters.command("id"))
 async def get_id(client, message: Message):
     chat = message.chat
     user = message.from_user
@@ -18,7 +18,9 @@ async def get_id(client, message: Message):
         try:
             target = message.text.split(None, 1)[1].strip()
             target_user = await client.get_users(target)
-            text += f"**[ᴜsᴇʀ ɪᴅ:](tg://user?id={target_user.id})** `{target_user.id}`\n"
+            text += (
+                f"**[ᴜsᴇʀ ɪᴅ:](tg://user?id={target_user.id})** `{target_user.id}`\n"
+            )
         except Exception:
             return await message.reply_text("**ᴛʜɪs ᴜsᴇʀ ᴅᴏᴇsɴ'ᴛ ᴇxɪsᴛ.**", quote=True)
 
@@ -39,7 +41,5 @@ async def get_id(client, message: Message):
             text += f"ɪᴅ ᴏғ ᴛʜᴇ ʀᴇᴘʟɪᴇᴅ ᴄʜᴀᴛ/ᴄʜᴀɴɴᴇʟ: `{reply.sender_chat.id}`"
 
     await message.reply_text(
-        text,
-        disable_web_page_preview=True,
-        parse_mode=ParseMode.DEFAULT
+        text, disable_web_page_preview=True, parse_mode=ParseMode.DEFAULT
     )

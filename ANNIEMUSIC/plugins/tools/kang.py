@@ -1,22 +1,22 @@
+import inspect
 import os
 import shutil
 import subprocess
 import tempfile
 import traceback
-import inspect
 from typing import Tuple
 
-from pyrogram import raw, filters
+from pyrogram import filters, raw
 from pyrogram.errors import (
+    FileReferenceExpired,
+    FloodWait,
+    PeerIdInvalid,
+    RPCError,
+    StickerEmojiInvalid,
     StickersetInvalid,
     StickersTooMuch,
-    StickerEmojiInvalid,
-    PeerIdInvalid,
-    FloodWait,
-    FileReferenceExpired,
-    RPCError,
 )
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.files import resize_file_to_sticker_size
@@ -66,9 +66,7 @@ def _to_input_doc(doc: raw.base.Document) -> raw.types.InputDocument:
     Convert a raw Document into an InputDocument for sticker‑set calls.
     """
     return raw.types.InputDocument(
-        id=doc.id,
-        access_hash=doc.access_hash,
-        file_reference=doc.file_reference
+        id=doc.id, access_hash=doc.access_hash, file_reference=doc.file_reference
     )
 
 
@@ -79,34 +77,71 @@ async def _prepare_media(message, tmp_dir: str, notify) -> Tuple[str, str, bool,
         await notify.edit("➣ ᴘʀᴏᴄᴇssɪɴɢ sᴛɪᴄᴋᴇʀ…")
         s = r.sticker
         if s.is_animated:
-            return "sticker", await r.download(os.path.join(tmp_dir, "sticker.tgs")), True, False
+            return (
+                "sticker",
+                await r.download(os.path.join(tmp_dir, "sticker.tgs")),
+                True,
+                False,
+            )
         if s.is_video:
-            return "sticker", await r.download(os.path.join(tmp_dir, "sticker.webm")), False, True
-        return "sticker", await r.download(os.path.join(tmp_dir, "sticker.png")), False, False
+            return (
+                "sticker",
+                await r.download(os.path.join(tmp_dir, "sticker.webm")),
+                False,
+                True,
+            )
+        return (
+            "sticker",
+            await r.download(os.path.join(tmp_dir, "sticker.png")),
+            False,
+            False,
+        )
 
-    if r.photo or (r.document and r.document.mime_type and r.document.mime_type.startswith("image/")):
+    if r.photo or (
+        r.document
+        and r.document.mime_type
+        and r.document.mime_type.startswith("image/")
+    ):
         await notify.edit("➣ ᴄᴏɴᴠᴇʀᴛɪɴɢ ɪᴍᴀɢᴇ…")
         p = await r.download(os.path.join(tmp_dir, "image"))
         p = await resize_file_to_sticker_size(p)
         return "image", p, False, False
 
     if (
-        r.video or r.animation or
-        (r.document and (
-            r.document.mime_type in ["video/mp4", "video/x-matroska", "image/gif"] or
-            (r.document.file_name and r.document.file_name.endswith(".gif"))
-        ))
+        r.video
+        or r.animation
+        or (
+            r.document
+            and (
+                r.document.mime_type in ["video/mp4", "video/x-matroska", "image/gif"]
+                or (r.document.file_name and r.document.file_name.endswith(".gif"))
+            )
+        )
     ):
         await notify.edit("➣ ᴘʀᴏᴄᴇssɪɴɢ ɢɪꜰ/ᴠɪᴅᴇᴏ…")
         raw_v = await r.download(os.path.join(tmp_dir, "raw.mp4"))
         out_v = os.path.join(tmp_dir, "sticker.webm")
         cmd = [
-            "ffmpeg", "-y", "-i", raw_v,
-            "-vf", "scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease",
-            "-ss", "0", "-t", "3",
-            "-c:v", "libvpx-vp9", "-b:v", "500k", "-crf", "30",
-            "-an", "-r", "30",
-            out_v
+            "ffmpeg",
+            "-y",
+            "-i",
+            raw_v,
+            "-vf",
+            "scale=512:512:flags=lanczos:force_original_aspect_ratio=decrease",
+            "-ss",
+            "0",
+            "-t",
+            "3",
+            "-c:v",
+            "libvpx-vp9",
+            "-b:v",
+            "500k",
+            "-crf",
+            "30",
+            "-an",
+            "-r",
+            "30",
+            out_v,
         ]
         res = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if res.returncode != 0:
@@ -134,7 +169,7 @@ async def kang(client, message):
                 sset = await client.invoke(
                     raw.functions.messages.GetStickerSet(
                         stickerset=raw.types.InputStickerSetShortName(short_name=short),
-                        hash=0
+                        hash=0,
                     )
                 )
                 if len(sset.documents) >= limit:
@@ -152,18 +187,34 @@ async def kang(client, message):
                 media=raw.types.InputMediaUploadedDocument(
                     file=await client.save_file(path),
                     mime_type=(
-                        "application/x-tgsticker" if is_anim else
-                        "video/webm"         if is_vid  else
-                        "image/png"
+                        "application/x-tgsticker"
+                        if is_anim
+                        else "video/webm" if is_vid else "image/png"
                     ),
                     attributes=[
-                        raw.types.DocumentAttributeFilename(file_name=os.path.basename(path)),
-                        raw.types.DocumentAttributeSticker(alt="", stickerset=raw.types.InputStickerSetEmpty(), mask=False)
-                    ] + (
-                        [raw.types.DocumentAttributeVideo(duration=0, w=512, h=512, round_message=False, supports_streaming=False)]
-                        if is_vid else []
-                    )
-                )
+                        raw.types.DocumentAttributeFilename(
+                            file_name=os.path.basename(path)
+                        ),
+                        raw.types.DocumentAttributeSticker(
+                            alt="",
+                            stickerset=raw.types.InputStickerSetEmpty(),
+                            mask=False,
+                        ),
+                    ]
+                    + (
+                        [
+                            raw.types.DocumentAttributeVideo(
+                                duration=0,
+                                w=512,
+                                h=512,
+                                round_message=False,
+                                supports_streaming=False,
+                            )
+                        ]
+                        if is_vid
+                        else []
+                    ),
+                ),
             )
         )
         doc = upload.document
@@ -174,7 +225,9 @@ async def kang(client, message):
             await client.invoke(
                 raw.functions.stickers.AddStickerToSet(
                     stickerset=raw.types.InputStickerSetShortName(short_name=short),
-                    sticker=raw.types.InputStickerSetItem(document=_to_input_doc(doc), emoji=emoji)
+                    sticker=raw.types.InputStickerSetItem(
+                        document=_to_input_doc(doc), emoji=emoji
+                    ),
                 )
             )
             created = False
@@ -184,8 +237,12 @@ async def kang(client, message):
                     user_id=await client.resolve_peer(uid),
                     title=title,
                     short_name=short,
-                    stickers=[raw.types.InputStickerSetItem(document=_to_input_doc(doc), emoji=emoji)],
-                    **_cs_kwargs(is_anim, is_vid)
+                    stickers=[
+                        raw.types.InputStickerSetItem(
+                            document=_to_input_doc(doc), emoji=emoji
+                        )
+                    ],
+                    **_cs_kwargs(is_anim, is_vid),
                 )
             )
             created = True
@@ -198,16 +255,19 @@ async def kang(client, message):
                     user_id=await client.resolve_peer(uid),
                     title=title,
                     short_name=short,
-                    stickers=[raw.types.InputStickerSetItem(document=_to_input_doc(doc), emoji=emoji)],
-                    **_cs_kwargs(is_anim, is_vid)
+                    stickers=[
+                        raw.types.InputStickerSetItem(
+                            document=_to_input_doc(doc), emoji=emoji
+                        )
+                    ],
+                    **_cs_kwargs(is_anim, is_vid),
                 )
             )
             created = True
 
         sset = await client.invoke(
             raw.functions.messages.GetStickerSet(
-                stickerset=raw.types.InputStickerSetShortName(short_name=short),
-                hash=0
+                stickerset=raw.types.InputStickerSetShortName(short_name=short), hash=0
             )
         )
         count = len(sset.documents)
@@ -219,8 +279,14 @@ async def kang(client, message):
             f"ᴄᴏᴜɴᴛ: {count}\n"
             f"ᴇᴍᴏᴊɪ: {emoji}",
             reply_markup=InlineKeyboardMarkup(
-                [[InlineKeyboardButton("ᴏᴘᴇɴ ᴘᴀᴄᴋ", url=f"https://t.me/addstickers/{short}")]]
-            )
+                [
+                    [
+                        InlineKeyboardButton(
+                            "ᴏᴘᴇɴ ᴘᴀᴄᴋ", url=f"https://t.me/addstickers/{short}"
+                        )
+                    ]
+                ]
+            ),
         )
 
     except FloodWait as e:

@@ -4,18 +4,6 @@ import random
 from pyrogram import filters
 from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
 
-from config import (
-    BANNED_USERS,
-    SOUNCLOUD_IMG_URL,
-    STREAM_IMG_URL,
-    SUPPORT_CHAT,
-    TELEGRAM_AUDIO_URL,
-    TELEGRAM_VIDEO_URL,
-    adminlist,
-    confirmer,
-    votemode,
-)
-from strings import get_string
 from ANNIEMUSIC import YouTube, app
 from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.misc import SUDOERS, db
@@ -39,7 +27,18 @@ from ANNIEMUSIC.utils.formatters import seconds_to_min
 from ANNIEMUSIC.utils.inline import close_markup, stream_markup, stream_markup_timer
 from ANNIEMUSIC.utils.stream.autoclear import auto_clean
 from ANNIEMUSIC.utils.thumbnails import get_thumb
-
+from config import (
+    BANNED_USERS,
+    SOUNCLOUD_IMG_URL,
+    STREAM_IMG_URL,
+    SUPPORT_CHAT,
+    TELEGRAM_AUDIO_URL,
+    TELEGRAM_VIDEO_URL,
+    adminlist,
+    confirmer,
+    votemode,
+)
+from strings import get_string
 
 checker = {}
 upvoters = {}
@@ -90,12 +89,16 @@ async def handle_upvote(callback: CallbackQuery, chat_id: int, counter, _):
             await callback.answer(_["admin_38"], show_alert=True)
         else:
             await callback.answer(_["admin_39"], show_alert=True)
-        markup = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                text=f"👍 {current_upvotes}",
-                callback_data=f"ADMIN  UpVote|{chat_id}_{counter if counter is not None else chat_id}"
-            )]
-        ])
+        markup = InlineKeyboardMarkup(
+            [
+                [
+                    InlineKeyboardButton(
+                        text=f"👍 {current_upvotes}",
+                        callback_data=f"ADMIN  UpVote|{chat_id}_{counter if counter is not None else chat_id}",
+                    )
+                ]
+            ]
+        )
         await callback.answer(_["admin_40"], show_alert=True)
         await callback.edit_message_reply_markup(reply_markup=markup)
         return None, None
@@ -137,7 +140,10 @@ async def manage_callback(client, callback: CallbackQuery, _):
         command = new_command
         user_mention = new_mention
     else:
-        if not await is_nonadmin_chat(callback.message.chat.id) and callback.from_user.id not in SUDOERS:
+        if (
+            not await is_nonadmin_chat(callback.message.chat.id)
+            and callback.from_user.id not in SUDOERS
+        ):
             admins = adminlist.get(callback.message.chat.id)
             if not admins:
                 return await callback.answer(_["admin_13"], show_alert=True)
@@ -150,7 +156,9 @@ async def manage_callback(client, callback: CallbackQuery, _):
         await callback.answer()
         await music_off(chat_id)
         await JARVIS.pause_stream(chat_id)
-        await callback.message.reply_text(_["admin_2"].format(user_mention), reply_markup=close_markup(_))
+        await callback.message.reply_text(
+            _["admin_2"].format(user_mention), reply_markup=close_markup(_)
+        )
 
     elif command == "Resume":
         if await is_music_playing(chat_id):
@@ -158,13 +166,17 @@ async def manage_callback(client, callback: CallbackQuery, _):
         await callback.answer()
         await music_on(chat_id)
         await JARVIS.resume_stream(chat_id)
-        await callback.message.reply_text(_["admin_4"].format(user_mention), reply_markup=close_markup(_))
+        await callback.message.reply_text(
+            _["admin_4"].format(user_mention), reply_markup=close_markup(_)
+        )
 
     elif command in ["Stop", "End"]:
         await callback.answer()
         await JARVIS.stop_stream(chat_id)
         await set_loop(chat_id, 0)
-        await callback.message.reply_text(_["admin_5"].format(user_mention), reply_markup=close_markup(_))
+        await callback.message.reply_text(
+            _["admin_5"].format(user_mention), reply_markup=close_markup(_)
+        )
         await callback.message.delete()
 
     elif command == "Mute":
@@ -212,7 +224,9 @@ async def manage_callback(client, callback: CallbackQuery, _):
         await handle_seek(callback, _, chat_id, command, user_mention)
 
 
-async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: str, user_mention: str):
+async def handle_skip_replay(
+    callback: CallbackQuery, _, chat_id: int, command: str, user_mention: str
+):
     playlist = db.get(chat_id)
     if not playlist:
         return await callback.answer(_["queue_2"], show_alert=True)
@@ -227,7 +241,7 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
                 await callback.edit_message_text(text_msg)
                 await callback.message.reply_text(
                     _["admin_6"].format(user_mention, callback.message.chat.title),
-                    reply_markup=close_markup(_)
+                    reply_markup=close_markup(_),
                 )
                 return await JARVIS.stop_stream(chat_id)
         except Exception:
@@ -235,7 +249,7 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
                 await callback.edit_message_text(text_msg)
                 await callback.message.reply_text(
                     _["admin_6"].format(user_mention, callback.message.chat.title),
-                    reply_markup=close_markup(_)
+                    reply_markup=close_markup(_),
                 )
                 return await JARVIS.stop_stream(chat_id)
             except Exception:
@@ -268,8 +282,7 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
         n, new_link = await YouTube.video(videoid, True)
         if n == 0:
             return await callback.message.reply_text(
-                _["admin_7"].format(title),
-                reply_markup=close_markup(_)
+                _["admin_7"].format(title), reply_markup=close_markup(_)
             )
         try:
             image = await YouTube.thumbnail(videoid, True)
@@ -283,17 +296,26 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
         img = await get_thumb(videoid)
         run = await callback.message.reply_photo(
             photo=img,
-            caption=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{videoid}", title[:23], duration, user),
-            reply_markup=InlineKeyboardMarkup(buttons)
+            caption=_["stream_1"].format(
+                f"https://t.me/{app.username}?start=info_{videoid}",
+                title[:23],
+                duration,
+                user,
+            ),
+            reply_markup=InlineKeyboardMarkup(buttons),
         )
         db[chat_id][0]["mystic"] = run
         db[chat_id][0]["markup"] = "tg"
         await callback.edit_message_text(text_msg, reply_markup=close_markup(_))
 
     elif "vid_" in queued:
-        mystic = await callback.message.reply_text(_["call_7"], disable_web_page_preview=True)
+        mystic = await callback.message.reply_text(
+            _["call_7"], disable_web_page_preview=True
+        )
         try:
-            file_path, direct = await YouTube.download(videoid, mystic, videoid=True, video=status)
+            file_path, direct = await YouTube.download(
+                videoid, mystic, videoid=True, video=status
+            )
         except Exception:
             return await mystic.edit_text(_["call_6"])
         try:
@@ -308,8 +330,13 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
         img = await get_thumb(videoid)
         run = await callback.message.reply_photo(
             photo=img,
-            caption=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{videoid}", title[:23], duration, user),
-            reply_markup=InlineKeyboardMarkup(buttons)
+            caption=_["stream_1"].format(
+                f"https://t.me/{app.username}?start=info_{videoid}",
+                title[:23],
+                duration,
+                user,
+            ),
+            reply_markup=InlineKeyboardMarkup(buttons),
         )
         db[chat_id][0]["mystic"] = run
         db[chat_id][0]["markup"] = "stream"
@@ -325,7 +352,7 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
         run = await callback.message.reply_photo(
             photo=STREAM_IMG_URL,
             caption=_["stream_2"].format(user),
-            reply_markup=InlineKeyboardMarkup(buttons)
+            reply_markup=InlineKeyboardMarkup(buttons),
         )
         db[chat_id][0]["mystic"] = run
         db[chat_id][0]["markup"] = "tg"
@@ -346,18 +373,26 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
         if videoid == "telegram":
             buttons = stream_markup(_, chat_id)
             run = await callback.message.reply_photo(
-                photo=(TELEGRAM_AUDIO_URL if str(streamtype) == "audio" else TELEGRAM_VIDEO_URL),
+                photo=(
+                    TELEGRAM_AUDIO_URL
+                    if str(streamtype) == "audio"
+                    else TELEGRAM_VIDEO_URL
+                ),
                 caption=_["stream_1"].format(SUPPORT_CHAT, title[:23], duration, user),
-                reply_markup=InlineKeyboardMarkup(buttons)
+                reply_markup=InlineKeyboardMarkup(buttons),
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
         elif videoid == "soundcloud":
             buttons = stream_markup(_, chat_id)
             run = await callback.message.reply_photo(
-                photo=(SOUNCLOUD_IMG_URL if str(streamtype) == "audio" else TELEGRAM_VIDEO_URL),
+                photo=(
+                    SOUNCLOUD_IMG_URL
+                    if str(streamtype) == "audio"
+                    else TELEGRAM_VIDEO_URL
+                ),
                 caption=_["stream_1"].format(SUPPORT_CHAT, title[:23], duration, user),
-                reply_markup=InlineKeyboardMarkup(buttons)
+                reply_markup=InlineKeyboardMarkup(buttons),
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
@@ -366,15 +401,22 @@ async def handle_skip_replay(callback: CallbackQuery, _, chat_id: int, command: 
             img = await get_thumb(videoid)
             run = await callback.message.reply_photo(
                 photo=img,
-                caption=_["stream_1"].format(f"https://t.me/{app.username}?start=info_{videoid}", title[:23], duration, user),
-                reply_markup=InlineKeyboardMarkup(buttons)
+                caption=_["stream_1"].format(
+                    f"https://t.me/{app.username}?start=info_{videoid}",
+                    title[:23],
+                    duration,
+                    user,
+                ),
+                reply_markup=InlineKeyboardMarkup(buttons),
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"
         await callback.edit_message_text(text_msg, reply_markup=close_markup(_))
 
 
-async def handle_seek(callback: CallbackQuery, _, chat_id: int, command: str, user_mention: str):
+async def handle_seek(
+    callback: CallbackQuery, _, chat_id: int, command: str, user_mention: str
+):
     playing = db.get(chat_id)
     if not playing:
         return await callback.answer(_["queue_2"], show_alert=True)
@@ -393,7 +435,7 @@ async def handle_seek(callback: CallbackQuery, _, chat_id: int, command: str, us
             return await callback.answer(
                 f"» ʙᴏᴛ ɪs ᴜɴᴀʙʟᴇ ᴛᴏ sᴇᴇᴋ ʙᴇᴄᴀᴜsᴇ ᴛʜᴇ ᴅᴜʀᴀᴛɪᴏɴ ᴇxᴄᴇᴇᴅs.\n\n"
                 f"ᴄᴜʀʀᴇɴᴛʟʏ ᴩʟᴀʏᴇᴅ :** {bet}** ᴍɪɴᴜᴛᴇs ᴏᴜᴛ ᴏғ **{duration}** ᴍɪɴᴜᴛᴇs.",
-                show_alert=True
+                show_alert=True,
             )
         to_seek = duration_played - duration_to_skip + 1
     else:
@@ -402,7 +444,7 @@ async def handle_seek(callback: CallbackQuery, _, chat_id: int, command: str, us
             return await callback.answer(
                 f"» ʙᴏᴛ ɪs ᴜɴᴀʙʟᴇ ᴛᴏ sᴇᴇᴋ ʙᴇᴄᴀᴜsᴇ ᴛʜᴇ ᴅᴜʀᴀᴛɪᴏɴ ᴇxᴄᴇᴇᴅs.\n\n"
                 f"ᴄᴜʀʀᴇɴᴛʟʏ ᴩʟᴀʏᴇᴅ :** {bet}** ᴍɪɴᴜᴛᴇs ᴏᴜᴛ ᴏғ **{duration}** ᴍɪɴᴜᴛᴇs.",
-                show_alert=True
+                show_alert=True,
             )
         to_seek = duration_played + duration_to_skip + 1
 
@@ -462,10 +504,13 @@ async def markup_timer():
                         seconds_to_min(playing[0]["played"]),
                         playing[0]["dur"],
                     )
-                    await mystic.edit_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
+                    await mystic.edit_reply_markup(
+                        reply_markup=InlineKeyboardMarkup(buttons)
+                    )
                 except Exception:
                     continue
             except Exception:
                 continue
+
 
 asyncio.create_task(markup_timer())

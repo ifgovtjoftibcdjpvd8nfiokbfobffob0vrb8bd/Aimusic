@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+
 from ANNIEMUSIC import app
 from config import BOT_USERNAME
 
@@ -29,7 +30,9 @@ async def encode_text(_, message):
 
         await message.reply_text(response_text)
     else:
-        await message.reply_text("Please provide text to encode.\nUsage: `/encode Hello`")
+        await message.reply_text(
+            "Please provide text to encode.\nUsage: `/encode Hello`"
+        )
 
 
 @app.on_message(filters.command("decode"))
@@ -46,4 +49,6 @@ async def decode_hex(_, message):
 
         await message.reply_text(response_text)
     else:
-        await message.reply_text("Please provide hex to decode.\nUsage: `/decode 48656c6c6f`")
+        await message.reply_text(
+            "Please provide hex to decode.\nUsage: `/decode 48656c6c6f`"
+        )

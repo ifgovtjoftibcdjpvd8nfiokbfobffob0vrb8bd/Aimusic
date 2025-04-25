@@ -14,7 +14,6 @@ from pyrogram.types import (
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.admin_check import is_admin
 
-
 chatQueue: set[int] = set()
 stopProcess: bool = False
 
@@ -52,7 +51,9 @@ async def prompt_zombie_cleanup(_: Client, message: Message):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton("✅ ʏᴇs, ᴄʟᴇᴀɴ", callback_data=f"confirm_zombies:{message.chat.id}"),
+                InlineKeyboardButton(
+                    "✅ ʏᴇs, ᴄʟᴇᴀɴ", callback_data=f"confirm_zombies:{message.chat.id}"
+                ),
                 InlineKeyboardButton("❌ ɴᴏᴛ ɴᴏᴡ", callback_data="cancel_zombies"),
             ]
         ]
@@ -74,14 +75,18 @@ async def execute_zombie_cleanup(_: Client, cq: CallbackQuery):
     chat_id = int(cq.data.split(":")[1])
 
     if not await is_admin(cq):
-        return await cq.answer("👮🏻 | ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄᴏɴғɪʀᴍ ᴛʜɪs ᴀᴄᴛɪᴏɴ.", show_alert=True)
+        return await cq.answer(
+            "👮🏻 | ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄᴏɴғɪʀᴍ ᴛʜɪs ᴀᴄᴛɪᴏɴ.", show_alert=True
+        )
 
     if chat_id in chatQueue:
         return await cq.answer("⚠️ | ᴄʟᴇᴀɴᴜᴘ ᴀʟʀᴇᴀᴅʏ ɪɴ ᴘʀᴏɢʀᴇss.", show_alert=True)
 
     bot_me = await app.get_chat_member(chat_id, "self")
     if bot_me.status == ChatMemberStatus.MEMBER:
-        return await cq.edit_message_text("➠ | **ɪ ɴᴇᴇᴅ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**")
+        return await cq.edit_message_text(
+            "➠ | **ɪ ɴᴇᴇᴅ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**"
+        )
 
     chatQueue.add(chat_id)
     deleted_list = await scan_deleted_members(chat_id)
@@ -120,7 +125,9 @@ async def cancel_zombie_cleanup(_: Client, cq: CallbackQuery):
 async def list_admins(_: Client, message: Message):
     try:
         owners, admins = [], []
-        async for m in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.ADMINISTRATORS):
+        async for m in app.get_chat_members(
+            message.chat.id, filter=enums.ChatMembersFilter.ADMINISTRATORS
+        ):
             if m.privileges.is_anonymous or m.user.is_bot:
                 continue
             (owners if m.status == ChatMemberStatus.OWNER else admins).append(m.user)
@@ -141,11 +148,15 @@ async def list_admins(_: Client, message: Message):
         await asyncio.sleep(e.value)
 
 
-
 @app.on_message(filters.command("bots"))
 async def list_bots(_: Client, message: Message):
     try:
-        bots = [b.user async for b in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.BOTS)]
+        bots = [
+            b.user
+            async for b in app.get_chat_members(
+                message.chat.id, filter=enums.ChatMembersFilter.BOTS
+            )
+        ]
         txt = f"**ʙᴏᴛ ʟɪsᴛ – {message.chat.title}**\n\n🤖 ʙᴏᴛs\n"
         for i, bt in enumerate(bots):
             branch = "└" if i == len(bots) - 1 else "├"

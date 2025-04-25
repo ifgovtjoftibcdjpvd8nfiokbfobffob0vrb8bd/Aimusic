@@ -4,12 +4,16 @@ from pyrogram.types import InlineKeyboardMarkup, Message
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.database import get_playmode, get_playtype, is_nonadmin_chat
 from ANNIEMUSIC.utils.decorators import language
+from ANNIEMUSIC.utils.errors import capture_err
 from ANNIEMUSIC.utils.inline.settings import playmode_users_markup
 from config import BANNED_USERS
-from ANNIEMUSIC.utils.errors import capture_err
 
 
-@app.on_message(filters.command(["playmode" , "mode" ] ,prefixes=["/", "!", "%", ",", ".", "@", "#"]) & filters.group & ~BANNED_USERS)
+@app.on_message(
+    filters.command(["playmode", "mode"], prefixes=["/", "!", "%", ",", ".", "@", "#"])
+    & filters.group
+    & ~BANNED_USERS
+)
 @language
 @capture_err
 async def playmode_(client, message: Message, _):

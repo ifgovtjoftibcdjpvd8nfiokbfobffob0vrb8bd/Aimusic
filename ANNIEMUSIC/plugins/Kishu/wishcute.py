@@ -1,7 +1,9 @@
-from pyrogram import Client, filters, enums
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 import random
+
 import requests
+from pyrogram import Client, enums, filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+
 from ANNIEMUSIC import app
 
 SUPPORT_CHAT = "CERTIFIEDCODERS"
@@ -28,9 +30,7 @@ async def wish(_, m):
     name = m.from_user.first_name or "User"
 
     caption = (
-        f"✨ ʜᴇʏ {name}!\n"
-        f"🪄 ʏᴏᴜʀ ᴡɪꜱʜ: {text}\n"
-        f"📊 ᴘᴏꜱꜱɪʙɪʟɪᴛʏ: {wish_count}%"
+        f"✨ ʜᴇʏ {name}!\n" f"🪄 ʏᴏᴜʀ ᴡɪꜱʜ: {text}\n" f"📊 ᴘᴏꜱꜱɪʙɪʟɪᴛʏ: {wish_count}%"
     )
 
     await app.send_animation(
@@ -43,7 +43,11 @@ async def wish(_, m):
 
 @app.on_message(filters.command("cute"))
 async def cute(_, message):
-    user = message.reply_to_message.from_user if message.reply_to_message else message.from_user
+    user = (
+        message.reply_to_message.from_user
+        if message.reply_to_message
+        else message.from_user
+    )
     mention = f"[{user.first_name}](tg://user?id={user.id})"
     percent = random.randint(1, 100)
 
@@ -55,5 +59,7 @@ async def cute(_, message):
         caption=caption,
         parse_mode=enums.ParseMode.MARKDOWN,
         reply_markup=SUPPORT_BTN,
-        reply_to_message_id=message.reply_to_message.message_id if message.reply_to_message else None,
+        reply_to_message_id=(
+            message.reply_to_message.message_id if message.reply_to_message else None
+        ),
     )

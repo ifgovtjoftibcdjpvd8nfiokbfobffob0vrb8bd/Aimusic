@@ -1,10 +1,10 @@
 import random
+
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from ANNIEMUSIC import app
 from config import SUPPORT_CHAT
-
 
 BUTTON = [[InlineKeyboardButton("ꜱᴜᴘᴘᴏʀᴛ", url=f"https://t.me/{SUPPORT_CHAT}")]]
 
@@ -20,7 +20,11 @@ LANGD = "https://telegra.ph/file/423414459345bf18310f5.gif"
 
 
 def get_user_mention(message: Message):
-    user = message.reply_to_message.from_user if message.reply_to_message else message.from_user
+    user = (
+        message.reply_to_message.from_user
+        if message.reply_to_message
+        else message.from_user
+    )
     return f"[{user.first_name}](tg://user?id={user.id})"
 
 
@@ -33,7 +37,13 @@ async def cutie(_, message):
     mention = get_user_mention(message)
     percent = random.randint(1, 100)
     text = f"🍑 {mention} ɪꜱ {percent}% ᴄᴜᴛᴇ ʙᴀʙʏ🥀"
-    await app.send_document(message.chat.id, CUTIE, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        CUTIE,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )
 
 
 @app.on_message(filters.command("horny"))
@@ -41,7 +51,13 @@ async def horny(_, message):
     mention = get_user_mention(message)
     percent = random.randint(1, 100)
     text = f"🔥 {mention} ɪꜱ {percent}% ʜᴏʀɴʏ!"
-    await app.send_document(message.chat.id, HORNY, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        HORNY,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )
 
 
 @app.on_message(filters.command("hot"))
@@ -49,7 +65,13 @@ async def hot(_, message):
     mention = get_user_mention(message)
     percent = random.randint(1, 100)
     text = f"🔥 {mention} ɪꜱ {percent}% ʜᴏᴛ!"
-    await app.send_document(message.chat.id, HOT, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        HOT,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )
 
 
 @app.on_message(filters.command("sexy"))
@@ -57,7 +79,13 @@ async def sexy(_, message):
     mention = get_user_mention(message)
     percent = random.randint(1, 100)
     text = f"💋 {mention} ɪꜱ {percent}% ꜱᴇxʏ!"
-    await app.send_document(message.chat.id, SEMXY, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        SEMXY,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )
 
 
 @app.on_message(filters.command("gay"))
@@ -65,7 +93,13 @@ async def gay(_, message):
     mention = get_user_mention(message)
     percent = random.randint(1, 100)
     text = f"🍷 {mention} ɪꜱ {percent}% ɢᴀʏ!"
-    await app.send_document(message.chat.id, GAY, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        GAY,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )
 
 
 @app.on_message(filters.command("lesbian"))
@@ -73,7 +107,13 @@ async def lesbian(_, message):
     mention = get_user_mention(message)
     percent = random.randint(1, 100)
     text = f"💜 {mention} ɪꜱ {percent}% ʟᴇꜱʙɪᴀɴ!"
-    await app.send_document(message.chat.id, LESBIAN, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        LESBIAN,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )
 
 
 @app.on_message(filters.command("boob"))
@@ -81,7 +121,13 @@ async def boob(_, message):
     mention = get_user_mention(message)
     size = random.randint(1, 100)
     text = f"🍒 {mention}ꜱ ʙᴏᴏʙ ꜱɪᴢᴇ ɪꜱ {size}!"
-    await app.send_document(message.chat.id, BIGBALL, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        BIGBALL,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )
 
 
 @app.on_message(filters.command("cock"))
@@ -89,4 +135,10 @@ async def cock(_, message):
     mention = get_user_mention(message)
     size = random.randint(1, 100)
     text = f"🍆 {mention} ᴄᴏᴄᴋ ꜱɪᴢᴇ ɪꜱ {size}ᴄᴍ!"
-    await app.send_document(message.chat.id, LANGD, caption=text, reply_markup=InlineKeyboardMarkup(BUTTON), reply_to_message_id=get_reply_id(message))
+    await app.send_document(
+        message.chat.id,
+        LANGD,
+        caption=text,
+        reply_markup=InlineKeyboardMarkup(BUTTON),
+        reply_to_message_id=get_reply_id(message),
+    )

@@ -1,5 +1,5 @@
-from pyrogram import filters, Client
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram import Client, filters
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from unidecode import unidecode
 
 from ANNIEMUSIC import app
@@ -11,6 +11,7 @@ from ANNIEMUSIC.utils.database import (
     remove_active_video_chat,
 )
 
+
 @app.on_message(filters.command(["activevc", "activevoice", "vc"]) & SUDOERS)
 async def activevc(_, message: Message):
     mystic = await message.reply_text("» ɢᴇᴛᴛɪɴɢ ᴀᴄᴛɪᴠᴇ ᴠᴏɪᴄᴇ ᴄʜᴀᴛs ʟɪsᴛ...")
@@ -21,7 +22,11 @@ async def activevc(_, message: Message):
         try:
             chat = await app.get_chat(x)
             title = unidecode(chat.title).upper()
-            link = f"<a href=https://t.me/{chat.username}>{title}</a>" if chat.username else title
+            link = (
+                f"<a href=https://t.me/{chat.username}>{title}</a>"
+                if chat.username
+                else title
+            )
             text += f"<b>{j + 1}.</b> {link}\n"
             j += 1
         except:
@@ -34,6 +39,7 @@ async def activevc(_, message: Message):
             disable_web_page_preview=True,
         )
 
+
 @app.on_message(filters.command(["activev", "activevideo", "vvc"]) & SUDOERS)
 async def activevi_(_, message: Message):
     mystic = await message.reply_text("» ɢᴇᴛᴛɪɴɢ ᴀᴄᴛɪᴠᴇ ᴠɪᴅᴇᴏ ᴄʜᴀᴛs ʟɪsᴛ...")
@@ -44,7 +50,11 @@ async def activevi_(_, message: Message):
         try:
             chat = await app.get_chat(x)
             title = unidecode(chat.title).upper()
-            link = f"<a href=https://t.me/{chat.username}>{title}</a>" if chat.username else title
+            link = (
+                f"<a href=https://t.me/{chat.username}>{title}</a>"
+                if chat.username
+                else title
+            )
             text += f"<b>{j + 1}.</b> {link} [<code>{x}</code>]\n"
             j += 1
         except:
@@ -57,6 +67,7 @@ async def activevi_(_, message: Message):
             disable_web_page_preview=True,
         )
 
+
 @app.on_message(filters.command(["ac", "av"]) & SUDOERS)
 async def active_count(client: Client, message: Message):
     ac_audio = str(len(await get_active_chats()))
@@ -65,5 +76,5 @@ async def active_count(client: Client, message: Message):
         f"✫ <b><u>ᴀᴄᴛɪᴠᴇ ᴄʜᴀᴛs ɪɴғᴏ</u></b> :\n\nᴠᴏɪᴄᴇ : {ac_audio}\nᴠɪᴅᴇᴏ  : {ac_video}",
         reply_markup=InlineKeyboardMarkup(
             [[InlineKeyboardButton("✯ ᴄʟᴏsᴇ ✯", callback_data="close")]]
-        )
+        ),
     )

@@ -1,17 +1,20 @@
+import httpx
 from pyrogram import Client, filters
 from pyrogram.types import Message
-import httpx
+
 from ANNIEMUSIC import app
 
 
 def chunk_string(text, chunk_size):
-    return [text[i:i + chunk_size] for i in range(0, len(text), chunk_size)]
+    return [text[i : i + chunk_size] for i in range(0, len(text), chunk_size)]
 
 
 @app.on_message(filters.command("allrepo"))
 async def all_repo_command(client: Client, message: Message):
     if len(message.command) < 2:
-        return await message.reply_text("❌ Please enter a GitHub username.\n\nExample: `/allrepo CertifiedCoders`")
+        return await message.reply_text(
+            "❌ Please enter a GitHub username.\n\nExample: `/allrepo CertifiedCoders`"
+        )
 
     username = message.command[1].strip()
 
@@ -19,7 +22,9 @@ async def all_repo_command(client: Client, message: Message):
         repo_info = await get_all_repository_info(username)
 
         if not repo_info:
-            return await message.reply_text("❌ No public repositories found or user does not exist.")
+            return await message.reply_text(
+                "❌ No public repositories found or user does not exist."
+            )
 
         chunks = chunk_string(repo_info, 4000)
 

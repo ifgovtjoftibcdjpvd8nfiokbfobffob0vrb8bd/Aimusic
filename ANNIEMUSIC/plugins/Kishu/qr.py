@@ -1,9 +1,11 @@
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from ANNIEMUSIC import app
+import io
+
 import qrcode
 from PIL import Image
-import io
+from pyrogram import Client, filters
+from pyrogram.types import Message
+
+from ANNIEMUSIC import app
 
 
 def generate_qr_code(text):
@@ -18,7 +20,7 @@ def generate_qr_code(text):
 
     img = qr.make_image(fill_color="white", back_color="black")
     img_bytes = io.BytesIO()
-    img.save(img_bytes, format='PNG')
+    img.save(img_bytes, format="PNG")
     img_bytes.seek(0)
     return img_bytes
 
@@ -30,4 +32,6 @@ async def qr_handler(client, message: Message):
         qr_image = generate_qr_code(input_text)
         await message.reply_photo(qr_image, caption="📷 Here's your QR Code")
     else:
-        await message.reply_text("❌ Please provide the text for the QR code.\n\nExample: `/qr https://github.com/`")
+        await message.reply_text(
+            "❌ Please provide the text for the QR code.\n\nExample: `/qr https://github.com/`"
+        )
