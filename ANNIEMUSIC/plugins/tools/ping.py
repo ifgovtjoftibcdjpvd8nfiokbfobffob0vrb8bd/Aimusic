@@ -2,9 +2,6 @@ from datetime import datetime
 
 from pyrogram import filters
 from pyrogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    InputMediaPhoto,
     Message,
 )
 

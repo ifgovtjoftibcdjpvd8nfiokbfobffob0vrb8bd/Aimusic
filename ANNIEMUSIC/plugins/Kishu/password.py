@@ -1,6 +1,6 @@
 import random
 
-from pyrogram import Client, enums, filters
+from pyrogram import enums, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 from ANNIEMUSIC import app

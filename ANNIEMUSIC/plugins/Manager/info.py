@@ -5,7 +5,6 @@ from pyrogram.errors import FloodWait, PeerIdInvalid, RPCError
 from pyrogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    InputMediaPhoto,
     Message,
 )
 

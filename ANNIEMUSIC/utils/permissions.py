@@ -7,7 +7,7 @@ from typing import Optional, Tuple
 from pyrogram import Client
 from pyrogram.enums import ChatMembersFilter, ChatMemberStatus
 from pyrogram.errors import RPCError
-from pyrogram.types import ChatPermissions, Message, User
+from pyrogram.types import Message, User
 
 from ANNIEMUSIC.logging import LOGGER
 from ANNIEMUSIC.misc import SUDOERS

@@ -1,6 +1,6 @@
 import random
 
-from pyrogram import Client, filters
+from pyrogram import filters
 
 from ANNIEMUSIC import app
 

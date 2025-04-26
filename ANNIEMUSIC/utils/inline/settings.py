@@ -122,7 +122,7 @@ def audio_quality_markup(
         [
             InlineKeyboardButton(
                 text=(
-                    _["ST_B_8"].format("✅") if low == True else _["ST_B_8"].format("")
+                    _["ST_B_8"].format("✅") if low is True else _["ST_B_8"].format("")
                 ),
                 callback_data="LQA",
             )
@@ -131,7 +131,7 @@ def audio_quality_markup(
             InlineKeyboardButton(
                 text=(
                     _["ST_B_9"].format("✅")
-                    if medium == True
+                    if medium is True
                     else _["ST_B_9"].format("")
                 ),
                 callback_data="MQA",
@@ -141,7 +141,7 @@ def audio_quality_markup(
             InlineKeyboardButton(
                 text=(
                     _["ST_B_10"].format("✅")
-                    if high == True
+                    if high is True
                     else _["ST_B_10"].format("")
                 ),
                 callback_data="HQA",
@@ -169,7 +169,7 @@ def video_quality_markup(
             InlineKeyboardButton(
                 text=(
                     _["ST_B_11"].format("✅")
-                    if low == True
+                    if low is True
                     else _["ST_B_11"].format("")
                 ),
                 callback_data="LQV",
@@ -179,7 +179,7 @@ def video_quality_markup(
             InlineKeyboardButton(
                 text=(
                     _["ST_B_12"].format("✅")
-                    if medium == True
+                    if medium is True
                     else _["ST_B_12"].format("")
                 ),
                 callback_data="MQV",
@@ -189,7 +189,7 @@ def video_quality_markup(
             InlineKeyboardButton(
                 text=(
                     _["ST_B_13"].format("✅")
-                    if high == True
+                    if high is True
                     else _["ST_B_13"].format("")
                 ),
                 callback_data="HQV",

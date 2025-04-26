@@ -7,7 +7,7 @@ from pyrogram import filters
 from pyrogram.types import Message
 
 from ANNIEMUSIC import app
-from config import BOT_USERNAME, DEEP_API
+from config import DEEP_API
 
 
 async def download_from_url(path: str, url: str) -> str:

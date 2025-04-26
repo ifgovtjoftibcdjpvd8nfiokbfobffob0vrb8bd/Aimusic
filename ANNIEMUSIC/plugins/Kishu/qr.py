@@ -1,7 +1,6 @@
 import io
 
 import qrcode
-from PIL import Image
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
