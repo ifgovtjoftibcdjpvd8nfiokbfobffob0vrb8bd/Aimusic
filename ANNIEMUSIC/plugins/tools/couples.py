@@ -62,7 +62,7 @@ async def generate_image(chat_id: int, uid1: int, uid2: int, date: str) -> str:
     return out_path
 
 
-@app.on_message(filters.command("couple"))
+@app.on_message(filters.command(["couple", "couples"]))
 async def couples_handler(_, message: Message):
     if message.chat.type == ChatType.PRIVATE:
         return await message.reply("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴏɴʟʏ ᴡᴏʀᴋs ɪɴ ɢʀᴏᴜᴘs.**")
