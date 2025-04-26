@@ -106,7 +106,7 @@ async def handle_mass_confirm(client: app, callback: CallbackQuery):
 async def _do_kickall(client, chat_id: int):
     kicked, errors = 0, 0
     async for m in client.get_chat_members(chat_id):
-        if m.user.is_bot or m.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
+        if m.user.is_bot or m.status in (ChatMemberStatus.OWNER):
             continue
         try:
             await client.ban_chat_member(chat_id, m.user.id)
@@ -122,7 +122,7 @@ async def _do_kickall(client, chat_id: int):
 async def _do_banall(client, chat_id: int):
     banned, errors = 0, 0
     async for m in client.get_chat_members(chat_id):
-        if m.user.is_bot or m.status in (ChatMemberStatus.ADMINISTRATOR, ChatMemberStatus.OWNER):
+        if m.user.is_bot or m.status in (ChatMemberStatus.OWNER):
             continue
         try:
             await client.ban_chat_member(chat_id, m.user.id)
