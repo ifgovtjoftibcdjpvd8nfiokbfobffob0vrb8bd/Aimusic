@@ -1,7 +1,6 @@
-import requests
 from pyrogram import Client, filters
 from pyrogram.enums import ParseMode
-
+import requests
 from ANNIEMUSIC import app
 
 
@@ -21,17 +20,15 @@ async def pypi_info_command(client, message):
     if len(message.command) < 2:
         return await message.reply_text(
             "**❌ Please provide a Python package name.**\n\nExample: `/pypi requests`",
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=ParseMode.MARKDOWN
         )
 
     package_name = message.command[1]
     pypi_info = get_pypi_info(package_name)
 
     if pypi_info:
-        info = pypi_info["info"]
-        project_url = info["project_urls"].get("Homepage") or info.get(
-            "home_page", "N/A"
-        )
+        info = pypi_info['info']
+        project_url = info['project_urls'].get('Homepage') or info.get('home_page', 'N/A')
 
         info_message = (
             f"📦 **Package Name:** `{info['name']}`\n"
@@ -45,5 +42,5 @@ async def pypi_info_command(client, message):
         await message.reply_text(
             "**❌ Please provide a valid Python package name.**\n"
             "It might be misspelled or not published on PyPI.",
-            parse_mode=ParseMode.MARKDOWN,
+            parse_mode=ParseMode.MARKDOWN
         )

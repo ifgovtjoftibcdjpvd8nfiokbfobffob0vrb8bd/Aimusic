@@ -39,7 +39,6 @@ playtype = {}
 skipmode = {}
 mute = {}
 
-
 async def get_assistant_number(chat_id: int) -> str:
     assistant = assistantdict.get(chat_id)
     return assistant
@@ -313,7 +312,6 @@ async def music_on(chat_id: int):
 async def music_off(chat_id: int):
     pause[chat_id] = False
 
-
 async def is_muted(chat_id: int) -> bool:
     mode = mute.get(chat_id)
     if not mode:
@@ -327,7 +325,6 @@ async def mute_on(chat_id: int):
 
 async def mute_off(chat_id: int):
     mute[chat_id] = False
-
 
 async def get_active_chats() -> list:
     return active
@@ -504,12 +501,11 @@ async def add_served_chat(chat_id: int):
         return
     return await chatsdb.insert_one({"chat_id": chat_id})
 
-
 # New function to remove served chat
 async def remove_served_chat(chat_id: int):
     if await is_served_chat(chat_id):
         await chatsdb.delete_one({"chat_id": chat_id})
-
+    
 
 async def blacklisted_chats() -> list:
     chats_list = []

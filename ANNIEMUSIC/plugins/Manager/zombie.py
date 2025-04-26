@@ -17,14 +17,8 @@ from ANNIEMUSIC.utils.admin_check import is_admin
 chatQueue: set[int] = set()
 stopProcess: bool = False
 
-
 async def scan_deleted_members(chat_id: int) -> List:
-    deleted = []
-    async for member in app.get_chat_members(chat_id):
-        if member.user and member.user.is_deleted:
-            deleted.append(member.user)
-    return deleted
-
+    return [member.user async for member in app.get_chat_members(chat_id) if member.user and member.user.is_deleted]
 
 async def safe_edit(msg: Message, text: str):
     try:
@@ -35,39 +29,35 @@ async def safe_edit(msg: Message, text: str):
     except Exception:
         pass
 
-
 @app.on_message(filters.command(["zombies", "clean"]))
 async def prompt_zombie_cleanup(_: Client, message: Message):
     if not await is_admin(message):
-        return await message.reply("👮🏻 | **ᴏɴʟʏ ᴀᴅᴍɪɴs** ᴄᴀɴ ᴇxᴇᴄᴜᴛᴇ ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ.")
+        return await message.reply("👮🏻 | **Only admins can execute this command.**")
 
     deleted_list = await scan_deleted_members(message.chat.id)
     if not deleted_list:
-        return await message.reply("⟳ | **ɴᴏ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs ғᴏᴜɴᴅ ɪɴ ᴛʜɪs ᴄʜᴀᴛ.**")
+        return await message.reply("⟳ | **No deleted accounts found in this chat.**")
 
     total = len(deleted_list)
-    est_time = total * 10
+    est_time = max(1, total // 5)
 
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton(
-                    "✅ ʏᴇs, ᴄʟᴇᴀɴ", callback_data=f"confirm_zombies:{message.chat.id}"
-                ),
-                InlineKeyboardButton("❌ ɴᴏᴛ ɴᴏᴡ", callback_data="cancel_zombies"),
+                InlineKeyboardButton("✅ Yes, Clean", callback_data=f"confirm_zombies:{message.chat.id}"),
+                InlineKeyboardButton("❌ Cancel", callback_data="cancel_zombies"),
             ]
         ]
     )
 
     await message.reply(
         (
-            f"⚠️ | **ғᴏᴜɴᴅ `{total}` ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**\n"
-            f"🥀 | **ᴇsᴛɪᴍᴀᴛᴇᴅ ᴄʟᴇᴀɴᴜᴘ ᴛɪᴍᴇ:** `{est_time}s`\n\n"
-            "ᴅᴏ ʏᴏᴜ ᴡᴀɴɴᴀ ᴄʟᴇᴀɴ ᴛʜᴇᴍ?"
+            f"⚠️ | **Found `{total}` deleted accounts.**\n"
+            f"⏳ | **Estimated cleanup time:** `{est_time}s`\n\n"
+            "Do you want to clean them?"
         ),
         reply_markup=keyboard,
     )
-
 
 @app.on_callback_query(filters.regex(r"^confirm_zombies"))
 async def execute_zombie_cleanup(_: Client, cq: CallbackQuery):
@@ -75,93 +65,88 @@ async def execute_zombie_cleanup(_: Client, cq: CallbackQuery):
     chat_id = int(cq.data.split(":")[1])
 
     if not await is_admin(cq):
-        return await cq.answer(
-            "👮🏻 | ᴏɴʟʏ ᴀᴅᴍɪɴs ᴄᴀɴ ᴄᴏɴғɪʀᴍ ᴛʜɪs ᴀᴄᴛɪᴏɴ.", show_alert=True
-        )
+        return await cq.answer("👮🏻 | Only admins can confirm this action.", show_alert=True)
 
     if chat_id in chatQueue:
-        return await cq.answer("⚠️ | ᴄʟᴇᴀɴᴜᴘ ᴀʟʀᴇᴀᴅʏ ɪɴ ᴘʀᴏɢʀᴇss.", show_alert=True)
+        return await cq.answer("⚠️ | Cleanup already in progress.", show_alert=True)
 
     bot_me = await app.get_chat_member(chat_id, "self")
-    if bot_me.status == ChatMemberStatus.MEMBER:
-        return await cq.edit_message_text(
-            "➠ | **ɪ ɴᴇᴇᴅ ᴀᴅᴍɪɴ ʀɪɢʜᴛs ᴛᴏ ʀᴇᴍᴏᴠᴇ ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**"
-        )
+    if bot_me.status != ChatMemberStatus.ADMINISTRATOR:
+        return await cq.edit_message_text("➠ | **I need admin rights to remove deleted accounts.**")
 
     chatQueue.add(chat_id)
     deleted_list = await scan_deleted_members(chat_id)
     total = len(deleted_list)
 
     status = await cq.edit_message_text(
-        f"🧭 | **ғᴏᴜɴᴅ `{total}` ᴅᴇʟᴇᴛᴇᴅ ᴀᴄᴄᴏᴜɴᴛs.**\n🥀 | **sᴛᴀʀᴛɪɴɢ ᴄʟᴇᴀɴᴜᴘ...**"
+        f"🧭 | **Found `{total}` deleted accounts.**\n🥀 | **Starting cleanup...**"
     )
 
     removed = 0
+
+    async def ban_member(user_id):
+        try:
+            await app.ban_chat_member(chat_id, user_id)
+            return True
+        except FloodWait as e:
+            await asyncio.sleep(e.value)
+            return await ban_member(user_id)
+        except Exception:
+            return False
+
+    tasks = []
     for user in deleted_list:
         if stopProcess:
             break
-        try:
-            await app.ban_chat_member(chat_id, user.id)
-            removed += 1
-        except FloodWait as e:
-            await asyncio.sleep(e.value)
-        except Exception:
-            pass
+        tasks.append(ban_member(user.id))
 
-        if removed % 10 == 0 or removed == total:
-            await safe_edit(status, f"♻️ | **ʀᴇᴍᴏᴠᴇᴅ {removed}/{total}...**")
-        await asyncio.sleep(10)
+    batch_size = 20
+    for i in range(0, len(tasks), batch_size):
+        results = await asyncio.gather(*tasks[i:i + batch_size], return_exceptions=True)
+        removed += sum(1 for r in results if r is True)
+        await safe_edit(status, f"♻️ | **Removed {removed}/{total} deleted accounts...**")
+        await asyncio.sleep(2)
 
     chatQueue.discard(chat_id)
-    await safe_edit(status, f"✅ | **sᴜᴄᴄᴇssғᴜʟʟʏ ʀᴇᴍᴏᴠᴇᴅ `{removed}` ᴏꜰ `{total}`.**")
-
+    await safe_edit(status, f"✅ | **Successfully removed `{removed}` out of `{total}` zombies.**")
 
 @app.on_callback_query(filters.regex(r"^cancel_zombies$"))
 async def cancel_zombie_cleanup(_: Client, cq: CallbackQuery):
-    await cq.edit_message_text("❌ | **ᴄʟᴇᴀɴᴜᴘ ᴄᴀɴᴄᴇʟʟᴇᴅ ʙʏ ᴜsᴇʀ.**")
-
+    await cq.edit_message_text("❌ | **Cleanup cancelled.**")
 
 @app.on_message(filters.command(["admins", "staff"]))
 async def list_admins(_: Client, message: Message):
     try:
         owners, admins = [], []
-        async for m in app.get_chat_members(
-            message.chat.id, filter=enums.ChatMembersFilter.ADMINISTRATORS
-        ):
+        async for m in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.ADMINISTRATORS):
             if m.privileges.is_anonymous or m.user.is_bot:
                 continue
             (owners if m.status == ChatMemberStatus.OWNER else admins).append(m.user)
 
-        txt = f"**ɢʀᴏᴜᴘ sᴛᴀғғ – {message.chat.title}**\n\n"
+        txt = f"**Group Staff – {message.chat.title}**\n\n"
         owner_line = owners[0].mention if owners else "<i>Hidden</i>"
-        txt += f"👑 ᴏᴡɴᴇʀ\n└ {owner_line}\n\n👮🏻 ᴀᴅᴍɪɴs\n"
+        txt += f"👑 Owner\n└ {owner_line}\n\n👮🏻 Admins\n"
 
         if not admins:
-            txt += "└ <i>Admins are hidden</i>"
+            txt += "└ <i>No visible admins</i>"
         else:
             for i, adm in enumerate(admins):
                 branch = "└" if i == len(admins) - 1 else "├"
                 txt += f"{branch} {'@'+adm.username if adm.username else adm.mention}\n"
-        txt += f"\n✅ | **Total admins**: {len(owners)+len(admins)}"
+        txt += f"\n✅ | **Total Admins**: {len(owners) + len(admins)}"
         await app.send_message(message.chat.id, txt)
     except FloodWait as e:
         await asyncio.sleep(e.value)
 
-
 @app.on_message(filters.command("bots"))
 async def list_bots(_: Client, message: Message):
     try:
-        bots = [
-            b.user
-            async for b in app.get_chat_members(
-                message.chat.id, filter=enums.ChatMembersFilter.BOTS
-            )
-        ]
-        txt = f"**ʙᴏᴛ ʟɪsᴛ – {message.chat.title}**\n\n🤖 ʙᴏᴛs\n"
+        bots = [b.user async for b in app.get_chat_members(message.chat.id, filter=enums.ChatMembersFilter.BOTS)]
+        txt = f"**Bot List – {message.chat.title}**\n\n🤖 Bots\n"
         for i, bt in enumerate(bots):
             branch = "└" if i == len(bots) - 1 else "├"
             txt += f"{branch} @{bt.username}\n"
-        txt += f"\n✅ | **Total bots**: {len(bots)}"
+        txt += f"\n✅ | **Total Bots**: {len(bots)}"
         await app.send_message(message.chat.id, txt)
     except FloodWait as e:
         await asyncio.sleep(e.value)

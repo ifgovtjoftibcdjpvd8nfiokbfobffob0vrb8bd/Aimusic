@@ -1,35 +1,27 @@
+from pyrogram import Client, filters
 import random
-
-from pyrogram import filters
-
 from ANNIEMUSIC import app
 
 
 def get_random_message(love_percentage):
     if love_percentage <= 30:
-        return random.choice(
-            [
-                "Love is in the air but needs a little spark.",
-                "A good start but there's room to grow.",
-                "It's just the beginning of something beautiful.",
-            ]
-        )
+        return random.choice([
+            "Love is in the air but needs a little spark.",
+            "A good start but there's room to grow.",
+            "It's just the beginning of something beautiful."
+        ])
     elif love_percentage <= 70:
-        return random.choice(
-            [
-                "A strong connection is there. Keep nurturing it.",
-                "You've got a good chance. Work on it.",
-                "Love is blossoming, keep going.",
-            ]
-        )
+        return random.choice([
+            "A strong connection is there. Keep nurturing it.",
+            "You've got a good chance. Work on it.",
+            "Love is blossoming, keep going."
+        ])
     else:
-        return random.choice(
-            [
-                "Wow! It's a match made in heaven!",
-                "Perfect match! Cherish this bond.",
-                "Destined to be together. Congratulations!",
-            ]
-        )
+        return random.choice([
+            "Wow! It's a match made in heaven!",
+            "Perfect match! Cherish this bond.",
+            "Destined to be together. Congratulations!"
+        ])
 
 
 @app.on_message(filters.command("love", prefixes="/"))
@@ -44,8 +36,6 @@ async def love_command(client, message):
 
         response = f"{name1}💕 + {name2}💕 = {love_percentage}%\n\n{love_message}"
     else:
-        response = (
-            "Please enter two names after /love command.\nExample: `/love Alice Bob`"
-        )
+        response = "Please enter two names after /love command.\nExample: `/love Alice Bob`"
 
     await app.send_message(message.chat.id, response)

@@ -1,8 +1,8 @@
 import asyncio
-import json
 import os
 import re
-from typing import Dict, List, Optional, Tuple, Union
+import json
+from typing import Union, Tuple, List, Optional, Dict
 
 import yt_dlp
 from pyrogram.enums import MessageEntityType
@@ -10,9 +10,9 @@ from pyrogram.types import Message
 from youtubesearchpython.__future__ import VideosSearch
 
 from ANNIEMUSIC.utils.database import is_on_off
-from ANNIEMUSIC.utils.downloader import api_download_song
-from ANNIEMUSIC.utils.errors import capture_internal_err
 from ANNIEMUSIC.utils.formatters import time_to_seconds
+from ANNIEMUSIC.utils.errors import capture_internal_err
+from ANNIEMUSIC.utils.downloader import api_download_song
 
 cookies_file = "ANNIEMUSIC/assets/cookies.txt"
 
@@ -69,15 +69,13 @@ class YouTubeAPI:
                 continue
             for entity in entities:
                 if entity.type == MessageEntityType.URL:
-                    return text[entity.offset : entity.offset + entity.length]
+                    return text[entity.offset:entity.offset + entity.length]
                 elif entity.type == MessageEntityType.TEXT_LINK:
                     return entity.url
         return None
 
     @capture_internal_err
-    async def _fetch_video_info(
-        self, query: str, use_cache: bool = True
-    ) -> Optional[Dict]:
+    async def _fetch_video_info(self, query: str, use_cache: bool = True) -> Optional[Dict]:
         if use_cache and not query.startswith("http"):
             result = await cached_youtube_search(query)
         else:
@@ -89,11 +87,7 @@ class YouTubeAPI:
     async def is_live(self, link: str) -> bool:
         prepared = self._prepare_link(link)
         proc = await asyncio.create_subprocess_exec(
-            "yt-dlp",
-            "--cookies",
-            cookies_file,
-            "--dump-json",
-            prepared,
+            "yt-dlp", "--cookies", cookies_file, "--dump-json", prepared,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
         )
@@ -107,9 +101,7 @@ class YouTubeAPI:
         return False
 
     @capture_internal_err
-    async def details(
-        self, link: str, videoid: Union[bool, str] = None
-    ) -> Tuple[str, Optional[str], int, str, str]:
+    async def details(self, link: str, videoid: Union[bool, str] = None) -> Tuple[str, Optional[str], int, str, str]:
         info = await self._fetch_video_info(self._prepare_link(link, videoid))
         if not info:
             raise ValueError("Video not found")
@@ -118,7 +110,7 @@ class YouTubeAPI:
             info.get("duration"),
             int(time_to_seconds(info["duration"])) if info.get("duration") else 0,
             info.get("thumbnails", [{}])[0].get("url", "").split("?")[0],
-            info.get("id", ""),
+            info.get("id", "")
         )
 
     @capture_internal_err
@@ -127,34 +119,21 @@ class YouTubeAPI:
         return info.get("title", "") if info else ""
 
     @capture_internal_err
-    async def duration(
-        self, link: str, videoid: Union[bool, str] = None
-    ) -> Optional[str]:
+    async def duration(self, link: str, videoid: Union[bool, str] = None) -> Optional[str]:
         info = await self._fetch_video_info(self._prepare_link(link, videoid))
         return info.get("duration") if info else None
 
     @capture_internal_err
     async def thumbnail(self, link: str, videoid: Union[bool, str] = None) -> str:
         info = await self._fetch_video_info(self._prepare_link(link, videoid))
-        return (
-            info.get("thumbnails", [{}])[0].get("url", "").split("?")[0] if info else ""
-        )
+        return info.get("thumbnails", [{}])[0].get("url", "").split("?")[0] if info else ""
 
     @capture_internal_err
-    async def video(
-        self, link: str, videoid: Union[bool, str] = None
-    ) -> Tuple[int, str]:
+    async def video(self, link: str, videoid: Union[bool, str] = None) -> Tuple[int, str]:
         link = self._prepare_link(link, videoid)
         proc = await asyncio.create_subprocess_exec(
-            "yt-dlp",
-            "--cookies",
-            cookies_file,
-            "-g",
-            "-f",
-            "best[height<=?720][width<=?1280]",
-            link,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            "yt-dlp", "--cookies", cookies_file, "-g", "-f", "best[height<=?720][width<=?1280]",
+            link, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
         )
         stdout, stderr = await proc.communicate()
         if stdout:
@@ -162,9 +141,7 @@ class YouTubeAPI:
         return 0, stderr.decode()
 
     @capture_internal_err
-    async def playlist(
-        self, link: str, limit: int, user_id, videoid: Union[bool, str] = None
-    ) -> list:
+    async def playlist(self, link: str, limit: int, user_id, videoid: Union[bool, str] = None) -> list:
         if videoid:
             link = self.playlist_url + videoid
         if "&" in link:
@@ -177,9 +154,7 @@ class YouTubeAPI:
         return [item for item in playlist_data.strip().split("\n") if item]
 
     @capture_internal_err
-    async def track(
-        self, link: str, videoid: Union[bool, str] = None
-    ) -> Tuple[Dict, str]:
+    async def track(self, link: str, videoid: Union[bool, str] = None) -> Tuple[Dict, str]:
         try:
             info = await self._fetch_video_info(self._prepare_link(link, videoid))
             if not info:
@@ -187,11 +162,7 @@ class YouTubeAPI:
         except:
             prepared_link = self._prepare_link(link, videoid)
             proc = await asyncio.create_subprocess_exec(
-                "yt-dlp",
-                "--cookies",
-                cookies_file,
-                "--dump-json",
-                prepared_link,
+                "yt-dlp", "--cookies", cookies_file, "--dump-json", prepared_link,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
             )
@@ -207,16 +178,12 @@ class YouTubeAPI:
             "title": info.get("title", ""),
             "link": info.get("webpage_url", link),
             "vidid": info.get("id", ""),
-            "duration_min": (
-                info.get("duration") if isinstance(info.get("duration"), str) else None
-            ),
+            "duration_min": info.get("duration") if isinstance(info.get("duration"), str) else None,
             "thumb": info.get("thumbnail", ""),
         }, info.get("id", "")
 
     @capture_internal_err
-    async def formats(
-        self, link: str, videoid: Union[bool, str] = None
-    ) -> Tuple[List[Dict], str]:
+    async def formats(self, link: str, videoid: Union[bool, str] = None) -> Tuple[List[Dict], str]:
         link = self._prepare_link(link, videoid)
         opts = {"quiet": True, "cookiefile": cookies_file}
         formats = []
@@ -225,26 +192,19 @@ class YouTubeAPI:
             for fmt in info.get("formats", []):
                 if "dash" in fmt.get("format", "").lower():
                     continue
-                if all(
-                    k in fmt
-                    for k in ("format", "filesize", "format_id", "ext", "format_note")
-                ):
-                    formats.append(
-                        {
-                            "format": fmt["format"],
-                            "filesize": fmt["filesize"],
-                            "format_id": fmt["format_id"],
-                            "ext": fmt["ext"],
-                            "format_note": fmt["format_note"],
-                            "yturl": link,
-                        }
-                    )
+                if all(k in fmt for k in ("format", "filesize", "format_id", "ext", "format_note")):
+                    formats.append({
+                        "format": fmt["format"],
+                        "filesize": fmt["filesize"],
+                        "format_id": fmt["format_id"],
+                        "ext": fmt["ext"],
+                        "format_note": fmt["format_note"],
+                        "yturl": link,
+                    })
         return formats, link
 
     @capture_internal_err
-    async def slider(
-        self, link: str, query_type: int, videoid: Union[bool, str] = None
-    ) -> Tuple[str, Optional[str], str, str]:
+    async def slider(self, link: str, query_type: int, videoid: Union[bool, str] = None) -> Tuple[str, Optional[str], str, str]:
         search = VideosSearch(self._prepare_link(link, videoid), limit=10)
         results = (await search.next()).get("result", [])
         if not results or query_type >= len(results):
@@ -324,13 +284,11 @@ class YouTubeAPI:
                 "quiet": True,
                 "no_warnings": True,
                 "prefer_ffmpeg": True,
-                "postprocessors": [
-                    {
-                        "key": "FFmpegExtractAudio",
-                        "preferredcodec": "mp3",
-                        "preferredquality": "192",
-                    }
-                ],
+                "postprocessors": [{
+                    "key": "FFmpegExtractAudio",
+                    "preferredcodec": "mp3",
+                    "preferredquality": "192",
+                }],
                 "cookiefile": cookies_file,
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
@@ -353,15 +311,8 @@ class YouTubeAPI:
                 path = await loop.run_in_executor(None, video_dl)
                 return path, True
             proc = await asyncio.create_subprocess_exec(
-                "yt-dlp",
-                "--cookies",
-                cookies_file,
-                "-g",
-                "-f",
-                "best[height<=?720][width<=?1280]",
-                link,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
+                "yt-dlp", "--cookies", cookies_file, "-g", "-f", "best[height<=?720][width<=?1280]",
+                link, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
             )
             stdout, _ = await proc.communicate()
             if stdout:

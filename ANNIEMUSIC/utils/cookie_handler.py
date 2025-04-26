@@ -1,9 +1,8 @@
+import requests
 import logging
 
-import requests
-
-from ANNIEMUSIC.utils.errors import capture_internal_err
 from config import COOKIE_URL
+from ANNIEMUSIC.utils.errors import capture_internal_err
 
 # Path to save fetched cookies
 COOKIE_PATH = "ANNIEMUSIC/assets/cookies.txt"
@@ -48,7 +47,7 @@ async def fetch_and_store_cookies():
 
     try:
         with open(COOKIE_PATH, "w", encoding="utf-8") as f:
-            f.write("")  # clear file first
+            f.write("")       # clear file first
             f.write(cookies)  # write new cookies
     except Exception as e:
         raise IOError(f"⚠️ ғᴀɪʟᴇᴅ ᴛᴏ sᴀᴠᴇ ᴄᴏᴏᴋɪᴇs: {e}")

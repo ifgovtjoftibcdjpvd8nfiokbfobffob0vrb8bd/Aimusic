@@ -1,8 +1,7 @@
-import requests
 from pyrogram import Client, filters
-from pyrogram.enums import ParseMode
 from pyrogram.types import Message
-
+from pyrogram.enums import ParseMode
+import requests
 from ANNIEMUSIC import app
 
 
@@ -36,9 +35,7 @@ async def country_command_handler(client: Client, message: Message):
             response_text = "❌ Country information could not be fetched."
 
     except requests.exceptions.HTTPError:
-        response_text = (
-            "❌ Invalid country code. Please use a valid ISO code like `IN`, `US`, etc."
-        )
+        response_text = "❌ Invalid country code. Please use a valid ISO code like `IN`, `US`, etc."
     except Exception as err:
         print(f"Error: {err}")
         response_text = "⚠️ An unexpected error occurred. Please try again later."

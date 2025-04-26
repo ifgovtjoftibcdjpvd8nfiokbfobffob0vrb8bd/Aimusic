@@ -1,16 +1,14 @@
 from datetime import datetime
-
 from pyrogram import filters
-from pyrogram.enums import ParseMode
 from pyrogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Message,
 )
-
-from ANNIEMUSIC import app
+from pyrogram.enums import ParseMode
 from config import OWNER_ID
+from ANNIEMUSIC import app
 
 
 def extract_bug_content(msg: Message) -> str | None:
@@ -18,7 +16,7 @@ def extract_bug_content(msg: Message) -> str | None:
 
 
 def escape_md(text: str) -> str:
-    return text.replace("[", "\\[").replace("]", "\\]").replace("`", "\\`")
+    return text.replace('[', '\\[').replace(']', '\\]').replace('`', '\\`')
 
 
 @app.on_message(filters.command("bug"))
@@ -28,9 +26,7 @@ async def report_bug(_, msg: Message):
 
     bug_description = extract_bug_content(msg)
     if not bug_description:
-        return await msg.reply_text(
-            "**ɴᴏ ʙᴜɢ ᴅᴇsᴄʀɪᴘᴛɪᴏɴ ᴘʀᴏᴠɪᴅᴇᴅ. ᴘʟᴇᴀsᴇ sᴘᴇᴄɪғʏ ᴛʜᴇ ʙᴜɢ.**"
-        )
+        return await msg.reply_text("**ɴᴏ ʙᴜɢ ᴅᴇsᴄʀɪᴘᴛɪᴏɴ ᴘʀᴏᴠɪᴅᴇᴅ. ᴘʟᴇᴀsᴇ sᴘᴇᴄɪғʏ ᴛʜᴇ ʙᴜɢ.**")
 
     user_id = msg.from_user.id
     user_name = escape_md(msg.from_user.first_name)
@@ -76,7 +72,7 @@ async def report_bug(_, msg: Message):
         bug_report,
         parse_mode=ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup(buttons),
-        disable_web_page_preview=True,
+        disable_web_page_preview=True
     )
 
 
@@ -85,9 +81,7 @@ async def close_bug_report(_, query: CallbackQuery):
     try:
         member = await app.get_chat_member(query.message.chat.id, query.from_user.id)
         if not member.privileges or not member.privileges.can_delete_messages:
-            return await query.answer(
-                "ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴅᴇʟᴇᴛᴇ ᴛʜɪs.", show_alert=True
-            )
+            return await query.answer("ʏᴏᴜ ᴅᴏɴ'ᴛ ʜᴀᴠᴇ ᴘᴇʀᴍɪssɪᴏɴ ᴛᴏ ᴅᴇʟᴇᴛᴇ ᴛʜɪs.", show_alert=True)
     except:
         return await query.answer("ᴄᴏᴜʟᴅ ɴᴏᴛ ᴠᴇʀɪғʏ ᴀᴄᴄᴇss.", show_alert=True)
 

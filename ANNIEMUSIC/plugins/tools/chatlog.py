@@ -1,10 +1,9 @@
 import random
-
 from pyrogram import filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import Message, InlineKeyboardButton, InlineKeyboardMarkup
 
-from ANNIEMUSIC import app
 from config import LOGGER_ID
+from ANNIEMUSIC import app
 
 PHOTOS = [
     "https://telegra.ph/file/3c9c23857075dcaea5892.jpg",
@@ -42,18 +41,7 @@ async def join_watcher(_, message: Message):
                 photo=random.choice(PHOTOS),
                 caption=caption,
                 reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                "sᴇᴇ ɢʀᴏᴜᴘ 👀",
-                                url=(
-                                    invite_link
-                                    if isinstance(invite_link, str)
-                                    else "https://t.me/"
-                                ),
-                            )
-                        ]
-                    ]
+                    [[InlineKeyboardButton("sᴇᴇ ɢʀᴏᴜᴘ 👀", url=invite_link if isinstance(invite_link, str) else "https://t.me/")]]
                 ),
             )
 

@@ -1,15 +1,9 @@
 import asyncio
 import random
 import time
-
 from pyrogram import filters
 from pyrogram.enums import ChatType
-from pyrogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    InputMediaPhoto,
-    Message,
-)
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto, Message
 from youtubesearchpython.__future__ import VideosSearch
 
 import config
@@ -29,9 +23,9 @@ from ANNIEMUSIC.utils.database import (
 )
 from ANNIEMUSIC.utils.decorators.language import LanguageStart
 from ANNIEMUSIC.utils.formatters import get_readable_time
-from ANNIEMUSIC.utils.inline.help import first_page
 from ANNIEMUSIC.utils.inline.start import private_panel, start_panel
-from config import AYUV, BANNED_USERS, START_IMG_URL
+from ANNIEMUSIC.utils.inline.help import first_page
+from config import BANNED_USERS, AYUV, START_IMG_URL
 from strings import get_string
 
 ANNIE_VID = [
@@ -44,7 +38,7 @@ ANNIE_VID = [
     "https://telegra.ph/file/c6c1ac9aee4192a8a3747.mp4",
     "https://telegra.ph/file/55c840c8eba0555318f0d.mp4",
     "https://telegra.ph/file/e97715885d0a0cfbddaaa.mp4",
-    "https://telegra.ph/file/943bb99829ec526c3f99a.mp4",
+    "https://telegra.ph/file/943bb99829ec526c3f99a.mp4"
 ]
 
 STICKERS = [
@@ -52,13 +46,12 @@ STICKERS = [
     "CAACAgUAAx0CfL_LsAACCSRl_oru7uW8WAt3-L1pYQWe_1mxawACQw8AAj78MVeb3v2OFvEnNB4E",
     "CAACAgEAAx0Cd6nKUAACATVl_rtAi9KCVQf8vcUC4FMDUfLP8wACHQEAAlEpDTnhphyRDaTrPR4E",
     "CAACAgUAAx0Cd6nKUAACATJl_rsEJOsaaPSYGhU7bo7iEwL8AAPMDgACu2PYV8Vb8aT4_HUPHgQ",
-]
 
+]
 
 async def delete_sticker_after_delay(message, delay):
     await asyncio.sleep(delay)
     await message.delete()
-
 
 @app.on_message(filters.command(["start"]) & filters.private & ~BANNED_USERS)
 @LanguageStart
@@ -127,14 +120,7 @@ async def start_pm(client, message: Message, _):
         await message.reply_video(
             random.choice(ANNIE_VID),
             caption=random.choice(AYUV).format(
-                message.from_user.mention,
-                app.mention,
-                UP,
-                DISK,
-                CPU,
-                RAM,
-                served_users,
-                served_chats,
+                message.from_user.mention, app.mention, UP, DISK, CPU, RAM, served_users, served_chats
             ),
             reply_markup=InlineKeyboardMarkup(out),
         )
@@ -143,7 +129,6 @@ async def start_pm(client, message: Message, _):
                 chat_id=config.LOGGER_ID,
                 text=f"{message.from_user.mention} ᴊᴜsᴛ sᴛᴀʀᴛᴇᴅ ᴛʜᴇ ʙᴏᴛ.\n\n<b>ᴜsᴇʀ ɪᴅ :</b> <code>{message.from_user.id}</code>\n<b>ᴜsᴇʀɴᴀᴍᴇ :</b> @{message.from_user.username}",
             )
-
 
 @app.on_message(filters.command(["start"]) & filters.group & ~BANNED_USERS)
 @LanguageStart
@@ -156,7 +141,6 @@ async def start_gp(client, message: Message, _):
         reply_markup=InlineKeyboardMarkup(out),
     )
     return await add_served_chat(message.chat.id)
-
 
 @app.on_message(filters.new_chat_members, group=-1)
 async def welcome(client, message: Message):

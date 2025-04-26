@@ -1,9 +1,7 @@
 import os
-
 from pyrogram import Client, filters
-from pyrogram.errors import FloodWait
 from pyrogram.types import Message
-
+from pyrogram.errors import FloodWait
 from ANNIEMUSIC import app
 from ANNIEMUSIC.misc import SUDOERS
 
@@ -19,10 +17,7 @@ async def give_link_command(client: Client, message: Message):
         await message.reply_text(f"❌ ᴇʀʀᴏʀ ɢᴇɴᴇʀᴀᴛɪɴɢ ʟɪɴᴋ:\n`{e}`")
 
 
-@app.on_message(
-    filters.command(["link", "invitelink"], prefixes=["/", "!", ".", "#", "?"])
-    & SUDOERS
-)
+@app.on_message(filters.command(["link", "invitelink"], prefixes=["/", "!", ".", "#", "?"]) & SUDOERS)
 async def link_command_handler(client: Client, message: Message):
     if len(message.command) != 2:
         return await message.reply("**ᴜsᴀɢᴇ:** `/link <group_id>`")

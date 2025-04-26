@@ -1,19 +1,18 @@
 import asyncio
-
 from pyrogram import filters
 from pyrogram.enums import ChatMemberStatus
+from pyrogram.types import ChatJoinRequest
 from pyrogram.errors import (
-    ChannelPrivate,
     ChatAdminRequired,
-    FloodWait,
-    PeerIdInvalid,
     UserAlreadyParticipant,
     UserNotParticipant,
+    ChannelPrivate,
+    FloodWait,
+    PeerIdInvalid,
 )
-from pyrogram.types import ChatJoinRequest
 
 from ANNIEMUSIC import app
-from ANNIEMUSIC.utils.admin_filters import admin_filter, dev_filter, sudo_filter
+from ANNIEMUSIC.utils.admin_filters import dev_filter, admin_filter, sudo_filter
 from ANNIEMUSIC.utils.database import get_assistant
 
 
@@ -79,17 +78,11 @@ async def join_group(app, message):
         me = await app.get_me()
         chat_member = await app.get_chat_member(chat_id, me.id)
         if chat_member.status != ChatMemberStatus.ADMINISTRATOR:
-            return await status_message.edit(
-                "**❌ I need to be admin to invite the assistant.**"
-            )
+            return await status_message.edit("**❌ I need to be admin to invite the assistant.**")
     except ChatAdminRequired:
-        return await status_message.edit(
-            "**❌ I don't have permission to check admin status in this chat.**"
-        )
+        return await status_message.edit("**❌ I don't have permission to check admin status in this chat.**")
     except Exception as e:
-        return await status_message.edit(
-            f"**❌ Failed to verify permissions:** `{str(e)}`"
-        )
+        return await status_message.edit(f"**❌ Failed to verify permissions:** `{str(e)}`")
 
     chat_username = message.chat.username or None
     response = await join_userbot(app, chat_id, chat_username)
@@ -108,16 +101,12 @@ async def leave_one(app, message):
         userbot = await get_assistant(chat_id)
         member = await userbot.get_chat_member(chat_id, userbot.id)
         if member.status in [ChatMemberStatus.LEFT, ChatMemberStatus.BANNED]:
-            return await message.reply(
-                "**🤖 Assistant is not currently in this chat.**"
-            )
+            return await message.reply("**🤖 Assistant is not currently in this chat.**")
 
         await userbot.leave_chat(chat_id)
         await app.send_message(chat_id, "**✅ Assistant has left this chat.**")
     except ChannelPrivate:
-        await message.reply(
-            "**❌ Error: This chat is not accessible or has been deleted.**"
-        )
+        await message.reply("**❌ Error: This chat is not accessible or has been deleted.**")
     except UserNotParticipant:
         await message.reply("**🤖 Assistant is not in this chat.**")
     except Exception as e:

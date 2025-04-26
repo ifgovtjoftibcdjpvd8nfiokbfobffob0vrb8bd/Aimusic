@@ -1,15 +1,12 @@
 import os
 import re
-
 import aiofiles
 import aiohttp
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 from youtubesearchpython.__future__ import VideosSearch
-
 from ANNIEMUSIC.utils.errors import capture_internal_err
 
 os.makedirs("cache", exist_ok=True)
-
 
 def changeImageSize(maxWidth, maxHeight, image):
     widthRatio = maxWidth / image.size[0]
@@ -18,7 +15,6 @@ def changeImageSize(maxWidth, maxHeight, image):
     newHeight = int(heightRatio * image.size[1])
     newImage = image.resize((newWidth, newHeight))
     return newImage
-
 
 def truncate(text):
     words = text.split(" ")
@@ -31,35 +27,27 @@ def truncate(text):
             text2 += " " + i
     return [text1.strip(), text2.strip()]
 
-
 def crop_center_circle(img, output_size, border, crop_scale=1.5):
     half_width = img.size[0] / 2
     half_height = img.size[1] / 2
     larger_size = int(output_size * crop_scale)
-    img = img.crop(
-        (
-            half_width - larger_size / 2,
-            half_height - larger_size / 2,
-            half_width + larger_size / 2,
-            half_height + larger_size / 2,
-        )
-    )
+    img = img.crop((
+        half_width - larger_size / 2,
+        half_height - larger_size / 2,
+        half_width + larger_size / 2,
+        half_height + larger_size / 2
+    ))
     img = img.resize((output_size - 2 * border, output_size - 2 * border))
     final_img = Image.new("RGBA", (output_size, output_size), "white")
     mask_main = Image.new("L", (output_size - 2 * border, output_size - 2 * border), 0)
     draw_main = ImageDraw.Draw(mask_main)
-    draw_main.ellipse(
-        (0, 0, output_size - 2 * border, output_size - 2 * border), fill=255
-    )
+    draw_main.ellipse((0, 0, output_size - 2 * border, output_size - 2 * border), fill=255)
     final_img.paste(img, (border, border), mask_main)
     mask_border = Image.new("L", (output_size, output_size), 0)
     draw_border = ImageDraw.Draw(mask_border)
     draw_border.ellipse((0, 0, output_size, output_size), fill=255)
-    result = Image.composite(
-        final_img, Image.new("RGBA", final_img.size, (0, 0, 0, 0)), mask_border
-    )
+    result = Image.composite(final_img, Image.new("RGBA", final_img.size, (0, 0, 0, 0)), mask_border)
     return result
-
 
 @capture_internal_err
 async def get_thumb(videoid):
@@ -121,14 +109,9 @@ async def get_thumb(videoid):
 
     safe_channel = channel if channel else "N/A"
     safe_views = views[:23] if views else "Live"
-    draw.text(
-        (text_x_position, 320),
-        f"{safe_channel}  |  {safe_views}",
-        (255, 255, 255),
-        font=arial,
-    )
+    draw.text((text_x_position, 320), f"{safe_channel}  |  {safe_views}", (255, 255, 255), font=arial)
 
-    line_length = 580
+    line_length = 580  
     red_length = int(line_length * 0.6)
     white_length = line_length - red_length
 
@@ -140,17 +123,14 @@ async def get_thumb(videoid):
     end_point_white = (text_x_position + line_length, 380)
     draw.line([start_point_white, end_point_white], fill="white", width=8)
 
-    circle_radius = 10
+    circle_radius = 10 
     circle_position = (end_point_red[0], end_point_red[1])
-    draw.ellipse(
-        [
-            circle_position[0] - circle_radius,
-            circle_position[1] - circle_radius,
-            circle_position[0] + circle_radius,
-            circle_position[1] + circle_radius,
-        ],
-        fill="red",
-    )
+    draw.ellipse([
+        circle_position[0] - circle_radius, 
+        circle_position[1] - circle_radius,
+        circle_position[0] + circle_radius, 
+        circle_position[1] + circle_radius
+    ], fill="red")
     draw.text((text_x_position, 400), "00:00", (255, 255, 255), font=arial)
     draw.text((1080, 400), duration or "Live", (255, 255, 255), font=arial)
 

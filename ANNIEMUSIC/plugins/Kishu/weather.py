@@ -1,7 +1,6 @@
 import httpx
-from pyrogram import Client, enums, filters
+from pyrogram import Client, filters, enums
 from pyrogram.types import Message
-
 from ANNIEMUSIC import app
 
 timeout = httpx.Timeout(40.0)
@@ -21,7 +20,7 @@ async def weather_command(client: Client, message: Message):
     if len(message.command) == 1:
         return await message.reply_text(
             "<b>ᴜsᴀɢᴇ:</b> <code>/weather city</code>\nExample: <code>/weather delhi</code>",
-            parse_mode=enums.ParseMode.HTML,
+            parse_mode=enums.ParseMode.HTML
         )
 
     query = message.text.split(maxsplit=1)[1]
@@ -34,7 +33,7 @@ async def weather_command(client: Client, message: Message):
                 "apiKey": weather_apikey,
                 "format": "json",
                 "language": "en",
-                "query": query,
+                "query": query
             },
         )
         coord_data = coord_response.json()
@@ -42,7 +41,7 @@ async def weather_command(client: Client, message: Message):
         if not coord_data.get("location"):
             return await message.reply_text(
                 "❌ <b>Location not found.</b> Please try a different city.",
-                parse_mode=enums.ParseMode.HTML,
+                parse_mode=enums.ParseMode.HTML
             )
 
         latitude = coord_data["location"]["latitude"][0]
@@ -57,7 +56,7 @@ async def weather_command(client: Client, message: Message):
                 "format": "json",
                 "language": "en",
                 "geocode": f"{latitude},{longitude}",
-                "units": "m",
+                "units": "m"
             },
         )
         weather_data = weather_response.json()
@@ -66,7 +65,7 @@ async def weather_command(client: Client, message: Message):
         if not obs:
             return await message.reply_text(
                 "⚠️ <b>Weather data not available</b> at the moment.",
-                parse_mode=enums.ParseMode.HTML,
+                parse_mode=enums.ParseMode.HTML
             )
 
         weather_text = (
@@ -84,5 +83,5 @@ async def weather_command(client: Client, message: Message):
         print(f"Error in /weather: {e}")
         await message.reply_text(
             "❌ <b>An error occurred</b> while fetching the weather. Please try again later.",
-            parse_mode=enums.ParseMode.HTML,
+            parse_mode=enums.ParseMode.HTML
         )

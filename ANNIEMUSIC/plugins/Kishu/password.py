@@ -1,8 +1,6 @@
 import random
-
-from pyrogram import enums, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
+from pyrogram import Client, filters, enums
+from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from ANNIEMUSIC import app
 from config import BOT_USERNAME
 
@@ -11,10 +9,8 @@ from config import BOT_USERNAME
 async def password(bot, message):
     processing = await message.reply_text("Pʀᴏᴄᴇꜱꜱɪɴɢ...")
 
-    characters = (
-        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+"
-    )
-
+    characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()_+"
+    
     if len(message.command) > 1:
         input_length = message.text.split(" ", 1)[1]
     else:
@@ -25,9 +21,7 @@ async def password(bot, message):
         if length < 1:
             raise ValueError("Length must be positive.")
     except ValueError:
-        return await processing.edit_text(
-            "Please enter a valid positive number for the password length."
-        )
+        return await processing.edit_text("Please enter a valid positive number for the password length.")
 
     generated_password = "".join(random.choices(characters, k=length))
 
@@ -36,16 +30,8 @@ async def password(bot, message):
         f"<b>Pᴀꜱꜱᴡᴏʀᴅ:</b> <code>{generated_password}</code>"
     )
 
-    buttons = InlineKeyboardMarkup(
-        [
-            [
-                InlineKeyboardButton(
-                    "𝗔𝗗𝗗 𝗠𝗘", url=f"https://t.me/{BOT_USERNAME}?startgroup=true"
-                )
-            ]
-        ]
-    )
+    buttons = InlineKeyboardMarkup([
+        [InlineKeyboardButton("𝗔𝗗𝗗 𝗠𝗘", url=f"https://t.me/{BOT_USERNAME}?startgroup=true")]
+    ])
 
-    await processing.edit_text(
-        reply_text, reply_markup=buttons, parse_mode=enums.ParseMode.HTML
-    )
+    await processing.edit_text(reply_text, reply_markup=buttons, parse_mode=enums.ParseMode.HTML)

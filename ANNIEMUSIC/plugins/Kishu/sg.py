@@ -2,11 +2,10 @@ import asyncio
 import random
 
 from pyrogram import Client, filters
-from pyrogram.raw.functions.messages import DeleteHistory
 from pyrogram.types import Message
+from pyrogram.raw.functions.messages import DeleteHistory
 
-from ANNIEMUSIC import app
-from ANNIEMUSIC import userbot as us
+from ANNIEMUSIC import userbot as us, app
 from ANNIEMUSIC.core.userbot import assistants
 
 
@@ -24,16 +23,12 @@ async def sg(client: Client, message: Message):
         else:
             parts = message.text.split()
             if len(parts) < 2:
-                return await status_msg.edit(
-                    "❌ Usage: `/sg` username / id / reply", parse_mode="MARKDOWN"
-                )
+                return await status_msg.edit("❌ Usage: `/sg` username / id / reply", parse_mode="MARKDOWN")
             target_user_id = parts[1]
 
         user = await client.get_users(target_user_id)
     except Exception as e:
-        return await status_msg.edit(
-            "❌ Invalid user. Please reply to a user or provide a valid username/id."
-        )
+        return await status_msg.edit("❌ Invalid user. Please reply to a user or provide a valid username/id.")
 
     sangmata_bots = ["sangmata_bot", "sangmata_beta_bot"]
     sg_bot = random.choice(sangmata_bots)
@@ -42,9 +37,7 @@ async def sg(client: Client, message: Message):
         forward_msg = await ubot.send_message(sg_bot, str(user.id))
         await forward_msg.delete()
     except Exception as e:
-        return await status_msg.edit(
-            f"❌ Failed to contact @`{sg_bot}`\n`{e}`", parse_mode="MARKDOWN"
-        )
+        return await status_msg.edit(f"❌ Failed to contact @`{sg_bot}`\n`{e}`", parse_mode="MARKDOWN")
 
     await asyncio.sleep(1.5)
 

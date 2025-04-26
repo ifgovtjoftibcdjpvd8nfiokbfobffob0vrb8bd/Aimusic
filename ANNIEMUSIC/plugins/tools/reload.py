@@ -13,15 +13,13 @@ from ANNIEMUSIC.utils.decorators import ActualAdminCB, AdminActual, language
 from ANNIEMUSIC.utils.formatters import alpha_to_int, get_readable_time
 from config import BANNED_USERS, adminlist, lyrical
 
-rel = {}
 
+
+rel = {}
 
 # ── /reload, /refresh, /admincache ──
 @app.on_message(
-    filters.command(
-        ["admincache", "reload", "refresh"],
-        prefixes=["/", "!", "%", ",", ".", "@", "#", ""],
-    )
+    filters.command(["admincache", "reload", "refresh"], prefixes=["/", "!", "%", ",", ".", "@", "#", ""])
     & filters.group
     & ~BANNED_USERS
 )
@@ -33,9 +31,7 @@ async def reload_admin_cache(client, message: Message, _):
             return await message.reply_text(_["reload_1"].format(left))
 
         adminlist[message.chat.id] = []
-        async for user in app.get_chat_members(
-            message.chat.id, filter=ChatMembersFilter.ADMINISTRATORS
-        ):
+        async for user in app.get_chat_members(message.chat.id, filter=ChatMembersFilter.ADMINISTRATORS):
             if user.privileges and user.privileges.can_manage_video_chats:
                 adminlist[message.chat.id].append(user.user.id)
 
@@ -89,9 +85,7 @@ async def close_menu(_, query: CallbackQuery):
     try:
         await query.answer()
         await query.message.delete()
-        msg = await query.message.reply_text(
-            f"✅ ᴄʟᴏꜱᴇᴅ ʙʏ : {query.from_user.mention}"
-        )
+        msg = await query.message.reply_text(f"✅ ᴄʟᴏꜱᴇᴅ ʙʏ : {query.from_user.mention}")
         await asyncio.sleep(2)
         await msg.delete()
     except:
@@ -113,8 +107,6 @@ async def stop_download(_, query: CallbackQuery, _lang):
         task.cancel()
         lyrical.pop(query.message.id, None)
         await query.answer(_lang["tg_6"], show_alert=True)
-        return await query.edit_message_text(
-            _lang["tg_7"].format(query.from_user.mention)
-        )
+        return await query.edit_message_text(_lang["tg_7"].format(query.from_user.mention))
     except:
         return await query.answer(_lang["tg_8"], show_alert=True)

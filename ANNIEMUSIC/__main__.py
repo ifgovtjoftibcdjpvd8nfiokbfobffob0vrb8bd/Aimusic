@@ -9,8 +9,8 @@ from ANNIEMUSIC import LOGGER, app, userbot
 from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.misc import sudo
 from ANNIEMUSIC.plugins import ALL_MODULES
-from ANNIEMUSIC.utils.cookie_handler import fetch_and_store_cookies
 from ANNIEMUSIC.utils.database import get_banned_users, get_gbanned
+from ANNIEMUSIC.utils.cookie_handler import fetch_and_store_cookies 
 from config import BANNED_USERS
 
 
@@ -22,9 +22,7 @@ async def init():
         and not config.STRING4
         and not config.STRING5
     ):
-        LOGGER(__name__).error(
-            "ᴀssɪsᴛᴀɴᴛ sᴇssɪᴏɴ ɴᴏᴛ ғɪʟʟᴇᴅ, ᴘʟᴇᴀsᴇ ғɪʟʟ ᴀ ᴘʏʀᴏɢʀᴀᴍ sᴇssɪᴏɴ..."
-        )
+        LOGGER(__name__).error("ᴀssɪsᴛᴀɴᴛ sᴇssɪᴏɴ ɴᴏᴛ ғɪʟʟᴇᴅ, ᴘʟᴇᴀsᴇ ғɪʟʟ ᴀ ᴘʏʀᴏɢʀᴀᴍ sᴇssɪᴏɴ...")
         exit()
 
     # ✅ Try to fetch cookies at startup
@@ -33,6 +31,7 @@ async def init():
         LOGGER("ANNIEMUSIC").info("ʏᴏᴜᴛᴜʙᴇ ᴄᴏᴏᴋɪᴇs ʟᴏᴀᴅᴇᴅ sᴜᴄᴄᴇssғᴜʟʟʏ ✅")
     except Exception as e:
         LOGGER("ANNIEMUSIC").warning(f"⚠️ᴄᴏᴏᴋɪᴇ ᴇʀʀᴏʀ: {e}")
+
 
     await sudo()
 

@@ -1,12 +1,7 @@
 from pyrogram import filters
 from pyrogram.enums import ChatType
 from pyrogram.errors import MessageNotModified
-from pyrogram.types import (
-    CallbackQuery,
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.database import (
@@ -38,10 +33,7 @@ from config import BANNED_USERS, OWNER_ID
 
 # ─── SETTINGS MESSAGE ──────────────────────────────────────────────
 
-
-@app.on_message(
-    filters.command(["settings", "setting"]) & filters.group & ~BANNED_USERS
-)
+@app.on_message(filters.command(["settings", "setting"]) & filters.group & ~BANNED_USERS)
 @language
 async def settings_mar(client, message: Message, _):
     buttons = setting_markup(_)
@@ -50,9 +42,7 @@ async def settings_mar(client, message: Message, _):
         reply_markup=InlineKeyboardMarkup(buttons),
     )
 
-
 # ─── SETTINGS CALLBACK (HELPER) ─────────────────────────────────────
-
 
 @app.on_callback_query(filters.regex(r"^settings_helper$") & ~BANNED_USERS)
 @languageCB
@@ -63,15 +53,11 @@ async def settings_cb(client, callback: CallbackQuery, _):
         pass
     buttons = setting_markup(_)
     return await callback.edit_message_text(
-        _["setting_1"].format(
-            app.mention, callback.message.chat.id, callback.message.chat.title
-        ),
+        _["setting_1"].format(app.mention, callback.message.chat.id, callback.message.chat.title),
         reply_markup=InlineKeyboardMarkup(buttons),
     )
 
-
 # ─── SETTINGS BACK (PRIVATE vs. GROUP) ──────────────────────────────
-
 
 @app.on_callback_query(filters.regex(r"^settingsback_helper$") & ~BANNED_USERS)
 @languageCB
@@ -90,19 +76,14 @@ async def settings_back_markup(client, callback: CallbackQuery, _):
         )
     else:
         buttons = setting_markup(_)
-        return await callback.edit_message_reply_markup(
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-
+        return await callback.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
 
 # ─── CALLBACK WITHOUT ADMIN RIGHTS ──────────────────────────────────
-
 
 @app.on_callback_query(
     filters.regex(
         r"^(SEARCHANSWER|PLAYMODEANSWER|PLAYTYPEANSWER|AUTHANSWER|ANSWERVOMODE|VOTEANSWER|PM|AU|VM)$"
-    )
-    & ~BANNED_USERS
+    ) & ~BANNED_USERS
 )
 @languageCB
 async def without_admin_rights(client, callback: CallbackQuery, _):
@@ -135,9 +116,7 @@ async def without_admin_rights(client, callback: CallbackQuery, _):
     if command == "ANSWERVOMODE":
         current = await get_upvote_count(callback.message.chat.id)
         try:
-            return await callback.answer(
-                _["setting_9"].format(current), show_alert=True
-            )
+            return await callback.answer(_["setting_9"].format(current), show_alert=True)
         except Exception:
             return
     if command == "PM":
@@ -158,23 +137,17 @@ async def without_admin_rights(client, callback: CallbackQuery, _):
         except Exception:
             pass
         is_non_admin = await is_nonadmin_chat(callback.message.chat.id)
-        buttons = (
-            auth_users_markup(_, True) if not is_non_admin else auth_users_markup(_)
-        )
+        buttons = auth_users_markup(_, True) if not is_non_admin else auth_users_markup(_)
     if command == "VM":
         mode = await is_skipmode(callback.message.chat.id)
         current = await get_upvote_count(callback.message.chat.id)
         buttons = vote_mode_markup(_, current, mode)
     try:
-        return await callback.edit_message_reply_markup(
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        return await callback.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
     except MessageNotModified:
         return
 
-
 # ─── NON-ADMIN ADDITION (FERRARIUDTI) ────────────────────────────────
-
 
 @app.on_callback_query(filters.regex(r"^FERRARIUDTI$") & ~BANNED_USERS)
 @ActualAdminCB
@@ -201,15 +174,11 @@ async def addition(client, callback: CallbackQuery, _):
         await set_upvotes(callback.message.chat.id, final)
     buttons = vote_mode_markup(_, final, True)
     try:
-        return await callback.edit_message_reply_markup(
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        return await callback.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
     except MessageNotModified:
         return
 
-
 # ─── PLAYMODE / PLAYTYPE CHANGE ─────────────────────────────────────
-
 
 @app.on_callback_query(
     filters.regex(r"^(MODECHANGE|CHANNELMODECHANGE|PLAYTYPECHANGE)$") & ~BANNED_USERS
@@ -265,15 +234,11 @@ async def playmode_ans(client, callback: CallbackQuery, _):
         Group = True if not is_non_admin else None
         buttons = playmode_users_markup(_, Direct, Group, Playtype)
     try:
-        return await callback.edit_message_reply_markup(
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        return await callback.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
     except MessageNotModified:
         return
 
-
 # ─── AUTH USERS (AUTH / AUTHLIST) ─────────────────────────────────────
-
 
 @app.on_callback_query(filters.regex(r"^(AUTH|AUTHLIST)$") & ~BANNED_USERS)
 @ActualAdminCB
@@ -308,14 +273,10 @@ async def authusers_mar(client, callback: CallbackQuery, _):
                 msg += f"{counter}➤ {user_name}[<code>{user_id}</code>]\n"
                 msg += f"   {_['auth_8']} {admin_name}[<code>{admin_id}</code>]\n\n"
             upl = InlineKeyboardMarkup(
-                [
-                    [
-                        InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="AU"),
-                        InlineKeyboardButton(
-                            text=_["CLOSE_BUTTON"], callback_data="close"
-                        ),
-                    ]
-                ]
+                [[
+                    InlineKeyboardButton(text=_["BACK_BUTTON"], callback_data="AU"),
+                    InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close")
+                ]]
             )
             try:
                 return await callback.edit_message_text(msg, reply_markup=upl)
@@ -334,15 +295,11 @@ async def authusers_mar(client, callback: CallbackQuery, _):
             await remove_nonadmin_chat(callback.message.chat.id)
             buttons = auth_users_markup(_, True)
     try:
-        return await callback.edit_message_reply_markup(
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        return await callback.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
     except MessageNotModified:
         return
 
-
 # ─── VOTE MODE CHANGE ────────────────────────────────────────────────
-
 
 @app.on_callback_query(filters.regex(r"^(VOMODECHANGE)$") & ~BANNED_USERS)
 @ActualAdminCB
@@ -361,8 +318,6 @@ async def vote_change(client, callback: CallbackQuery, _):
     current = await get_upvote_count(callback.message.chat.id)
     buttons = vote_mode_markup(_, current, mod)
     try:
-        return await callback.edit_message_reply_markup(
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
+        return await callback.edit_message_reply_markup(reply_markup=InlineKeyboardMarkup(buttons))
     except MessageNotModified:
         return

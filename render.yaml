@@ -5,3 +5,4 @@ services:
     plan: free
     buildCommand: pip3 install --no-cache-dir --upgrade --requirement requirements.txt
     startCommand: bash start
+    

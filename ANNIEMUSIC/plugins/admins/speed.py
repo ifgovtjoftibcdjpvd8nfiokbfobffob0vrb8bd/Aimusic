@@ -1,6 +1,7 @@
 from pyrogram import filters
 from pyrogram.types import Message
 
+from config import BANNED_USERS, adminlist
 from ANNIEMUSIC import app
 from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.misc import SUDOERS, db
@@ -8,7 +9,6 @@ from ANNIEMUSIC.utils import AdminRightsCheck
 from ANNIEMUSIC.utils.database import is_active_chat, is_nonadmin_chat
 from ANNIEMUSIC.utils.decorators.language import languageCB
 from ANNIEMUSIC.utils.inline import close_markup, speed_markup
-from config import BANNED_USERS, adminlist
 
 checker = []
 

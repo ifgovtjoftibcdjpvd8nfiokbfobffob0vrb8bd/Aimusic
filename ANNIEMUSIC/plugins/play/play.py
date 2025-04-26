@@ -6,13 +6,13 @@ from pyrogram.types import InlineKeyboardMarkup, InputMediaPhoto, Message
 from pytgcalls.exceptions import NoActiveGroupCall
 
 import config
+from config import BANNED_USERS, lyrical, AYU
 from ANNIEMUSIC import Apple, Resso, SoundCloud, Spotify, Telegram, YouTube, app
 from ANNIEMUSIC.core.call import JARVIS
 from ANNIEMUSIC.utils import seconds_to_min, time_to_seconds
 from ANNIEMUSIC.utils.channelplay import get_channeplayCB
 from ANNIEMUSIC.utils.decorators.language import languageCB
 from ANNIEMUSIC.utils.decorators.play import PlayWrapper
-from ANNIEMUSIC.utils.errors import capture_callback_err, capture_err
 from ANNIEMUSIC.utils.formatters import formats
 from ANNIEMUSIC.utils.inline import (
     botplaylist_markup,
@@ -23,7 +23,7 @@ from ANNIEMUSIC.utils.inline import (
 )
 from ANNIEMUSIC.utils.logger import play_logs
 from ANNIEMUSIC.utils.stream.stream import stream
-from config import AYU, BANNED_USERS, lyrical
+from ANNIEMUSIC.utils.errors import capture_err, capture_callback_err
 
 
 @app.on_message(
@@ -375,6 +375,7 @@ async def play_commnd(
 
         streamtype = "youtube"
 
+
     # --------------------------------------------------
     # 5) We have details from platform or text-based
     # --------------------------------------------------
@@ -388,6 +389,7 @@ async def play_commnd(
                         _["play_6"].format(config.DURATION_LIMIT_MIN, app.mention)
                     )
             else:
+
                 buttons = livestream_markup(
                     _,
                     track_id,

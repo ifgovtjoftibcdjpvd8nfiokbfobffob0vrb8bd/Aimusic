@@ -1,8 +1,7 @@
-from gpytranslate import Translator
 from pyrogram import filters
 from pyrogram.types import Message
-
 from ANNIEMUSIC import app
+from gpytranslate import Translator
 
 translator = Translator()
 
@@ -28,9 +27,7 @@ async def translate(_, message: Message):
         target_lang = "en"
 
     try:
-        result = await translator(
-            content, sourcelang=source_lang, targetlang=target_lang
-        )
+        result = await translator(content, sourcelang=source_lang, targetlang=target_lang)
         await message.reply_text(
             f"🌐 **ᴛʀᴀɴsʟᴀᴛᴇᴅ:** `{source_lang}` ➜ `{target_lang}`\n\n"
             f"`{result.text}`"

@@ -15,13 +15,14 @@ import asyncio
 import datetime as dt
 from typing import Optional
 
-from pyrogram import enums, filters
+from pyrogram import filters, enums
 from pyrogram.errors import ChatAdminRequired, UserAdminInvalid
 from pyrogram.types import ChatPrivileges, Message
 
 from ANNIEMUSIC import app
 from ANNIEMUSIC.utils.decorator import admin_required
 from ANNIEMUSIC.utils.permissions import extract_user_and_title, mention, parse_time
+
 
 # ────────────────────────────────────────────────────────────
 # Privilege presets
@@ -66,27 +67,22 @@ _DEMOTE_PRIVS = ChatPrivileges(
 # Usage strings
 # ────────────────────────────────────────────────────────────
 _USAGES = {
-    "promote": "/promote @user [title] — or reply with /promote [title]",
+    "promote":     "/promote @user [title] — or reply with /promote [title]",
     "fullpromote": "/fullpromote @user [title] — or reply with /fullpromote [title]",
-    "demote": "/demote @user — or reply with /demote",
-    "tempadmin": "/tempadmin @user <time> [title] — or reply with /tempadmin <time> [title]",
+    "demote":      "/demote @user — or reply with /demote",
+    "tempadmin":   "/tempadmin @user <time> [title] — or reply with /tempadmin <time> [title]",
 }
-
 
 def _usage(cmd: str) -> str:
     return _USAGES.get(cmd, "Invalid usage.")
 
-
 async def _info(msg: Message, text: str):
     await msg.reply_text(text)
 
-
-def _format_success(
-    action: str, chat: Message, uid: int, name: str, title: Optional[str] = None
-) -> str:
+def _format_success(action: str, chat: Message, uid: int, name: str, title: Optional[str] = None) -> str:
     chat_name = chat.chat.title
-    user_m = mention(uid, name)
-    admin_m = mention(chat.from_user.id, chat.from_user.first_name)
+    user_m    = mention(uid, name)
+    admin_m   = mention(chat.from_user.id, chat.from_user.first_name)
     text = (
         f"» {action} ᴀ ᴜsᴇʀ ɪɴ {chat_name}\n"
         f" ᴜsᴇʀ  : {user_m}\n"
@@ -95,7 +91,6 @@ def _format_success(
     if title:
         text += f"\nTitle: {title}"
     return text
-
 
 # ────────────────────────────────────────────────────────────
 # /promote
@@ -131,7 +126,6 @@ async def promote_command(client, message: Message):
     except UserAdminInvalid:
         await message.reply_text("I cannot promote that user.")
 
-
 # ────────────────────────────────────────────────────────────
 # /fullpromote
 # ────────────────────────────────────────────────────────────
@@ -160,14 +154,11 @@ async def fullpromote_command(client, message: Message):
                 await client.set_administrator_title(message.chat.id, uid, title)
             except ValueError:
                 title = "⚠️ Couldn’t set custom title (not a supergroup)"
-        await message.reply_text(
-            _format_success("Fully promoted", message, uid, name, title)
-        )
+        await message.reply_text(_format_success("Fully promoted", message, uid, name, title))
     except ChatAdminRequired:
         await message.reply_text("I need promote permissions.")
     except UserAdminInvalid:
         await message.reply_text("I cannot promote that user.")
-
 
 # ────────────────────────────────────────────────────────────
 # /demote
@@ -198,28 +189,26 @@ async def demote_command(client, message: Message):
     except UserAdminInvalid:
         await message.reply_text("I cannot demote that user.")
 
-
 # ────────────────────────────────────────────────────────────
 # /tempadmin
 # ────────────────────────────────────────────────────────────
 @app.on_message(filters.command("tempadmin"))
 @admin_required("can_promote_members")
 async def tempadmin_command(client, message: Message):
-    if (not message.reply_to_message and len(message.command) < 3) or (
-        message.reply_to_message and len(message.command) < 2
-    ):
+    if ((not message.reply_to_message and len(message.command) < 3) or
+        (message.reply_to_message and len(message.command) < 2)):
         return await _info(message, _usage("tempadmin"))
 
     if message.reply_to_message:
-        user = message.reply_to_message.from_user
+        user     = message.reply_to_message.from_user
         time_arg = message.command[1]
-        title = message.text.partition(time_arg)[2].strip() or None
+        title    = message.text.partition(time_arg)[2].strip() or None
     else:
         user = await client.get_users(message.command[1])
         if not user:
             return await message.reply_text("I can’t find that user.")
         time_arg = message.command[2]
-        title = message.text.partition(time_arg)[2].strip() or None
+        title    = message.text.partition(time_arg)[2].strip() or None
 
     delta = parse_time(time_arg)
     if not delta:
@@ -241,13 +230,12 @@ async def tempadmin_command(client, message: Message):
                 await client.set_administrator_title(message.chat.id, uid, title)
             except ValueError:
                 title = "⚠️ Couldn’t set custom title (not a supergroup)"
-        await message.reply_text(
-            _format_success(f"Temp‑promoted for {time_arg}", message, uid, name, title)
-        )
+        await message.reply_text(_format_success(f"Temp‑promoted for {time_arg}", message, uid, name, title))
     except ChatAdminRequired:
         return await message.reply_text("I need promote permissions.")
     except UserAdminInvalid:
         return await message.reply_text("I cannot promote that user.")
+
 
     async def _auto_demote():
         await asyncio.sleep(delta.total_seconds())
@@ -258,7 +246,8 @@ async def tempadmin_command(client, message: Message):
                 privileges=_DEMOTE_PRIVS,
             )
             await client.send_message(
-                message.chat.id, f"Auto‑demoted {mention(uid, name)} after {time_arg}."
+                message.chat.id,
+                f"Auto‑demoted {mention(uid, name)} after {time_arg}."
             )
         except Exception:
             pass

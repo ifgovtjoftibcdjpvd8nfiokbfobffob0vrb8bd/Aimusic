@@ -1,5 +1,4 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
-
 from ANNIEMUSIC import app
 
 # total number of top-level help sections (1 … 29)
@@ -14,7 +13,8 @@ def generate_help_buttons(_, start: int, end: int, current_page: int):
             buttons.append([])
         buttons[-1].append(
             InlineKeyboardButton(
-                text=_[f"H_B_{i}"], callback_data=f"help_callback hb{i}_p{current_page}"
+                text=_[f"H_B_{i}"],
+                callback_data=f"help_callback hb{i}_p{current_page}"
             )
         )
     return buttons
@@ -25,7 +25,7 @@ def first_page(_):
     buttons.append(
         [
             InlineKeyboardButton(text="๏ ᴍᴇɴᴜ ๏", callback_data="back_to_main"),
-            InlineKeyboardButton(text="๏ ɴᴇxᴛ ๏", callback_data="help_next_2"),
+            InlineKeyboardButton(text="๏ ɴᴇxᴛ ๏", callback_data="help_next_2")
         ]
     )
     return InlineKeyboardMarkup(buttons)
@@ -36,7 +36,7 @@ def second_page(_):
     buttons.append(
         [
             InlineKeyboardButton(text="๏ ʙᴀᴄᴋ ๏", callback_data="help_prev_1"),
-            InlineKeyboardButton(text="๏ ᴍᴇɴᴜ ๏", callback_data="back_to_main"),
+            InlineKeyboardButton(text="๏ ᴍᴇɴᴜ ๏", callback_data="back_to_main")
         ]
     )
     return InlineKeyboardMarkup(buttons)
@@ -48,19 +48,20 @@ def action_sub_menu(_, current_page: int):
         [
             [
                 InlineKeyboardButton(
-                    text=_["H_B_S_1"],  # Promotions
-                    callback_data="action_prom_1",
+                    text=_[ "H_B_S_1" ],   # Promotions
+                    callback_data="action_prom_1"
                 ),
                 InlineKeyboardButton(
-                    text=_["H_B_S_2"],  # Punishments
-                    callback_data="action_pun_1",
-                ),
+                    text=_[ "H_B_S_2" ],   # Punishments
+                    callback_data="action_pun_1"
+                )
             ],
             [
                 InlineKeyboardButton(
-                    text=_["BACK_BUTTON"], callback_data=f"help_back_{current_page}"
+                    text=_["BACK_BUTTON"],
+                    callback_data=f"help_back_{current_page}"
                 )
-            ],
+            ]
         ]
     )
 
@@ -70,9 +71,13 @@ def help_back_markup(_, current_page: int):
         [
             [
                 InlineKeyboardButton(
-                    text=_["BACK_BUTTON"], callback_data=f"help_back_{current_page}"
+                    text=_["BACK_BUTTON"],
+                    callback_data=f"help_back_{current_page}"
                 ),
-                InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close"),
+                InlineKeyboardButton(
+                    text=_["CLOSE_BUTTON"],
+                    callback_data="close"
+                ),
             ]
         ]
     )
@@ -82,7 +87,8 @@ def private_help_panel(_):
     return [
         [
             InlineKeyboardButton(
-                text=_["S_B_3"], url=f"https://t.me/{app.username}?start=help"
+                text=_["S_B_3"],
+                url=f"https://t.me/{app.username}?start=help"
             ),
         ],
     ]

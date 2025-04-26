@@ -1,8 +1,7 @@
 import asyncio
-
-from pyrogram import enums, filters, types
-from pyrogram.errors import FloodWait, PeerIdInvalid, RPCError
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram import filters, enums, types
+from pyrogram.errors import PeerIdInvalid, RPCError, FloodWait
+from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
 from ANNIEMUSIC import app
 
@@ -23,7 +22,7 @@ def get_last_seen(status):
         "recently": "⏱ ʀᴇᴄᴇɴᴛʟʏ",
         "last_week": "🗓 ʟᴀsᴛ ᴡᴇᴇᴋ",
         "last_month": "📆 ʟᴀsᴛ ᴍᴏɴᴛʜ",
-        "long_ago": "😴 ʟᴏɴɢ ᴛɪᴍᴇ ᴀɢᴏ",
+        "long_ago": "😴 ʟᴏɴɢ ᴛɪᴍᴇ ᴀɢᴏ"
     }.get(status, "❓ ᴜɴᴋɴᴏᴡɴ")
 
 
@@ -69,29 +68,19 @@ async def whois_handler(_, message: Message):
             f"➣ <b>ʙɪᴏ:</b> <code>{bio}</code>"
         )
 
-        profile_url = (
-            f"https://t.me/{user.username}"
-            if user.username
-            else f"tg://user?id={user.id}"
-        )
-        buttons = InlineKeyboardMarkup(
-            [
-                [
-                    InlineKeyboardButton("👤 ᴠɪᴇᴡ ᴘʀᴏғɪʟᴇ", url=profile_url),
-                    InlineKeyboardButton("📞 ᴘʜᴏɴᴇ", url="tg://settings"),
-                ]
-            ]
-        )
+        profile_url = f"https://t.me/{user.username}" if user.username else f"tg://user?id={user.id}"
+        buttons = InlineKeyboardMarkup([[
+            InlineKeyboardButton("👤 ᴠɪᴇᴡ ᴘʀᴏғɪʟᴇ", url=profile_url),
+            InlineKeyboardButton("📞 ᴘʜᴏɴᴇ", url="tg://settings")
+        ]])
 
         if user.photo:
             photo = await app.download_media(user.photo.big_file_id)
             await app.edit_message_media(
                 chat_id=message.chat.id,
                 message_id=loading.id,
-                media=types.InputMediaPhoto(
-                    media=photo, caption=text, parse_mode=enums.ParseMode.HTML
-                ),
-                reply_markup=buttons,
+                media=types.InputMediaPhoto(media=photo, caption=text, parse_mode=enums.ParseMode.HTML),
+                reply_markup=buttons
             )
         else:
             await app.edit_message_text(
@@ -99,7 +88,7 @@ async def whois_handler(_, message: Message):
                 message_id=loading.id,
                 text=text,
                 parse_mode=enums.ParseMode.HTML,
-                reply_markup=buttons,
+                reply_markup=buttons
             )
 
     except PeerIdInvalid:

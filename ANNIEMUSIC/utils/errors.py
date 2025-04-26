@@ -1,11 +1,11 @@
-import os
 import sys
 import traceback
-from datetime import datetime
+import os
 from functools import wraps
+from datetime import datetime
 
-import aiofiles
 import aiohttp
+import aiofiles
 from pyrogram.errors.exceptions.forbidden_403 import ChatWriteForbidden
 
 from ANNIEMUSIC import app
@@ -20,15 +20,11 @@ async def send_large_error(text: str, caption: str, filename: str):
     """
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(
-                "https://batbin.me/api/v2/paste", json={"content": text}
-            ) as resp:
+            async with session.post("https://batbin.me/api/v2/paste", json={"content": text}) as resp:
                 if resp.status == 201:
                     res = await resp.json()
                     link = f"https://batbin.me/{res['paste_id']}"
-                    return await app.send_message(
-                        LOGGER_ID, f"{caption}\n\n🔗 Batbin: {link}"
-                    )
+                    return await app.send_message(LOGGER_ID, f"{caption}\n\n🔗 Batbin: {link}")
     except Exception:
         pass  # Fall through to fallback file upload
 
@@ -46,7 +42,6 @@ def capture_err(func):
     Catches runtime errors, formats tracebacks,
     and reports them via Telegram.
     """
-
     @wraps(func)
     async def wrapper(client, message, *args, **kwargs):
         try:
@@ -74,7 +69,6 @@ def capture_err(func):
                 await app.send_message(LOGGER_ID, final_message)
 
             raise err
-
     return wrapper
 
 
@@ -83,7 +77,6 @@ def capture_callback_err(func):
     Decorator for callback query handlers (e.g., Inline buttons).
     Logs any error raised during execution.
     """
-
     @wraps(func)
     async def wrapper(client, CallbackQuery, *args, **kwargs):
         try:
@@ -108,7 +101,6 @@ def capture_callback_err(func):
                 await app.send_message(LOGGER_ID, final_message)
 
             raise err
-
     return wrapper
 
 
@@ -117,7 +109,6 @@ def capture_internal_err(func):
     General-purpose error capture for internal bot functions
     that don't receive Telegram messages or callback objects.
     """
-
     @wraps(func)
     async def wrapper(*args, **kwargs):
         try:
@@ -141,5 +132,4 @@ def capture_internal_err(func):
                 await app.send_message(LOGGER_ID, final_message)
 
             raise err
-
     return wrapper

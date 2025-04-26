@@ -1,17 +1,11 @@
 from pyrogram import filters
 from pyrogram.types import Message
-
 from ANNIEMUSIC import app
 from ANNIEMUSIC.mongo.pretenderdb import (
-    add_userdata,
-    check_pretender,
-    get_userdata,
-    impo_off,
-    impo_on,
-    usr_data,
+    impo_off, impo_on, check_pretender,
+    add_userdata, get_userdata, usr_data
 )
 from ANNIEMUSIC.utils.admin_filters import admin_filter
-
 
 @app.on_message(filters.group & ~filters.bot & ~filters.via_bot, group=69)
 async def chk_usr(_, message: Message):
@@ -24,9 +18,7 @@ async def chk_usr(_, message: Message):
             message.from_user.first_name,
             message.from_user.last_name,
         )
-    usernamebefore, first_name, lastname_before = await get_userdata(
-        message.from_user.id
-    )
+    usernamebefore, first_name, lastname_before = await get_userdata(message.from_user.id)
     msg = ""
     if (
         usernamebefore != message.from_user.username
@@ -53,9 +45,7 @@ async def chk_usr(_, message: Message):
 **🎭 ғʀᴏᴍ** : {bef}
 **🍜 ᴛᴏ** : {aft}
 ━━━━━━━━━━━━━━━  \n
-""".format(
-            bef=usernamebefore, aft=usernameafter
-        )
+""".format(bef=usernamebefore, aft=usernameafter)
         await add_userdata(
             message.from_user.id,
             message.from_user.username,
@@ -97,40 +87,26 @@ async def chk_usr(_, message: Message):
             message.from_user.last_name,
         )
     if msg != "":
-        await message.reply_photo(
-            "https://telegra.ph/file/58afe55fee5ae99d6901b.jpg", caption=msg
-        )
+        await message.reply_photo("https://telegra.ph/file/58afe55fee5ae99d6901b.jpg", caption=msg)
 
 
-@app.on_message(
-    filters.group
-    & filters.command("imposter")
-    & ~filters.bot
-    & ~filters.via_bot
-    & admin_filter
-)
+@app.on_message(filters.group & filters.command("imposter") & ~filters.bot & ~filters.via_bot & admin_filter)
 async def set_mataa(_, message: Message):
     if len(message.command) == 1:
-        return await message.reply(
-            "ᴅᴇᴛᴇᴄᴛ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴜsᴇʀs **ᴜsᴀɢᴇ:** `/imposter enable|disable`"
-        )
+        return await message.reply("ᴅᴇᴛᴇᴄᴛ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴜsᴇʀs **ᴜsᴀɢᴇ:** `/imposter enable|disable`")
     if message.command[1] == "enable":
         cekset = await impo_on(message.chat.id)
         if cekset:
             await message.reply("**ᴘʀᴇᴛᴇɴᴅᴇʀ ᴍᴏᴅᴇ ɪs ᴀʟʀᴇᴀᴅʏ ᴇɴᴀʙʟᴇᴅ.**")
         else:
             await impo_on(message.chat.id)
-            await message.reply(
-                f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴇɴᴀʙʟᴇᴅ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴍᴏᴅᴇ ғᴏʀ** {message.chat.title}"
-            )
+            await message.reply(f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴇɴᴀʙʟᴇᴅ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴍᴏᴅᴇ ғᴏʀ** {message.chat.title}")
     elif message.command[1] == "disable":
         cekset = await impo_off(message.chat.id)
         if not cekset:
             await message.reply("**ᴘʀᴇᴛᴇɴᴅᴇʀ ᴍᴏᴅᴇ ɪs ᴀʟʀᴇᴀᴅʏ ᴅɪsᴀʙʟᴇᴅ.**")
         else:
             await impo_off(message.chat.id)
-            await message.reply(
-                f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴅɪsᴀʙʟᴇᴅ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴍᴏᴅᴇ ғᴏʀ** {message.chat.title}"
-            )
+            await message.reply(f"**sᴜᴄᴄᴇssғᴜʟʟʏ ᴅɪsᴀʙʟᴇᴅ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴍᴏᴅᴇ ғᴏʀ** {message.chat.title}")
     else:
         await message.reply("**ᴅᴇᴛᴇᴄᴛ ᴘʀᴇᴛᴇɴᴅᴇʀ ᴜsᴇʀs ᴜsᴀɢᴇ : ᴘʀᴇᴛᴇɴᴅᴇʀ ᴏɴ|ᴏғғ**")
