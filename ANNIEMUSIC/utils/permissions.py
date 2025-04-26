@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import datetime as dt
-from typing import Optional, Tuple
+from typing import Tuple, Optional
 
 from pyrogram import Client
-from pyrogram.enums import ChatMembersFilter, ChatMemberStatus
+from pyrogram.enums import ChatMemberStatus, ChatMembersFilter
+from pyrogram.types import Message, ChatPermissions, User
 from pyrogram.errors import RPCError
-from pyrogram.types import Message, User
 
-from ANNIEMUSIC.logging import LOGGER
 from ANNIEMUSIC.misc import SUDOERS
+from ANNIEMUSIC.logging import LOGGER
 
 
 # ────────────────────────────────────────────────────────────
@@ -115,7 +115,7 @@ async def get_group_owner(client: Client, chat_id: int):
 
 async def is_owner_or_sudoer(client: Client, chat_id: int, user_id: int):
     owner_user = await get_group_owner(client, chat_id)
-    if owner_user and (user_id == owner_user.id or user_id in SUDOERS.user_ids):
+    if owner_user and (user_id == owner_user.id or user_id in SUDOERS):
         return True, owner_user
     return False, owner_user
 
@@ -135,7 +135,7 @@ async def user_has_permission(
     """
     Check a specific privilege on a user (or bot). Returns (has_perm, error_txt)
     """
-    if user_id in SUDOERS.user_ids:
+    if user_id in SUDOERS:
         return True, None
 
     try:
