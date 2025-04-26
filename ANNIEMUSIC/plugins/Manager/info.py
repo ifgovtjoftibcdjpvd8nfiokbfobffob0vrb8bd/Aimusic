@@ -2,11 +2,7 @@ import asyncio
 
 from pyrogram import enums, filters, types
 from pyrogram.errors import FloodWait, PeerIdInvalid, RPCError
-from pyrogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-)
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from ANNIEMUSIC import app
 
