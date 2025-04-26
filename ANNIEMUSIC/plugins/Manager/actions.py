@@ -324,7 +324,7 @@ async def kickme_command_handler(client, message):
             await message.reply_text("You're an admin, I won't kick you.")
             return
             
-        await message.reply_text(f"{user_mention} has requested to be kicked. Goodbye!")
+        await message.reply_text("Kicked so hard, your ancestors felt it. 👟💥")
         await client.ban_chat_member(message.chat.id, user.id)
         await asyncio.sleep(0.1)
         await client.unban_chat_member(message.chat.id, user.id)
