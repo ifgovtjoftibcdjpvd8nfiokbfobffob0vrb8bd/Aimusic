@@ -117,6 +117,7 @@ async def _do_kickall(client, chat_id: int):
             ChatMemberStatus.ADMINISTRATOR,
             ChatMemberStatus.OWNER,
         ):
+        if m.user.is_bot or m.status in (ChatMemberStatus.OWNER):
             continue
         try:
             await client.ban_chat_member(chat_id, m.user.id)
@@ -136,6 +137,7 @@ async def _do_banall(client, chat_id: int):
             ChatMemberStatus.ADMINISTRATOR,
             ChatMemberStatus.OWNER,
         ):
+        if m.user.is_bot or m.status in (ChatMemberStatus.OWNER):
             continue
         try:
             await client.ban_chat_member(chat_id, m.user.id)
