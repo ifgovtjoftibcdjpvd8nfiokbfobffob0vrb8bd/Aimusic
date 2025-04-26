@@ -8,7 +8,12 @@ from typing import Dict, List, Tuple
 import edge_tts
 from pyrogram import Client, filters
 from pyrogram.enums import ChatAction, ParseMode
-from pyrogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 from ANNIEMUSIC import app
 
@@ -20,9 +25,10 @@ _voices: List[dict] = []
 _languages: List[str] = []
 _VOICES_LOCK = asyncio.Lock()
 
-PER_ROW = 4          # 4 buttons per row
-PER_PAGE = 16        # 4 × 4 grid per page
-TMP_DIR = "/tmp"   # location for temporary audio / text files
+PER_ROW = 4  # 4 buttons per row
+PER_PAGE = 16  # 4 × 4 grid per page
+TMP_DIR = "/tmp"  # location for temporary audio / text files
+
 
 # ---------------------------------------------------------------------------
 # Helper functions
@@ -125,6 +131,7 @@ async def _synthesize(voice: str, text: str, out_path: str) -> None:
     """Generate an MP3 file using edge-TTS."""
     comm = edge_tts.Communicate(text=text, voice=voice)
     await comm.save(out_path)
+
 
 # ---------------------------------------------------------------------------
 # Commands
@@ -282,10 +289,14 @@ async def cb_tts(client: Client, callback: CallbackQuery):
         voice = parts["v"]
         tmp = os.path.join(TMP_DIR, f"tts_{callback.from_user.id}.mp3")
         try:
-            await client.send_chat_action(callback.message.chat.id, ChatAction.RECORD_AUDIO)
+            await client.send_chat_action(
+                callback.message.chat.id, ChatAction.RECORD_AUDIO
+            )
             await _synthesize(voice, text, tmp)
 
-            await client.send_chat_action(callback.message.chat.id, ChatAction.UPLOAD_AUDIO)
+            await client.send_chat_action(
+                callback.message.chat.id, ChatAction.UPLOAD_AUDIO
+            )
             await client.send_audio(
                 chat_id=callback.message.chat.id,
                 audio=tmp,
@@ -311,12 +322,12 @@ async def cmd_voiceall(client: Client, message: Message):
     """Send a text file listing all voices."""
     await _init_voices()
 
-    lines = [
-        f"{v['short_name']} — {v['locale']} ({v['gender']})" for v in _voices
-    ]
+    lines = [f"{v['short_name']} — {v['locale']} ({v['gender']})" for v in _voices]
     path = os.path.join(TMP_DIR, f"voices_{message.from_user.id}.txt")
     with open(path, "w", encoding="utf-8") as fp:
         fp.write("\n".join(lines))
 
-    await message.reply_document(document=path, caption="📋 List of all available voices")
+    await message.reply_document(
+        document=path, caption="📋 List of all available voices"
+    )
     _cleanup(path)

@@ -1,12 +1,13 @@
 import os
-import aiohttp
-import aiofiles
-import requests
 
-from config import BOT_USERNAME, DEEP_API
-from ANNIEMUSIC import app
+import aiofiles
+import aiohttp
+import requests
 from pyrogram import filters
 from pyrogram.types import Message
+
+from ANNIEMUSIC import app
+from config import DEEP_API
 
 
 async def download_from_url(path: str, url: str) -> str:
@@ -35,8 +36,8 @@ async def upscale_image(_, message: Message):
         local_path = await reply.download()
         resp = requests.post(
             "https://api.deepai.org/api/torch-srgan",
-            files={'image': open(local_path, 'rb')},
-            headers={'api-key': DEEP_API}
+            files={"image": open(local_path, "rb")},
+            headers={"api-key": DEEP_API},
         ).json()
 
         image_url = resp.get("output_url")
@@ -78,8 +79,8 @@ async def draw_image(_, message: Message):
     try:
         resp = requests.post(
             "https://api.deepai.org/api/text2img",
-            data={'text': query, 'grid_size': '1', 'image_generator_version': 'hd'},
-            headers={'api-key': DEEP_API}
+            data={"text": query, "grid_size": "1", "image_generator_version": "hd"},
+            headers={"api-key": DEEP_API},
         ).json()
 
         image_url = resp.get("output_url")

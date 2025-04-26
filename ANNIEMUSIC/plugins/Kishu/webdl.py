@@ -1,9 +1,11 @@
-import requests
 import os
-from pyrogram import Client, filters, enums
+
+import requests
+from pyrogram import Client, enums, filters
 from pyrogram.types import Message
 from requests.adapters import HTTPAdapter
 from requests.packages.urllib3.util.retry import Retry
+
 from ANNIEMUSIC import app
 
 
@@ -36,7 +38,7 @@ async def web_download(client: Client, message: Message):
     if len(message.command) < 2:
         return await message.reply_text(
             "❌ Please enter a valid URL.\n\nExample: `/webdl https://example.com`",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.MARKDOWN,
         )
 
     url = message.command[1]
@@ -45,7 +47,9 @@ async def web_download(client: Client, message: Message):
     source_code = download_website(url)
 
     if source_code.startswith("❌"):
-        return await status_msg.edit_text(source_code, parse_mode=enums.ParseMode.MARKDOWN)
+        return await status_msg.edit_text(
+            source_code, parse_mode=enums.ParseMode.MARKDOWN
+        )
 
     file_path = "website_source.txt"
     try:
@@ -55,12 +59,11 @@ async def web_download(client: Client, message: Message):
         await message.reply_document(
             document=file_path,
             caption=f"📄 Source code of: `{url}`",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.MARKDOWN,
         )
     except Exception as e:
         await message.reply_text(
-            f"❌ Failed to send the file: `{e}`",
-            parse_mode=enums.ParseMode.MARKDOWN
+            f"❌ Failed to send the file: `{e}`", parse_mode=enums.ParseMode.MARKDOWN
         )
     finally:
         if os.path.exists(file_path):

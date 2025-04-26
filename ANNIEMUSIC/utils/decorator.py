@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import Callable, Awaitable, Any
+from typing import Any, Awaitable, Callable
 
 from pyrogram import Client
 from pyrogram.enums import ChatMemberStatus, ChatType
 from pyrogram.types import Message
 
+from ANNIEMUSIC.misc import COMMANDERS, SUDOERS
 from config import BOT_USERNAME
-from ANNIEMUSIC.misc import SUDOERS, COMMANDERS
-
 
 Handler = Callable[..., Awaitable[Any]]
 
@@ -30,7 +29,9 @@ def admin_required(*privileges: str):
         @wraps(func)
         async def wrapper(client: Client, message: Message, *a, **kw):
             if not message.from_user:  # anonymous admin?
-                return await message.reply_text("Unhide your account to use this command.")
+                return await message.reply_text(
+                    "Unhide your account to use this command."
+                )
 
             member = await message.chat.get_member(message.from_user.id)
             allowed = False
@@ -60,7 +61,10 @@ def _require_bot_priv(flag: str, friendly: str):
         @wraps(func)
         async def inner(client: Client, message: Message, *a, **kw):
             me = await client.get_chat_member(message.chat.id, BOT_USERNAME)
-            if not (me.status == ChatMemberStatus.ADMINISTRATOR and getattr(me.privileges, flag)):
+            if not (
+                me.status == ChatMemberStatus.ADMINISTRATOR
+                and getattr(me.privileges, flag)
+            ):
                 return await message.reply_text(
                     f"I don’t have the right **{friendly}** in **{message.chat.title}**."
                 )
@@ -94,7 +98,9 @@ def user_admin(func: Handler) -> Handler:
 
         if message.sender_chat:  # anonymous channel admin
             if message.sender_chat.id == message.chat.id:
-                return await message.reply("Anonymous admin: please switch to your user account.")
+                return await message.reply(
+                    "Anonymous admin: please switch to your user account."
+                )
             return await message.reply_text("You are not an admin.")
 
         user_id = message.from_user.id
@@ -113,9 +119,8 @@ def _user_priv_required(flag: str, friendly: str):
         async def inner(client: Client, message: Message, *a, **kw):
             user = await client.get_chat_member(message.chat.id, message.from_user.id)
             if (
-                (user.status in COMMANDERS and not getattr(user.privileges, flag, False))
-                and message.from_user.id not in SUDOERS.user_ids
-            ):
+                user.status in COMMANDERS and not getattr(user.privileges, flag, False)
+            ) and message.from_user.id not in SUDOERS.user_ids:
                 return await message.reply_text(f"You lack the right to {friendly}.")
             return await func(client, message, *a, **kw)
 

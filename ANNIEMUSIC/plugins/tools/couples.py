@@ -21,7 +21,7 @@ def tomorrow() -> str:
 
 
 def circular(path: str) -> Image.Image:
-    img  = Image.open(path).resize((486, 486))
+    img = Image.open(path).resize((486, 486))
     mask = Image.new("L", img.size, 0)
     ImageDraw.Draw(mask).ellipse((0, 0) + img.size, fill=255)
     img.putalpha(mask)
@@ -46,8 +46,8 @@ async def safe_photo(uid: int, name: str):
 
 async def generate_image(chat_id: int, uid1: int, uid2: int, date: str) -> str:
     base = Image.open("ANNIEMUSIC/assets/annie/ANNIECP.png")
-    p1   = await safe_photo(uid1, "pfp1.png")
-    p2   = await safe_photo(uid2, "pfp2.png")
+    p1 = await safe_photo(uid1, "pfp1.png")
+    p2 = await safe_photo(uid2, "pfp2.png")
 
     base.paste(circular(p1), (410, 500), circular(p1))
     base.paste(circular(p2), (1395, 500), circular(p2))
@@ -68,7 +68,7 @@ async def couples_handler(_, message: Message):
         return await message.reply("**ᴛʜɪs ᴄᴏᴍᴍᴀɴᴅ ᴏɴʟʏ ᴡᴏʀᴋs ɪɴ ɢʀᴏᴜᴘs.**")
 
     wait = await message.reply("🦋")
-    cid  = message.chat.id
+    cid = message.chat.id
     date = today()
 
     record = await get_couple(cid, date)
@@ -83,7 +83,8 @@ async def couples_handler(_, message: Message):
 
     if not record:
         members = [
-            m.user.id async for m in app.get_chat_members(cid, limit=250)
+            m.user.id
+            async for m in app.get_chat_members(cid, limit=250)
             if not m.user.is_bot
         ]
         if len(members) < 2:

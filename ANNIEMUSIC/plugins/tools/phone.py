@@ -11,22 +11,16 @@ API_URL = "http://apilayer.net/api/validate"
 
 @app.on_message(filters.command("phone"))
 async def check_phone(_, message: Message):
-
     if len(message.command) < 2:
         return await message.reply_text(
             "📱 **ᴘʟᴇᴀꜱᴇ ᴘʀᴏᴠɪᴅᴇ ᴀ ᴘʜᴏɴᴇ ɴᴜᴍʙᴇʀ ᴡɪᴛʜ ᴄᴏᴜɴᴛʀʏ ᴄᴏᴅᴇ.**\n"
             "**ᴜꜱᴀɢᴇ:** `/phone <number>`",
-            parse_mode=ParseMode.MARKDOWN
+            parse_mode=ParseMode.MARKDOWN,
         )
 
     number = message.command[1]
 
-    params = {
-        "access_key": API_KEY,
-        "number": number,
-        "country_code": "",
-        "format": 1
-    }
+    params = {"access_key": API_KEY, "number": number, "country_code": "", "format": 1}
 
     try:
         async with aiohttp.ClientSession() as session:
@@ -34,15 +28,14 @@ async def check_phone(_, message: Message):
                 if response.status != 200:
                     return await message.reply_text(
                         "❌ **ɴᴇᴛᴡᴏʀᴋ ᴇʀʀᴏʀ. ᴀᴘɪ ɴᴏᴛ ʀᴇᴀᴄʜᴀʙʟᴇ.**",
-                        parse_mode=ParseMode.MARKDOWN
+                        parse_mode=ParseMode.MARKDOWN,
                     )
 
                 data = await response.json()
 
                 if not data.get("valid"):
                     return await message.reply_text(
-                        "❌ **ɪɴᴠᴀʟɪᴅ ᴘʜᴏɴᴇ ɴᴜᴍʙᴇʀ.**",
-                        parse_mode=ParseMode.MARKDOWN
+                        "❌ **ɪɴᴠᴀʟɪᴅ ᴘʜᴏɴᴇ ɴᴜᴍʙᴇʀ.**", parse_mode=ParseMode.MARKDOWN
                     )
 
                 result = (
@@ -58,11 +51,9 @@ async def check_phone(_, message: Message):
 
     except aiohttp.ClientError as e:
         return await message.reply_text(
-            f"⚠️ **ɴᴇᴛᴡᴏʀᴋ ᴇʀʀᴏʀ:** `{str(e)}`",
-            parse_mode=ParseMode.MARKDOWN
+            f"⚠️ **ɴᴇᴛᴡᴏʀᴋ ᴇʀʀᴏʀ:** `{str(e)}`", parse_mode=ParseMode.MARKDOWN
         )
     except Exception as e:
         return await message.reply_text(
-            f"⚠️ **ᴜɴᴋɴᴏᴡɴ ᴇʀʀᴏʀ:** `{str(e)}`",
-            parse_mode=ParseMode.MARKDOWN
+            f"⚠️ **ᴜɴᴋɴᴏᴡɴ ᴇʀʀᴏʀ:** `{str(e)}`", parse_mode=ParseMode.MARKDOWN
         )

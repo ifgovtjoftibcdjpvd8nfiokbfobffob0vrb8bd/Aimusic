@@ -1,9 +1,10 @@
-from pyrogram import Client, filters
 import requests
+from pyrogram import filters
+
 from ANNIEMUSIC import app
 
-IPINFO_TOKEN = 'de9e66ca96b47e'
-IPQUALITYSCORE_API_KEY = '952ztTq41AxoXam43pStVjVNcEjo1ntQ'
+IPINFO_TOKEN = "de9e66ca96b47e"
+IPQUALITYSCORE_API_KEY = "952ztTq41AxoXam43pStVjVNcEjo1ntQ"
 
 
 @app.on_message(filters.command(["ip"]))
@@ -16,16 +17,19 @@ async def ip_info_and_score(_, message):
 
     ip_address = message.command[1]
     ip_info = get_ip_info(ip_address)
-    ip_score, score_description, emoji = get_ip_score(ip_address, IPQUALITYSCORE_API_KEY)
+    ip_score, score_description, emoji = get_ip_score(
+        ip_address, IPQUALITYSCORE_API_KEY
+    )
 
     if ip_info is not None and ip_score is not None:
         response_message = (
-            f"{ip_info}\n\n"
-            f"**ɪᴘ sᴄᴏʀᴇ ➪ {ip_score} {emoji} ({score_description})"
+            f"{ip_info}\n\n" f"**ɪᴘ sᴄᴏʀᴇ ➪ {ip_score} {emoji} ({score_description})"
         )
         await message.reply_text(response_message)
     else:
-        await message.reply_text("Unable to fetch information for the provided IP address.")
+        await message.reply_text(
+            "Unable to fetch information for the provided IP address."
+        )
 
 
 def get_ip_info(ip_address):

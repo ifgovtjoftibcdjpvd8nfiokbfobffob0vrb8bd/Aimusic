@@ -12,14 +12,21 @@ import asyncio
 import logging
 
 from pyrogram import filters
-from pyrogram.types import (
-    InlineKeyboardMarkup, InlineKeyboardButton,
-    CallbackQuery, Message, ChatInviteLink, ChatPrivileges
-)
-from pyrogram.enums import ChatMemberStatus, ChatMembersFilter
+from pyrogram.enums import ChatMembersFilter, ChatMemberStatus
 from pyrogram.errors import (
-    UserNotParticipant, ChatAdminRequired, FloodWait,
-    PeerIdInvalid, InviteHashInvalid
+    ChatAdminRequired,
+    FloodWait,
+    InviteHashInvalid,
+    PeerIdInvalid,
+    UserNotParticipant,
+)
+from pyrogram.types import (
+    CallbackQuery,
+    ChatInviteLink,
+    ChatPrivileges,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
 )
 
 from ANNIEMUSIC import app
@@ -31,16 +38,20 @@ from ANNIEMUSIC.utils.permissions import is_owner_or_sudoer, mention
 # create a real logger instance
 log = _LOGGER_FACTORY(__name__)
 
+
 # ---------------------------------------------------------------------------
 # Inline keyboard for Yes/No confirmation
 # ---------------------------------------------------------------------------
 def _confirm_kb(cmd: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup([
+    return InlineKeyboardMarkup(
         [
-            InlineKeyboardButton("Yes", callback_data=f"{cmd}_yes"),
-            InlineKeyboardButton("No",  callback_data=f"{cmd}_no"),
+            [
+                InlineKeyboardButton("Yes", callback_data=f"{cmd}_yes"),
+                InlineKeyboardButton("No", callback_data=f"{cmd}_no"),
+            ]
         ]
-    ])
+    )
+
 
 # ---------------------------------------------------------------------------
 # /deleteall handler
@@ -56,15 +67,18 @@ async def deleteall_command(client, message: Message):
 
     bot_member = await client.get_chat_member(message.chat.id, client.me.id)
     priv = bot_member.privileges
-    if not (priv.can_delete_messages and priv.can_invite_users and priv.can_promote_members):
+    if not (
+        priv.can_delete_messages and priv.can_invite_users and priv.can_promote_members
+    ):
         return await message.reply_text(
             "I need to be admin with delete_messages, invite_users & promote_members."
         )
 
     await message.reply(
         f"{message.from_user.mention}, confirm delete all messages?",
-        reply_markup=_confirm_kb("deleteall")
+        reply_markup=_confirm_kb("deleteall"),
     )
+
 
 # ---------------------------------------------------------------------------
 # Confirmation callback
@@ -78,7 +92,9 @@ async def deleteall_callback(client, callback: CallbackQuery):
     # Verify owner again
     ok, _ = await is_owner_or_sudoer(client, chat_id, uid)
     if not ok:
-        return await callback.answer("Only the group owner can confirm.", show_alert=True)
+        return await callback.answer(
+            "Only the group owner can confirm.", show_alert=True
+        )
 
     if ans == "no":
         return await callback.message.edit("Delete all canceled.")
@@ -98,7 +114,9 @@ async def deleteall_callback(client, callback: CallbackQuery):
     except (UserNotParticipant, PeerIdInvalid):
         # invite assistant
         try:
-            link: ChatInviteLink = await client.create_chat_invite_link(chat_id, member_limit=1)
+            link: ChatInviteLink = await client.create_chat_invite_link(
+                chat_id, member_limit=1
+            )
             await assistant.join_chat(link.invite_link)
             await asyncio.sleep(1)
         except ChatAdminRequired:
@@ -112,8 +130,7 @@ async def deleteall_callback(client, callback: CallbackQuery):
     # promote assistant to delete permissions
     try:
         await client.promote_chat_member(
-            chat_id, ass_id,
-            privileges=ChatPrivileges(can_delete_messages=True)
+            chat_id, ass_id, privileges=ChatPrivileges(can_delete_messages=True)
         )
     except ChatAdminRequired:
         return await callback.message.edit(
@@ -125,11 +142,10 @@ async def deleteall_callback(client, callback: CallbackQuery):
 
     # attempt bulk delete via delete_chat_history
     try:
-        deleted_count: int = await assistant.delete_chat_history(
-            chat_id,
-            revoke=True
+        deleted_count: int = await assistant.delete_chat_history(chat_id, revoke=True)
+        return await callback.message.edit(
+            f"✅ Deleted {deleted_count} messages successfully."
         )
-        return await callback.message.edit(f"✅ Deleted {deleted_count} messages successfully.")
     except ChatAdminRequired:
         # fallback if we lack the channel permission
         await callback.message.edit(
@@ -140,6 +156,7 @@ async def deleteall_callback(client, callback: CallbackQuery):
 
     # fallback batch deletion
     await _fallback_batch_delete(assistant, callback)
+
 
 async def _fallback_batch_delete(assistant, callback: CallbackQuery):
     chat_id = callback.message.chat.id
@@ -170,7 +187,9 @@ async def _fallback_batch_delete(assistant, callback: CallbackQuery):
     # demote and remove assistant
     ass_id = (await assistant.get_me()).id
     try:
-        await assistant.promote_chat_member(chat_id, ass_id, privileges=ChatPrivileges())
+        await assistant.promote_chat_member(
+            chat_id, ass_id, privileges=ChatPrivileges()
+        )
         await assistant.leave_chat(chat_id)
     except Exception:
         pass

@@ -1,11 +1,14 @@
 import os
-import aiohttp
+
 import aiofiles
-from pyrogram import filters
+import aiohttp
 from aiohttp import ContentTypeError
+from pyrogram import filters
+
 from ANNIEMUSIC import app
 
 API_KEY = "23nfCEipDijgVv6SH14oktJe"
+
 
 def generate_unique_filename(base_name: str) -> str:
     if os.path.exists(base_name):
@@ -18,6 +21,7 @@ def generate_unique_filename(base_name: str) -> str:
             count += 1
     return base_name
 
+
 async def remove_background(image_path: str) -> tuple:
     headers = {"X-API-Key": API_KEY}
     async with aiohttp.ClientSession() as session:
@@ -27,7 +31,6 @@ async def remove_background(image_path: str) -> tuple:
             async with session.post(
                 "https://api.remove.bg/v1.0/removebg", headers=headers, data=data
             ) as response:
-
                 if "image" not in response.headers.get("content-type", ""):
                     return False, await response.json()
 
@@ -38,6 +41,7 @@ async def remove_background(image_path: str) -> tuple:
 
         except Exception as e:
             return False, {"title": "Unknown Error", "errors": [{"detail": str(e)}]}
+
 
 @app.on_message(filters.command("rmbg"))
 async def remove_bg_command(client, message):
@@ -54,9 +58,13 @@ async def remove_bg_command(client, message):
 
         if not success:
             error = result["errors"][0]
-            return await status.edit(f"⚠️ ERROR: {result['title']}\n{error.get('detail', '')}")
+            return await status.edit(
+                f"⚠️ ERROR: {result['title']}\n{error.get('detail', '')}"
+            )
 
-        await message.reply_photo(photo=result, caption="✅ Here's your image without background.")
+        await message.reply_photo(
+            photo=result, caption="✅ Here's your image without background."
+        )
         await message.reply_document(document=result)
         os.remove(result)
         await status.delete()

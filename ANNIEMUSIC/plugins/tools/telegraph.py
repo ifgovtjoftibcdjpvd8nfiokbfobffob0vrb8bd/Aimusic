@@ -1,6 +1,6 @@
 import os
-import aiohttp
 
+import aiohttp
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
@@ -32,7 +32,9 @@ async def telegraph_handler(_, message: Message):
         or message.reply_to_message.video
         or message.reply_to_message.document
     ):
-        return await message.reply_text("📎 **Please reply to an image/video/document to upload.**")
+        return await message.reply_text(
+            "📎 **Please reply to an image/video/document to upload.**"
+        )
 
     media = message.reply_to_message
     file = media.photo or media.video or media.document

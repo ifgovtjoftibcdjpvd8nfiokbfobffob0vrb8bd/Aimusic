@@ -1,12 +1,16 @@
 import asyncio
-import aiohttp
 import os
-from config import API_URL, API_KEY
+
+import aiohttp
+
+from config import API_KEY, API_URL
+
 
 def extract_video_id(link: str) -> str:
     if "v=" in link:
         return link.split("v=")[-1].split("&")[0]
     return link.split("/")[-1].split("?")[0]
+
 
 async def api_download_song(link: str) -> str:
     video_id = extract_video_id(link)
@@ -47,7 +51,7 @@ async def api_download_song(link: str) -> str:
 
             os.makedirs(download_folder, exist_ok=True)
             async with session.get(download_url) as file_response:
-                with open(file_path, 'wb') as f:
+                with open(file_path, "wb") as f:
                     while True:
                         chunk = await file_response.content.read(8192)
                         if not chunk:

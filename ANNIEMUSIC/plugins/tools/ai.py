@@ -1,30 +1,36 @@
-import os
 import base64
 import mimetypes
+import os
 
+from lexica import AsyncClient, Messages, languageModels
 from pyrogram import Client, filters
-from pyrogram.types import Message
 from pyrogram.enums import ChatAction
+from pyrogram.types import Message
 
-from lexica import AsyncClient, languageModels, Messages
 from ANNIEMUSIC import app
 
 
 def get_prompt(message: Message) -> str | None:
-    parts = message.text.split(' ', 1)
+    parts = message.text.split(" ", 1)
     return parts[1] if len(parts) > 1 else None
 
 
 def extract_content(response) -> str | None:
-    content = response.get('content')
+    content = response.get("content")
     if isinstance(content, str):
         return content
     elif isinstance(content, list):
-        return '\n'.join(item['text'] for item in content if isinstance(item, dict) and 'text' in item)
+        return "\n".join(
+            item["text"]
+            for item in content
+            if isinstance(item, dict) and "text" in item
+        )
     elif isinstance(content, dict):
-        if 'parts' in content and isinstance(content['parts'], list):
-            return '\n'.join(part.get('text', '') for part in content['parts'] if 'text' in part)
-        return content.get('text')
+        if "parts" in content and isinstance(content["parts"], list):
+            return "\n".join(
+                part.get("text", "") for part in content["parts"] if "text" in part
+            )
+        return content.get("text")
     return None
 
 
@@ -32,7 +38,9 @@ def format_response(model_name: str, content: str) -> str:
     return f"**ᴍᴏᴅᴇʟ:** `{model_name}`\n\n**ʀᴇsᴘᴏɴsᴇ:**\n{content}"
 
 
-async def handle_text_model(message: Message, model, model_name: str, as_messages=False):
+async def handle_text_model(
+    message: Message, model, model_name: str, as_messages=False
+):
     prompt = get_prompt(message)
     if not prompt:
         return await message.reply_text("Please provide a prompt after the command.")
@@ -44,7 +52,11 @@ async def handle_text_model(message: Message, model, model_name: str, as_message
         data = [Messages(content=prompt, role="user")] if as_messages else prompt
         response = await lexica_client.ChatCompletion(data, model)
         content = extract_content(response)
-        await message.reply_text(format_response(model_name, content) if content else "No content received from the API.")
+        await message.reply_text(
+            format_response(model_name, content)
+            if content
+            else "No content received from the API."
+        )
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
     finally:
@@ -73,13 +85,17 @@ async def llama_handler(client: Client, message: Message):
 
 @app.on_message(filters.command("mistral"))
 async def mistral_handler(client: Client, message: Message):
-    await handle_text_model(message, languageModels.mistral, "Mistral", as_messages=True)
+    await handle_text_model(
+        message, languageModels.mistral, "Mistral", as_messages=True
+    )
 
 
 @app.on_message(filters.command("geminivision"))
 async def geminivision_handler(client: Client, message: Message):
     if not (message.reply_to_message and message.reply_to_message.photo):
-        return await message.reply_text("Please reply to an image with the /geminivision command and a prompt.")
+        return await message.reply_text(
+            "Please reply to an image with the /geminivision command and a prompt."
+        )
 
     prompt = get_prompt(message)
     if not prompt:
@@ -97,9 +113,15 @@ async def geminivision_handler(client: Client, message: Message):
         mime_type, _ = mimetypes.guess_type(file_path)
         image_info = [{"data": data, "mime_type": mime_type}]
 
-        response = await lexica_client.ChatCompletion(prompt, languageModels.geminiVision, images=image_info)
+        response = await lexica_client.ChatCompletion(
+            prompt, languageModels.geminiVision, images=image_info
+        )
         content = extract_content(response)
-        await message.reply_text(format_response("Gemini Vision", content) if content else "No content received from the API.")
+        await message.reply_text(
+            format_response("Gemini Vision", content)
+            if content
+            else "No content received from the API."
+        )
     except Exception as e:
         await message.reply_text(f"An error occurred: {e}")
     finally:

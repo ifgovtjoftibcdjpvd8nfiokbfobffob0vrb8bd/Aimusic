@@ -1,11 +1,11 @@
 import os
+
 from gtts import gTTS
-
+from lexica import AsyncClient, Messages, languageModels
 from pyrogram import Client, filters
-from pyrogram.types import Message
 from pyrogram.enums import ChatAction
+from pyrogram.types import Message
 
-from lexica import AsyncClient, languageModels, Messages
 from ANNIEMUSIC import app
 
 
@@ -42,7 +42,12 @@ async def jarvis_handler(client: Client, message: Message):
         await message.reply_text(f"❌ Error: {e}")
 
 
-@app.on_message(filters.command(["chatgpt", "ai", "ask", "Master"], prefixes=["+", ".", "/", "-", "?", "$", "#", "&"]))
+@app.on_message(
+    filters.command(
+        ["chatgpt", "ai", "ask", "Master"],
+        prefixes=["+", ".", "/", "-", "?", "$", "#", "&"],
+    )
+)
 async def chatgpt_handler(client: Client, message: Message):
     await client.send_chat_action(message.chat.id, ChatAction.TYPING)
 

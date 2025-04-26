@@ -1,10 +1,12 @@
-from pyrogram import filters
-from datetime import datetime
 import socket
+from datetime import datetime
+
 import requests
 import whois
+from pyrogram import filters
 
 from ANNIEMUSIC import app
+
 
 def get_domain_info(domain_name):
     try:
@@ -13,10 +15,12 @@ def get_domain_info(domain_name):
         print(f"[WHOIS Error] {e}")
         return None
 
+
 def get_domain_age(creation_date):
     if isinstance(creation_date, list):
         creation_date = creation_date[0]
     return (datetime.now() - creation_date).days // 365 if creation_date else None
+
 
 def get_ip_location(ip):
     try:
@@ -28,6 +32,7 @@ def get_ip_location(ip):
         print(f"[IP Geo Error] {e}")
     return None
 
+
 def format_info(info):
     def clean(item):
         if isinstance(item, list):
@@ -38,7 +43,7 @@ def format_info(info):
     registrar = clean(info.registrar)
     creation = clean(info.creation_date)
     expiry = clean(info.expiration_date)
-    nameservers = ', '.join(info.name_servers) if info.name_servers else "N/A"
+    nameservers = ", ".join(info.name_servers) if info.name_servers else "N/A"
     age = get_domain_age(creation)
 
     try:
@@ -47,7 +52,11 @@ def format_info(info):
         ip = "Unavailable"
 
     location_data = get_ip_location(ip)
-    location = f"{location_data['country']}, {location_data['city']}" if location_data else "Unavailable"
+    location = (
+        f"{location_data['country']}, {location_data['city']}"
+        if location_data
+        else "Unavailable"
+    )
 
     return (
         f"**ᴅᴏᴍᴀɪɴ ɴᴀᴍᴇ**: {domain}\n"
@@ -60,10 +69,13 @@ def format_info(info):
         f"**ɴᴀᴍᴇsᴇʀᴠᴇʀs**: {nameservers}\n"
     )
 
+
 @app.on_message(filters.command("domain"))
 async def domain_lookup(_, message):
     if len(message.command) < 2:
-        return await message.reply("Please provide a domain name. Example: `/domain heroku.com`")
+        return await message.reply(
+            "Please provide a domain name. Example: `/domain heroku.com`"
+        )
 
     domain_name = message.text.split(maxsplit=1)[1].strip()
     data = get_domain_info(domain_name)

@@ -1,9 +1,11 @@
-from pyrogram import Client, filters, enums
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from datetime import datetime
-from config import BOT_USERNAME
-from ANNIEMUSIC import app
+
 import requests
+from pyrogram import Client, enums, filters
+from pyrogram.types import Message
+
+from ANNIEMUSIC import app
+from config import BOT_USERNAME
 
 
 @app.on_message(filters.command("write"))
@@ -15,7 +17,7 @@ async def handwrite(_, message: Message):
     else:
         return await message.reply_text(
             "❌ Please provide some text to write.\n\nUse `/write your message` or reply to a message.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.MARKDOWN,
         )
 
     msg = await message.reply_text("✍️ Please wait...\nWriting your text...")
@@ -28,7 +30,7 @@ async def handwrite(_, message: Message):
     except Exception:
         return await msg.edit(
             "❌ Failed to generate handwritten text. Try again later.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.MARKDOWN,
         )
 
     caption = (
@@ -46,7 +48,7 @@ async def date_to_day_command(client: Client, message: Message):
     if len(message.command) < 2:
         return await message.reply_text(
             "❌ Please provide a date in this format: `/day 1947-08-15`",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.MARKDOWN,
         )
 
     input_date = message.command[1].strip()
@@ -56,10 +58,10 @@ async def date_to_day_command(client: Client, message: Message):
 
         await message.reply_text(
             f"📆 The day of the week for `{input_date}` is **{day_of_week}**.",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.MARKDOWN,
         )
     except ValueError:
         await message.reply_text(
             "❌ Invalid date format. Please use: `/day YYYY-MM-DD`",
-            parse_mode=enums.ParseMode.MARKDOWN
+            parse_mode=enums.ParseMode.MARKDOWN,
         )
