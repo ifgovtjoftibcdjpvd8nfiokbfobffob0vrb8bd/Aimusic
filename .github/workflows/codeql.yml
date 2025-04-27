@@ -1,4 +1,4 @@
-name: "CodeQL Analysis"
+name: "CodeQL Security Analysis"
 
 on:
   push:
@@ -14,15 +14,22 @@ jobs:
   codeql-analysis:
     name: Analyze Code with CodeQL
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: python
+          languages: auto
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
