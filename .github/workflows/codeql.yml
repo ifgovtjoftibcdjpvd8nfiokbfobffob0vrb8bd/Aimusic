@@ -12,7 +12,7 @@ on:
 
 jobs:
   codeql-analysis:
-    name: Analyze Code with CodeQL
+    name: Analyze Python Code with CodeQL
     runs-on: ubuntu-latest
     permissions:
       actions: read
@@ -26,7 +26,7 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: auto
+          languages: python
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
