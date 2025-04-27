@@ -16,8 +16,8 @@ def generate_help_buttons(_, start: int, end: int, current_page: int):
 def first_page(_):
     buttons = generate_help_buttons(_, start=1, end=15, current_page=1)
     navigation_buttons = [
-        InlineKeyboardButton(text="๏ ᴍᴇɴᴜ ๏", callback_data="back_to_main"),
-        InlineKeyboardButton(text="๏ ɴᴇxᴛ ๏", callback_data="help_next_2")
+        InlineKeyboardButton(text="ʜᴏᴍᴇ", callback_data="back_to_main"),
+        InlineKeyboardButton(text="ɴᴇxᴛ »", callback_data="help_next_2")
     ]
     buttons.append(navigation_buttons)
     return InlineKeyboardMarkup(buttons)
@@ -25,8 +25,8 @@ def first_page(_):
 def second_page(_):
     buttons = generate_help_buttons(_, start=16, end=30, current_page=2)
     navigation_buttons = [
-        InlineKeyboardButton(text="๏ ʙᴀᴄᴋ ๏", callback_data="help_prev_1"),
-        InlineKeyboardButton(text="๏ ᴍᴇɴᴜ ๏", callback_data="back_to_main")
+        InlineKeyboardButton(text="« ʙᴀᴄᴋ", callback_data="help_prev_1"),
+        InlineKeyboardButton(text="ʜᴏᴍᴇ", callback_data="back_to_main")
     ]
     buttons.append(navigation_buttons)
     return InlineKeyboardMarkup(buttons)
