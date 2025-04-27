@@ -66,6 +66,15 @@ async def main_markup_handler(client, CallbackQuery, _):
         print(f"Error in main_markup_handler: {e}")
         return
 
+@app.on_callback_query(filters.regex("^close$") & ~BANNED_USERS)
+@languageCB
+async def close_menu(client, CallbackQuery, _):
+    await CallbackQuery.answer("Closed!", show_alert=True)
+    try:
+        await CallbackQuery.message.delete()
+    except:
+        pass
+
 @app.on_callback_query(filters.regex("Pages") & ~BANNED_USERS)
 @languageCB
 async def pages_handler(client, CallbackQuery, _):
