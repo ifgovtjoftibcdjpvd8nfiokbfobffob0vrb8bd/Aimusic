@@ -16,7 +16,7 @@ from config import (BANNED_USERS, SONG_DOWNLOAD_DURATION,
 from ANNIEMUSIC.utils.decorators.language import language, languageCB
 from ANNIEMUSIC.utils.formatters import convert_bytes
 from ANNIEMUSIC.utils.inline.song import song_markup
-from ANNIEMUSIC.utils.errors import capture_err, capture_callback_err
+from ANNIEMUSIC.utils.errors import capture_err, capture_callback_err, capture_internal_err
 
 cookies_file = "ANNIEMUSIC/assets/cookies.txt"
 
