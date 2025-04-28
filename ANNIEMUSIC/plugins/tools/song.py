@@ -16,7 +16,7 @@ from config import (BANNED_USERS, SONG_DOWNLOAD_DURATION,
 from ANNIEMUSIC.utils.decorators.language import language, languageCB
 from ANNIEMUSIC.utils.formatters import convert_bytes
 from ANNIEMUSIC.utils.inline.song import song_markup
-
+from ANNIEMUSIC.utils.errors import capture_err, capture_callback_err
 
 cookies_file = "ANNIEMUSIC/assets/cookies.txt"
 
@@ -29,6 +29,9 @@ SONG_COMMAND = ["song"]
     & ~BANNED_USERS
 )
 @language
+@capture_err
+
+@capture_internal_err
 async def song_commad_group(client, message: Message, _):
     upl = InlineKeyboardMarkup(
         [
@@ -50,6 +53,9 @@ async def song_commad_group(client, message: Message, _):
     & ~BANNED_USERS
 )
 @language
+@capture_err
+
+@capture_internal_err
 async def song_commad_private(client, message: Message, _):
     await message.delete()
     url = await YouTube.url(message)
@@ -127,6 +133,7 @@ async def songs_back_helper(client, CallbackQuery, _):
     filters.regex(pattern=r"song_helper") & ~BANNED_USERS
 )
 @languageCB
+@capture_callback_err
 async def song_helper_cb(client, CallbackQuery, _):
     callback_data = CallbackQuery.data.strip()
     callback_request = callback_data.split(None, 1)[1]
@@ -219,6 +226,7 @@ async def song_helper_cb(client, CallbackQuery, _):
     filters.regex(pattern=r"song_download") & ~BANNED_USERS
 )
 @languageCB
+@capture_callback_err
 async def song_download_cb(client, CallbackQuery, _):
     try:
         await CallbackQuery.answer("Downloading")
