@@ -50,7 +50,7 @@ jobs:
     - name: Run pyflakes with ReviewDog (Check)
       uses: reviewdog/action-pyflakes@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.TOKEN }}
         reporter: github-check
         fail_on_error: true
         filter_mode: file
@@ -60,7 +60,7 @@ jobs:
       if: github.event_name == 'pull_request'
       uses: reviewdog/action-pyflakes@v1
       with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.TOKEN }}
         reporter: github-pr-review
         fail_on_error: false
         filter_mode: file
@@ -72,7 +72,7 @@ jobs:
         echo "Running yamllint with reviewdog (check)..."
         yamllint -d "{extends: default, rules: {line-length: {max: 400}, colons: {max-spaces-before: 1}}}" -f parsable strings/langs || true | reviewdog -f=yamllint -name="yamllint" -reporter=github-check -level=warning
       env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.TOKEN }}
 
     - name: Run yamllint with ReviewDog manually (PR Review)
       if: github.event_name == 'pull_request' && env.yaml_changed == 'true'
@@ -80,4 +80,4 @@ jobs:
         echo "Running yamllint with reviewdog (pr review)..."
         yamllint -d "{extends: default, rules: {line-length: {max: 400}, colons: {max-spaces-before: 1}}}" -f parsable strings/langs || true | reviewdog -f=yamllint -name="yamllint" -reporter=github-pr-review -level=warning
       env:
-        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.TOKEN }}
