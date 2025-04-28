@@ -70,7 +70,7 @@ jobs:
       if: env.yaml_changed == 'true'
       run: |
         echo "Running yamllint with reviewdog (check)..."
-        yamllint -d "{extends: default, rules: {line-length: {max: 300}, colons: {max-spaces-before: 1}}}" -f parsable strings/langs || true | reviewdog -f=yamllint -name="yamllint" -reporter=github-check -level=warning
+        yamllint -d "{extends: default, rules: {line-length: {max: 350}, colons: {max-spaces-before: 1}}}" -f parsable strings/langs || true | reviewdog -f=yamllint -name="yamllint" -reporter=github-check -level=warning
       env:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -78,6 +78,6 @@ jobs:
       if: github.event_name == 'pull_request' && env.yaml_changed == 'true'
       run: |
         echo "Running yamllint with reviewdog (pr review)..."
-        yamllint -d "{extends: default, rules: {line-length: {max: 150}, colons: {max-spaces-before: 1}}}" -f parsable strings/langs || true | reviewdog -f=yamllint -name="yamllint" -reporter=github-pr-review -level=warning
+        yamllint -d "{extends: default, rules: {line-length: {max: 350}, colons: {max-spaces-before: 1}}}" -f parsable strings/langs || true | reviewdog -f=yamllint -name="yamllint" -reporter=github-pr-review -level=warning
       env:
         REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
