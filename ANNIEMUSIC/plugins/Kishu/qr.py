@@ -1,8 +1,7 @@
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message
 from ANNIEMUSIC import app
 import qrcode
-from PIL import Image
 import io
 
 

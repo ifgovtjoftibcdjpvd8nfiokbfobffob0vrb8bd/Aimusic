@@ -1,7 +1,7 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from ANNIEMUSIC import app
 
-# total number of top-level help sections (1 … 29)
+
 TOTAL_SECTIONS = 29
 
 
@@ -43,16 +43,15 @@ def second_page(_):
 
 
 def action_sub_menu(_, current_page: int):
-    """Inner menu shown when the user clicks ‘Action’."""
     return InlineKeyboardMarkup(
         [
             [
                 InlineKeyboardButton(
-                    text=_[ "H_B_S_1" ],   # Promotions
+                    text=_[ "H_B_S_1" ],
                     callback_data="action_prom_1"
                 ),
                 InlineKeyboardButton(
-                    text=_[ "H_B_S_2" ],   # Punishments
+                    text=_[ "H_B_S_2" ],
                     callback_data="action_pun_1"
                 )
             ],

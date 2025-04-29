@@ -1,9 +1,8 @@
-
 import asyncio
+import json
 import os
 import re
-import json
-from typing import Union, Tuple, List, Optional, Dict
+from typing import Dict, List, Optional, Tuple, Union
 
 import yt_dlp
 from pyrogram.enums import MessageEntityType
@@ -11,72 +10,70 @@ from pyrogram.types import Message
 from youtubesearchpython.__future__ import VideosSearch
 
 from ANNIEMUSIC.utils.database import is_on_off
-from ANNIEMUSIC.utils.formatters import time_to_seconds
-from ANNIEMUSIC.utils.errors import capture_internal_err
 from ANNIEMUSIC.utils.downloader import api_download_song
+from ANNIEMUSIC.utils.errors import capture_internal_err
+from ANNIEMUSIC.utils.formatters import time_to_seconds
 
 cookies_file = "ANNIEMUSIC/assets/cookies.txt"
+
+_cache = {}
 
 
 @capture_internal_err
 async def shell_cmd(cmd: str) -> str:
     proc = await asyncio.create_subprocess_shell(
-        cmd,
-        stdout=asyncio.subprocess.PIPE,
-        stderr=asyncio.subprocess.PIPE,
+        cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
     )
-    out, error = await proc.communicate()
-    return out.decode() if out else error.decode()
+    out, err = await proc.communicate()
+    return (out or err).decode()
 
 
 @capture_internal_err
 async def cached_youtube_search(query: str) -> List[Dict]:
+    if query in _cache:
+        return _cache[query]
     search = VideosSearch(query, limit=1)
     results = await search.next()
-    return results.get("result", [])
+    _cache[query] = results.get("result", [])
+    return _cache[query]
 
 
 class YouTubeAPI:
-    def __init__(self):
+    def __init__(self) -> None:
         self.base_url = "https://www.youtube.com/watch?v="
         self.playlist_url = "https://youtube.com/playlist?list="
-        self.url_pattern = re.compile(r"(?:youtube\.com|youtu\.be)")
+        self._url_pattern = re.compile(r"(?:youtube\.com|youtu\.be)")
 
-    def _prepare_link(self, link: str, videoid: Union[bool, str] = None) -> str:
-        if videoid:
-            link = self.base_url + link
+    def _prepare_link(self, link: str, videoid: Union[str, bool, None] = None) -> str:
+        if isinstance(videoid, str) and videoid.strip():
+            link = self.base_url + videoid.strip()
+
         if "youtu.be" in link:
-            video_id = link.split("/")[-1].split("?")[0]
-            link = self.base_url + video_id
+            link = self.base_url + link.split("/")[-1].split("?")[0]
         elif "youtube.com/shorts/" in link or "youtube.com/live/" in link:
-            video_id = link.split("/")[-1].split("?")[0]
-            link = self.base_url + video_id
-        return link.split("&")[0] if "&" in link else link
+            link = self.base_url + link.split("/")[-1].split("?")[0]
+
+        return link.split("&")[0]
 
     @capture_internal_err
-    async def exists(self, link: str, videoid: Union[bool, str] = None) -> bool:
-        link = self._prepare_link(link, videoid)
-        return bool(self.url_pattern.search(link))
+    async def exists(self, link: str, videoid: Union[str, bool, None] = None) -> bool:
+        return bool(self._url_pattern.search(self._prepare_link(link, videoid)))
 
     @capture_internal_err
     async def url(self, message: Message) -> Optional[str]:
-        messages = [message]
-        if message.reply_to_message:
-            messages.append(message.reply_to_message)
-        for msg in messages:
+        msgs = [message] + ([message.reply_to_message] if message.reply_to_message else [])
+        for msg in msgs:
             text = msg.text or msg.caption or ""
-            entities = msg.entities or msg.caption_entities
-            if not entities:
-                continue
-            for entity in entities:
-                if entity.type == MessageEntityType.URL:
-                    return text[entity.offset:entity.offset + entity.length]
-                elif entity.type == MessageEntityType.TEXT_LINK:
-                    return entity.url
+            entities = msg.entities or msg.caption_entities or []
+            for ent in entities:
+                if ent.type == MessageEntityType.URL:
+                    return text[ent.offset : ent.offset + ent.length]
+                if ent.type == MessageEntityType.TEXT_LINK:
+                    return ent.url
         return None
 
     @capture_internal_err
-    async def _fetch_video_info(self, query: str, use_cache: bool = True) -> Optional[Dict]:
+    async def _fetch_video_info(self, query: str, *, use_cache: bool = True) -> Optional[Dict]:
         if use_cache and not query.startswith("http"):
             result = await cached_youtube_search(query)
         else:
@@ -89,105 +86,105 @@ class YouTubeAPI:
         prepared = self._prepare_link(link)
         proc = await asyncio.create_subprocess_exec(
             "yt-dlp", "--cookies", cookies_file, "--dump-json", prepared,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
-        out, _ = await proc.communicate()
-        if out:
-            try:
-                info = json.loads(out.decode())
-                return info.get("is_live") is True
-            except:
-                return False
-        return False
+        stdout, _ = await proc.communicate()
+        if not stdout:
+            return False
+        try:
+            info = json.loads(stdout.decode())
+            return bool(info.get("is_live"))
+        except json.JSONDecodeError:
+            return False
 
     @capture_internal_err
-    async def details(self, link: str, videoid: Union[bool, str] = None) -> Tuple[str, Optional[str], int, str, str]:
+    async def details(self, link: str, videoid: Union[str, bool, None] = None) -> Tuple[str, Optional[str], int, str, str]:
         info = await self._fetch_video_info(self._prepare_link(link, videoid))
         if not info:
             raise ValueError("Video not found")
+        duration_text = info.get("duration")
+        duration_sec = int(time_to_seconds(duration_text)) if duration_text else 0
+        thumb = (info.get("thumbnail") or info.get("thumbnails", [{}])[0].get("url", "")).split("?")[0]
         return (
             info.get("title", ""),
-            info.get("duration"),
-            int(time_to_seconds(info["duration"])) if info.get("duration") else 0,
-            info.get("thumbnails", [{}])[0].get("url", "").split("?")[0],
-            info.get("id", "")
+            duration_text,
+            duration_sec,
+            thumb,
+            info.get("id", ""),
         )
 
     @capture_internal_err
-    async def title(self, link: str, videoid: Union[bool, str] = None) -> str:
+    async def title(self, link: str, videoid: Union[str, bool, None] = None) -> str:
         info = await self._fetch_video_info(self._prepare_link(link, videoid))
         return info.get("title", "") if info else ""
 
     @capture_internal_err
-    async def duration(self, link: str, videoid: Union[bool, str] = None) -> Optional[str]:
+    async def duration(self, link: str, videoid: Union[str, bool, None] = None) -> Optional[str]:
         info = await self._fetch_video_info(self._prepare_link(link, videoid))
         return info.get("duration") if info else None
 
     @capture_internal_err
-    async def thumbnail(self, link: str, videoid: Union[bool, str] = None) -> str:
+    async def thumbnail(self, link: str, videoid: Union[str, bool, None] = None) -> str:
         info = await self._fetch_video_info(self._prepare_link(link, videoid))
-        return info.get("thumbnails", [{}])[0].get("url", "").split("?")[0] if info else ""
+        return (info.get("thumbnail") or info.get("thumbnails", [{}])[0].get("url", "")).split("?")[0] if info else ""
 
     @capture_internal_err
-    async def video(self, link: str, videoid: Union[bool, str] = None) -> Tuple[int, str]:
+    async def video(self, link: str, videoid: Union[str, bool, None] = None) -> Tuple[int, str]:
         link = self._prepare_link(link, videoid)
         proc = await asyncio.create_subprocess_exec(
             "yt-dlp", "--cookies", cookies_file, "-g", "-f", "best[height<=?720][width<=?1280]",
-            link, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+            link, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )
         stdout, stderr = await proc.communicate()
-        if stdout:
-            return 1, stdout.decode().split("\n")[0]
-        return 0, stderr.decode()
+        return (1, stdout.decode().split("\n")[0]) if stdout else (0, stderr.decode())
 
     @capture_internal_err
-    async def playlist(self, link: str, limit: int, user_id, videoid: Union[bool, str] = None) -> list:
+    async def playlist(self, link: str, limit: int, user_id, videoid: Union[str, bool, None] = None) -> List[str]:
         if videoid:
-            link = self.playlist_url + videoid
-        if "&" in link:
-            link = link.split("&")[0]
+            link = self.playlist_url + str(videoid)
+        link = link.split("&")[0]
         cmd = (
             f"yt-dlp --cookies {cookies_file} -i --get-id --flat-playlist "
             f"--playlist-end {limit} --skip-download {link}"
         )
-        playlist_data = await shell_cmd(cmd)
-        return [item for item in playlist_data.strip().split("\n") if item]
+        data = await shell_cmd(cmd)
+        return [item for item in data.strip().split("\n") if item]
 
     @capture_internal_err
-    async def track(self, link: str, videoid: Union[bool, str] = None) -> Tuple[Dict, str]:
+    async def track(self, link: str, videoid: Union[str, bool, None] = None) -> Tuple[Dict, str]:
         try:
             info = await self._fetch_video_info(self._prepare_link(link, videoid))
             if not info:
                 raise ValueError("Track not found via API")
-        except:
-            prepared_link = self._prepare_link(link, videoid)
+        except Exception:
+            prepared = self._prepare_link(link, videoid)
             proc = await asyncio.create_subprocess_exec(
-                "yt-dlp", "--cookies", cookies_file, "--dump-json", prepared_link,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
+                "yt-dlp", "--cookies", cookies_file, "--dump-json", prepared,
+                stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
             )
-            out, _ = await proc.communicate()
-            if not out:
+            stdout, _ = await proc.communicate()
+            if not stdout:
                 raise ValueError("Track not found (yt-dlp fallback)")
             try:
-                info = json.loads(out.decode())
+                info = json.loads(stdout.decode())
             except json.JSONDecodeError:
                 raise ValueError("Failed to parse yt-dlp output")
 
-        return {
+        thumb = (info.get("thumbnail") or info.get("thumbnails", [{}])[0].get("url", "")).split("?")[0]
+        details = {
             "title": info.get("title", ""),
-            "link": info.get("webpage_url", link),
+            "link": info.get("webpage_url", self._prepare_link(link, videoid)),
             "vidid": info.get("id", ""),
             "duration_min": info.get("duration") if isinstance(info.get("duration"), str) else None,
-            "thumb": info.get("thumbnail", ""),
-        }, info.get("id", "")
+            "thumb": thumb,
+        }
+        return details, info.get("id", "")
 
     @capture_internal_err
-    async def formats(self, link: str, videoid: Union[bool, str] = None) -> Tuple[List[Dict], str]:
+    async def formats(self, link: str, videoid: Union[str, bool, None] = None) -> Tuple[List[Dict], str]:
         link = self._prepare_link(link, videoid)
         opts = {"quiet": True, "cookiefile": cookies_file}
-        formats = []
+        formats: List[Dict] = []
         with yt_dlp.YoutubeDL(opts) as ydl:
             info = ydl.extract_info(link, download=False)
             for fmt in info.get("formats", []):
@@ -205,17 +202,17 @@ class YouTubeAPI:
         return formats, link
 
     @capture_internal_err
-    async def slider(self, link: str, query_type: int, videoid: Union[bool, str] = None) -> Tuple[str, Optional[str], str, str]:
+    async def slider(self, link: str, query_type: int, videoid: Union[str, bool, None] = None) -> Tuple[str, Optional[str], str, str]:
         search = VideosSearch(self._prepare_link(link, videoid), limit=10)
         results = (await search.next()).get("result", [])
         if not results or query_type >= len(results):
             raise IndexError("Query type index out of range")
-        result = results[query_type]
+        res = results[query_type]
         return (
-            result.get("title", ""),
-            result.get("duration"),
-            result.get("thumbnails", [{}])[0].get("url", "").split("?")[0],
-            result.get("id", ""),
+            res.get("title", ""),
+            res.get("duration"),
+            res.get("thumbnails", [{}])[0].get("url", "").split("?")[0],
+            res.get("id", ""),
         )
 
     @capture_internal_err
@@ -223,23 +220,26 @@ class YouTubeAPI:
         self,
         link: str,
         mystic,
-        video: Union[bool, str] = None,
-        videoid: Union[bool, str] = None,
-        songaudio: Union[bool, str] = None,
-        songvideo: Union[bool, str] = None,
-        format_id: Union[bool, str] = None,
-        title: Union[bool, str] = None,
-    ) -> Union[Tuple[str, Optional[bool]], str]:
+        *,
+        video: Union[bool, str, None] = None,
+        videoid: Union[str, bool, None] = None,
+        songaudio: Union[bool, str, None] = None,
+        songvideo: Union[bool, str, None] = None,
+        format_id: Union[bool, str, None] = None,
+        title: Union[bool, str, None] = None,
+    ) -> Union[Tuple[str, Optional[bool]], Tuple[None, None]]:
         link = self._prepare_link(link, videoid)
         loop = asyncio.get_running_loop()
 
-        def audio_dl():
+        def audio_dl() -> str:
             opts = {
                 "format": "bestaudio/best",
                 "outtmpl": "downloads/%(id)s.%(ext)s",
                 "quiet": True,
                 "no_warnings": True,
                 "cookiefile": cookies_file,
+                "noplaylist": True,
+                "concurrent_fragment_downloads": 5,
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(link, download=False)
@@ -249,13 +249,16 @@ class YouTubeAPI:
                 ydl.download([link])
                 return path
 
-        def video_dl():
+
+        def video_dl() -> str:
             opts = {
                 "format": "best[height<=?720][width<=?1280]",
                 "outtmpl": "downloads/%(id)s.%(ext)s",
                 "quiet": True,
                 "no_warnings": True,
                 "cookiefile": cookies_file,
+                "noplaylist": True,
+                "concurrent_fragment_downloads": 5,
             }
             with yt_dlp.YoutubeDL(opts) as ydl:
                 info = ydl.extract_info(link, download=False)
@@ -265,7 +268,8 @@ class YouTubeAPI:
                 ydl.download([link])
                 return path
 
-        def song_video_dl():
+
+        def song_video_dl() -> None:
             opts = {
                 "format": f"{format_id}+140",
                 "outtmpl": f"downloads/{title}",
@@ -278,7 +282,7 @@ class YouTubeAPI:
             with yt_dlp.YoutubeDL(opts) as ydl:
                 ydl.download([link])
 
-        def song_audio_dl():
+        def song_audio_dl() -> None:
             opts = {
                 "format": format_id,
                 "outtmpl": f"downloads/{title}.%(ext)s",
@@ -295,38 +299,50 @@ class YouTubeAPI:
             with yt_dlp.YoutubeDL(opts) as ydl:
                 ydl.download([link])
 
-        # === Priority logic ===
+        # ---------------- decision tree ---------------- #
+
         if songvideo:
             await loop.run_in_executor(None, song_video_dl)
-            return f"downloads/{title}.mp4"
-        elif songaudio:
+            return f"downloads/{title}.mp4", True
+
+        if songaudio:
             await loop.run_in_executor(None, song_audio_dl)
-            return f"downloads/{title}.mp3"
-        elif video:
+            return f"downloads/{title}.mp3", True
+
+        if video:
             if await self.is_live(link):
                 status, stream_url = await self.video(link)
                 if status == 1:
                     return stream_url, None
                 raise ValueError("Unable to fetch live stream link")
+
             if await is_on_off(1):
                 path = await loop.run_in_executor(None, video_dl)
                 return path, True
+
             proc = await asyncio.create_subprocess_exec(
-                "yt-dlp", "--cookies", cookies_file, "-g", "-f", "best[height<=?720][width<=?1280]",
-                link, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+                "yt-dlp",
+                "--cookies",
+                cookies_file,
+                "-g",
+                "-f",
+                "best[height<=?720][width<=?1280]",
+                link,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
             )
             stdout, _ = await proc.communicate()
             if stdout:
                 return stdout.decode().split("\n")[0], None
-            return ""
-        else:
-            try:
-                api_path = await api_download_song(link)
-                if api_path:
-                    return api_path, True
-            except Exception as e:
-                print(f"[API ERROR] {e}")
+            return None, None
 
-            print("[FALLBACK] API failed, using yt-dlp fallback...")
-            path = await loop.run_in_executor(None, audio_dl)
-            return path, True
+        try:
+            api_path = await api_download_song(link)
+            if api_path:
+                return api_path, True
+        except Exception as e:
+            print(f"[API ERROR] {e}")
+
+        print("[FALLBACK] API failed, using yt-dlp fallback...")
+        path = await loop.run_in_executor(None, audio_dl)
+        return path, True

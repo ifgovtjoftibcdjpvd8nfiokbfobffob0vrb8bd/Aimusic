@@ -2,7 +2,6 @@ from datetime import datetime
 
 from pyrogram import filters
 from pyrogram.types import Message
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, InputMediaPhoto
 from config import *
 from ANNIEMUSIC import app
 from ANNIEMUSIC.core.call import JARVIS

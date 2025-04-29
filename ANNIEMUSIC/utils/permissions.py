@@ -1,13 +1,9 @@
-
-from __future__ import annotations
-
-import asyncio
 import datetime as dt
 from typing import Tuple, Optional
 
 from pyrogram import Client
 from pyrogram.enums import ChatMemberStatus, ChatMembersFilter
-from pyrogram.types import Message, ChatPermissions, User
+from pyrogram.types import Message, User
 from pyrogram.errors import RPCError
 
 from ANNIEMUSIC.misc import SUDOERS

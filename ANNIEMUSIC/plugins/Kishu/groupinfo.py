@@ -1,4 +1,4 @@
-from pyrogram import Client, filters
+from pyrogram import filters
 from pyrogram.types import Message
 from ANNIEMUSIC import app
 
@@ -34,18 +34,3 @@ async def get_group_status(_, message: Message):
     )
 
     await message.reply(response_text)
-
-
-@app.on_message(filters.command("status") & filters.group)
-async def group_status(_, message: Message):
-    chat = message.chat
-    username_display = f"@{chat.username}" if chat.username else "Private"
-
-    status_text = (
-        f"Group ID: {chat.id}\n"
-        f"Title: {chat.title}\n"
-        f"Type: {chat.type}\n"
-        f"Username: {username_display}"
-    )
-
-    await message.reply_text(status_text)

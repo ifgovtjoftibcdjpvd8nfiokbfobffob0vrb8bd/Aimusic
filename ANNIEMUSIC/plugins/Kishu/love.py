@@ -1,4 +1,4 @@
-from pyrogram import Client, filters
+from pyrogram import filters
 import random
 from ANNIEMUSIC import app
 

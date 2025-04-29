@@ -1,4 +1,3 @@
-import asyncio
 import pyfiglet
 from random import choice
 from pyrogram import filters

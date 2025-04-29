@@ -1,8 +1,8 @@
-from pyrogram import Client, filters
+from pyrogram import filters
 import requests
 from ANNIEMUSIC import app
 
-IPINFO_TOKEN = 'de9e66ca96b47e'
+IPINFO_TOKEN = '6274faab58da61'
 IPQUALITYSCORE_API_KEY = '952ztTq41AxoXam43pStVjVNcEjo1ntQ'
 
 

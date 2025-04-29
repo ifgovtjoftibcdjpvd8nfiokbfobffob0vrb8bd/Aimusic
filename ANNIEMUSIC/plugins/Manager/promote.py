@@ -12,7 +12,6 @@ All commands accept reply, @username, or user‑ID, with graceful usage hints.
 """
 
 import asyncio
-import datetime as dt
 from typing import Optional
 
 from pyrogram import filters, enums

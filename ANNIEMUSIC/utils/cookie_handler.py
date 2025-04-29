@@ -1,5 +1,4 @@
 import requests
-import logging
 
 from config import COOKIE_URL
 from ANNIEMUSIC.utils.errors import capture_internal_err

@@ -6,7 +6,7 @@ import traceback
 from io import StringIO
 from time import time
 
-from pyrogram import filters
+from pyrogram import filters, Client
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from config import OWNER_ID
@@ -39,7 +39,7 @@ async def edit_or_reply(msg: Message, **kwargs):
     & ~filters.forwarded
     & ~filters.via_bot
 )
-async def executor(client: app, message: Message):
+async def executor(client: Client, message: Message):
     if len(message.command) < 2:
         return await edit_or_reply(message, text="<b>ᴡʜᴀᴛ ʏᴏᴜ ᴡᴀɴɴᴀ ᴇxᴇᴄᴜᴛᴇ ʙᴀʙʏ ?</b>")
 

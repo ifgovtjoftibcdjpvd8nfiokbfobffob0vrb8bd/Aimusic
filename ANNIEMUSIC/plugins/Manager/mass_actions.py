@@ -16,7 +16,7 @@ Each command asks for a Yes/No confirmation via inline buttons.
 
 import asyncio
 
-from pyrogram import filters, enums
+from pyrogram import filters, Client
 from pyrogram.types import (
     InlineKeyboardButton, InlineKeyboardMarkup,
     CallbackQuery, Message, ChatPermissions
@@ -37,7 +37,7 @@ def _confirmation_keyboard(cmd: str) -> InlineKeyboardMarkup:
 
 
 @app.on_message(filters.command(MASS_CMDS) & filters.group)
-async def ask_mass_confirm(client: app, message: Message):
+async def ask_mass_confirm(client: Client, message: Message):
     cmd = message.command[0]
     ok, owner = await is_owner_or_sudoer(client, message.chat.id, message.from_user.id)
     if not ok:
@@ -53,7 +53,7 @@ async def ask_mass_confirm(client: app, message: Message):
 
 
 @app.on_callback_query(filters.regex(rf"^({'|'.join(MASS_CMDS)})_(yes|no)$"))
-async def handle_mass_confirm(client: app, callback: CallbackQuery):
+async def handle_mass_confirm(client: Client, callback: CallbackQuery):
     data = callback.data
     cmd, answer = data.split("_")
     chat_id = callback.message.chat.id
