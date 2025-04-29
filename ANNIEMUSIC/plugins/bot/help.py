@@ -15,7 +15,7 @@ from ANNIEMUSIC.utils.inline.help import (
     second_page,
 )
 from ANNIEMUSIC.utils.inline.start import private_panel
-from config import BANNED_USERS, START_IMG_URL, SUPPORT_CHAT
+from config import BANNED_USERS, HELP_IMG_URL, SUPPORT_CHAT
 from strings import get_string, helpers
 
 # ────────────────────────────────────────────────  /help entrypoints ──
@@ -37,7 +37,7 @@ async def helper_private(client: Client, update: Union[Message, types.CallbackQu
     else:
         await update.delete()
         await update.reply_photo(
-            photo=START_IMG_URL,
+            photo=HELP_IMG_URL,
             caption=caption,
             reply_markup=keyboard
         )
