@@ -184,7 +184,7 @@ async def play_command(client, message: Message, _, chat_id, video, channel, pla
             spotify = True
             if not config.SPOTIFY_CLIENT_ID or not config.SPOTIFY_CLIENT_SECRET:
                 return await mystic.edit_text(
-                    "»  sᴘᴏᴛɪғʏ ɪs ɴᴏᴛ sᴜᴘᴘᴏʀᴛᴇᴅ ʏᴇᴛ.\n\nᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ ʟᴀᴛᴇʀ"
+                    "»  sᴘᴏᴛɪғʏ ɪs ɴᴏᴛ sᴜᴘᴘᴏʀᴛᴇᴅ ʏᴇᴛ.\n\nᴘʟᴇᴀsᴇ ᴛʀʏ ᴀɢᴀɪɴ ʟᴀᴛᴇʀ."
                 )
 
             if "track" in url:
@@ -475,7 +475,7 @@ async def play_music(client, CallbackQuery, _):
             _["play_2"].format(channel) if channel else random.choice(AYU)
         )
 
-        details, track_id = await YouTube.track(vidid, True)
+        details, track_id = await YouTube.track(vidid, videoid=vidid)
 
         if details.get("duration_min"):
             duration_sec = time_to_seconds(details["duration_min"])
