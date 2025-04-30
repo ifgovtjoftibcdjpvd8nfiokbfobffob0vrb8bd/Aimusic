@@ -81,7 +81,6 @@ STICKERS = [
 ]
 HELP_IMG_URL = "https://files.catbox.moe/yg2vky.jpg"
 PING_VID_URL = "https://files.catbox.moe/3ivvgo.mp4"
-PING_VID_URL = "https://files.catbox.moe/3ivvgo.mp4"
 PLAYLIST_IMG_URL = "https://telegra.ph/file/94e9eca3b0ec6e2dc6cd5.png"
 STATS_VID_URL = "https://telegra.ph/file/e2ab6106ace2e95862372.mp4"
 TELEGRAM_AUDIO_URL = "https://files.catbox.moe/mlztag.jpg"
