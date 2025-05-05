@@ -23,9 +23,26 @@ from ANNIEMUSIC.utils.pastebin import ANNIEBIN
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-
 async def is_heroku():
     return "heroku" in socket.getfqdn()
+
+def cleanup_storage():
+    folders_to_remove = ["downloads", "raw_files", "cache"]
+    for folder in folders_to_remove:
+        try:
+            shutil.rmtree(folder)
+        except FileNotFoundError:
+            pass
+        except Exception as e:
+            print(f"[CLEANUP] Failed to delete {folder}: {e}")
+
+    for root, dirs, files in os.walk("."):
+        for d in dirs:
+            if d == "__pycache__":
+                try:
+                    shutil.rmtree(os.path.join(root, d))
+                except:
+                    pass
 
 
 @app.on_message(filters.command(["getlog", "logs", "getlogs"]) & SUDOERS)
@@ -107,6 +124,8 @@ async def update_(client, message, _):
     except:
         pass
 
+    cleanup_storage()
+
     if await is_heroku():
         try:
             os.system(
@@ -120,7 +139,6 @@ async def update_(client, message, _):
                 text=_["server_10"].format(err),
             )
     else:
-        
         os.execv(sys.executable, [sys.executable, "-m", "ANNIEMUSIC"])
 
 
@@ -139,12 +157,7 @@ async def restart_(_, message):
         except:
             pass
 
-    try:
-        shutil.rmtree("downloads")
-        shutil.rmtree("raw_files")
-        shutil.rmtree("cache")
-    except:
-        pass
+    cleanup_storage()
 
     await response.edit_text(
         "» ʀᴇsᴛᴀʀᴛ ᴘʀᴏᴄᴇss sᴛᴀʀᴛᴇᴅ, ᴘʟᴇᴀsᴇ ᴡᴀɪᴛ ғᴏʀ ғᴇᴡ sᴇᴄᴏɴᴅs ᴜɴᴛɪʟ ᴛʜᴇ ʙᴏᴛ sᴛᴀʀᴛs..."

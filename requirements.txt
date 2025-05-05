@@ -42,4 +42,4 @@ tgcrypto
 unidecode
 wget
 youtube-search-python
-yt-dlp==2025.3.31
+yt-dlp==2025.4.30

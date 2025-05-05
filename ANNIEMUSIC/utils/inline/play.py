@@ -1,9 +1,9 @@
 import time
 from pyrogram.types import InlineKeyboardButton
-
 from ANNIEMUSIC.utils.formatters import time_to_seconds
 
 LAST_UPDATE_TIME = {}
+
 
 def track_markup(_, videoid, user_id, channel, fplay):
     return [
@@ -47,17 +47,13 @@ def generate_progress_bar(played_sec, duration_sec):
 
 
 def control_buttons(_, chat_id):
-    return [
-        [
-            InlineKeyboardButton(text="▷ ʀᴇsᴜᴍᴇ", callback_data=f"ADMIN Resume|{chat_id}"),
-            InlineKeyboardButton(text="II ᴘᴀᴜsᴇ", callback_data=f"ADMIN Pause|{chat_id}"),
-            InlineKeyboardButton(text="‣‣I sᴋɪᴘ", callback_data=f"ADMIN Skip|{chat_id}"),
-        ],
-        [
-            InlineKeyboardButton(text="↻ ʀᴇᴘʟᴀʏ", callback_data=f"ADMIN Replay|{chat_id}"),
-            InlineKeyboardButton(text="▢ sᴛᴏᴘ", callback_data=f"ADMIN Stop|{chat_id}"),
-        ]
-    ]
+    return [[
+        InlineKeyboardButton(text="▷", callback_data=f"ADMIN Resume|{chat_id}"),
+        InlineKeyboardButton(text="II", callback_data=f"ADMIN Pause|{chat_id}"),
+        InlineKeyboardButton(text="↻", callback_data=f"ADMIN Replay|{chat_id}"),
+        InlineKeyboardButton(text="‣‣I", callback_data=f"ADMIN Skip|{chat_id}"),
+        InlineKeyboardButton(text="▢", callback_data=f"ADMIN Stop|{chat_id}"),
+    ]]
 
 
 def stream_markup_timer(_, chat_id, played, dur):
@@ -98,8 +94,8 @@ def playlist_markup(_, videoid, user_id, ptype, channel, fplay):
             ),
         ],
     ]
-    return buttons
 
+    return buttons
 
 def livestream_markup(_, videoid, user_id, mode, channel, fplay):
     return [

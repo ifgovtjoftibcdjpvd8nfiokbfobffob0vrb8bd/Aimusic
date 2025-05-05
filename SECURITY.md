@@ -1,29 +1,34 @@
-# Security Policy
+# 🔐 Security Policy
 
-## Supported Versions
+## ✅ Supported Versions
 
-We currently support the following versions with security updates:
+The following versions of the project are actively maintained with security updates:
 
 | Version | Supported |
-|---------|-----------|
-| 5.1.x   | ✅         |
-| 5.0.x   | ❌         |
-| 4.0.x   | ✅         |
-| < 4.0   | ❌         |
+| ------- | --------- |
+| v1.0    | ❌         |
+| v2.0    | ✅         |
 
-## Reporting a Vulnerability
+---
 
-If you discover a security vulnerability, please follow these steps:
+## 📣 Reporting a Vulnerability
 
-1. **Contact us privately.**  
-   Report the vulnerability to our security team at [rajnishmishraaa1@gmail.com](mailto:rajnishmishraaa1@gmail.com). Please do **not** create a public issue.
+If you find a security vulnerability, please follow the steps below to report it responsibly:
 
-2. **What to expect:**  
-   - We will acknowledge your report within 72 hours.
-   - We will work with you to assess the issue and determine a fix.
-   - We aim to release a patch within 30 days, depending on severity.
+### 1. Contact Us Privately
 
-3. **Responsible Disclosure:**  
-   Please avoid publicly disclosing the vulnerability until we have had a reasonable chance to address it.
+* Email your findings to: [rajnishmishraaa1@gmail.com](mailto:rajnishmishraaa1@gmail.com)
+* **Do not** open a public issue on GitHub to report security vulnerabilities.
 
-Thank you for helping us keep our project and users safe!
+### 2. What You Can Expect
+
+* We will acknowledge your report within **72 hours**.
+* Our team will work with you to verify and resolve the issue.
+* A security patch will be issued within **30 days**, depending on the severity.
+
+### 3. Responsible Disclosure Guidelines
+
+* Please keep the details of the vulnerability confidential until a fix is released.
+* We encourage and support responsible disclosure to ensure user safety.
+
+---

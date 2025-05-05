@@ -25,7 +25,7 @@ async def show_repo(_, msg):
         ],
         [
             InlineKeyboardButton("🛠️ ꜱᴜᴘᴘᴏʀᴛ ᴄʜᴀᴛ", url="https://t.me/CertifiedCoders"),
-            InlineKeyboardButton("🎵 ɢɪᴛʜᴜʙ", url="https://github.com/CertifiedCoders/ANNIE-X-MUSIC")
+            InlineKeyboardButton("🎵 ɢɪᴛʜᴜʙ", url="https://github.com/CertifiedCoders/AnnieXMusic")
         ]
     ]
 

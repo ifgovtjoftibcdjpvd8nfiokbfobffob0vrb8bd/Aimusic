@@ -56,7 +56,6 @@ In addition to music streaming, Annie also features some **Group Management** ca
 - 🎛 Admin & member tools (welcome messages, rules, etc.)
 
 ---
-
 ## 🚀 Features
 
 | 🌟 Feature              | 🔎 Description                        |
@@ -87,8 +86,8 @@ source ~/.bashrc
 nvm install node
 
 # Step 3 - Clone Annie Repo
-git clone https://github.com/CertifiedCoders/ANNIE-X-MUSIC
-cd ANNIE-X-MUSIC
+git clone https://github.com/CertifiedCoders/AnnieXMusic
+cd AnnieXMusic
 
 # Step 4 - Install Python packages
 pip3 install -U -r requirements.txt
@@ -106,7 +105,7 @@ sudo bash start
 # Developer Extras
 . tmux kill-session -t Annie    # Stop Bot Session
 . tmux attach-session -t Annie  # Attach to Running Bot Session
-. rm -rf ANNIE-X-MUSIC            # Full Uninstall
+. rm -rf AnnieXMusic            # Full Uninstall
 . Ctrl+B, release, then press D   # Detach from tmux
 
 ```
@@ -121,9 +120,9 @@ sudo bash start
 | Platform            | Link                                                                 |
 |---------------------|----------------------------------------------------------------------|
 | 🔑 Generate Session | <a href="https://t.me/CertifiedSessionBot"><img src="https://img.shields.io/badge/Session%20-Generator-orange?style=for-the-badge&logo=heroku" /></a> |
-| 🌍 Heroku Deploy     | <a href="http://dashboard.heroku.com/new?template=https://github.com/CertifiedCoders/ANNIE-X-MUSIC"><img src="https://img.shields.io/badge/Deploy%20to-Heroku-purple?style=for-the-badge&logo=heroku" /></a> |
-| ⚡ Render Deploy     | <a href="https://render.com/deploy?repo=https://github.com/CertifiedCoders/ANNIE-X-MUSIC"><img src="https://img.shields.io/badge/Deploy%20to-Render-blue?style=for-the-badge&logo=render" /></a> |
-| ☁️ Koyeb Deploy      | <a href="https://app.koyeb.com/deploy?type=git&repository=github.com/CertifiedCoders/ANNIE-X-MUSIC"><img src="https://img.shields.io/badge/Deploy%20to-Koyeb-green?style=for-the-badge&logo=koyeb" /></a> |
+| 🌍 Heroku Deploy     | <a href="http://dashboard.heroku.com/new?template=https://github.com/CertifiedCoders/AnnieXMusic"><img src="https://img.shields.io/badge/Deploy%20to-Heroku-purple?style=for-the-badge&logo=heroku" /></a> |
+| ⚡ Render Deploy     | <a href="https://render.com/deploy?repo=https://github.com/CertifiedCoders/AnnieXMusic"><img src="https://img.shields.io/badge/Deploy%20to-Render-blue?style=for-the-badge&logo=render" /></a> |
+| ☁️ Koyeb Deploy      | <a href="https://app.koyeb.com/deploy?type=git&repository=github.com/CertifiedCoders/AnnieXMusic"><img src="https://img.shields.io/badge/Deploy%20to-Koyeb-green?style=for-the-badge&logo=koyeb" /></a> |
 
 ---
 
@@ -132,15 +131,15 @@ sudo bash start
 ## 👥 Contributors, Stars & Forks
 
 <p align="center">
-  <img src="https://img.shields.io/github/contributors/CertifiedCoders/ANNIE-X-MUSIC?style=for-the-badge" />
-  <img src="https://img.shields.io/github/stars/CertifiedCoders/ANNIE-X-MUSIC?style=for-the-badge" />
-  <img src="https://img.shields.io/github/forks/CertifiedCoders/ANNIE-X-MUSIC?style=for-the-badge" />
-  <img src="https://img.shields.io/github/issues/CertifiedCoders/ANNIE-X-MUSIC?style=for-the-badge" />
+  <img src="https://img.shields.io/github/contributors/CertifiedCoders/AnnieXMusic?style=for-the-badge" />
+  <img src="https://img.shields.io/github/stars/CertifiedCoders/AnnieXMusic?style=for-the-badge" />
+  <img src="https://img.shields.io/github/forks/CertifiedCoders/AnnieXMusic?style=for-the-badge" />
+  <img src="https://img.shields.io/github/issues/CertifiedCoders/AnnieXMusic?style=for-the-badge" />
 </p>
 
 <p align="center">
-  <a href="https://github.com/CertifiedCoders/ANNIE-X-MUSIC/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=CertifiedCoders/ANNIE-X-MUSIC" />
+  <a href="https://github.com/CertifiedCoders/AnnieXMusic/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=CertifiedCoders/AnnieXMusic" />
   </a>
 </p>
 

@@ -10,7 +10,7 @@
     "pyrogram",
     "py-tgcalls",
     "streaming",
-    "annie-x-music"
+    "AnnieXMusic"
   ],
   "env": {
     "API_ID": {
